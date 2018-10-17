@@ -28,9 +28,9 @@ class Sentinel1(object):
 
         return
 
-    def getFloodMap(time_start,time_end):
+    def getFloodMap(self,time_start,time_end):
 
-        geom = ee.Geometry.Rectangle([gr.west,gr.south,gr.east,gr.north])
+        geom = ee.Geometry.Rectangle([self.gr.west,self.gr.south,self.gr.east,self.gr.north])
 
         mapResult = geeutils.s1WaterMap(geom,time_start,time_end,self.canny_threshold,
                                         self.canny_sigma,self.canny_lt,self.smoothing,

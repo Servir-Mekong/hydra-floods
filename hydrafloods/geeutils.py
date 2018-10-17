@@ -11,6 +11,9 @@ except EEException as e:
     )
     ee.Initialize(credentials)
 
+landShp = ee.FeatureCollection('USDOS/LSIB/2013')
+
+
 def getTileLayerUrl(ee_image_object):
     map_id = ee.Image(ee_image_object).getMapId()
     tile_url_template = "https://earthengine.googleapis.com/map/{mapid}/{{z}}/{{x}}/{{y}}?token={token}"
@@ -51,6 +54,9 @@ def s1WaterMap(geom,iniTime,endTime,
                edge_length=50,       # minimum length of edges from canny detection
                smooth_edges=100):
 
+    def spatialSelect(feature):
+        test = ee.Algorithms.If(geom.contains(feature.geometry()),feature,None)
+        return ee.Feature(test)
 
     collection = ee.ImageCollection('COPERNICUS/S1_GRD')\
                  .filterBounds(geom)\
@@ -87,7 +93,9 @@ def s1WaterMap(geom,iniTime,endTime,
 
     threshold = otsu_function(histogram.get('VV_histogram'));
 
-    water = smoothed.mask(smoothed.lt(threshold))
+    countries = landShp.filterBounds(geom).map(spatialSelect,True)
+
+    water = smoothed.mask(smoothed.lt(threshold)).clip(countries)
 
     mapUrl = getTileLayerUrl(water.visualize(palette='#9999ff'))
 
@@ -266,8 +274,8 @@ def JRCAlgorithm(geom,startDate, endDate, month=None):
     returnTime = totalWater.divide(totalObs).multiply(100)
 
     # make a mask
-    water = returnTime.gt(82).rename(['water'])
-    water = water.updateMask(water).clip(geom)
+    water = returnTime.gt(75).rename(['water'])
+    water = water.updateMask(water)
 
     return water
 
@@ -284,6 +292,12 @@ def getHistoricalMap(geom,iniTime,endTime,
                   cloud_thresh=10,
                   algorithm='SWT'):
 
+    def spatialSelect(feature):
+        test = ee.Algorithms.If(geom.contains(feature.geometry()),feature,None)
+        return ee.Feature(test)
+
+    countries = landShp.filterBounds(geom).map(spatialSelect,True)
+
     if climatology:
         if month == None:
             raise ValueError('Month needs to be defined to calculate climatology')
@@ -293,17 +307,17 @@ def getHistoricalMap(geom,iniTime,endTime,
         images = getLandsatCollection(geom,iniTime, endTime, climatology, month, defringe, cloud_thresh)
 
         # Height Above Nearest Drainage (HAND)
-        HAND = ee.Image('users/arjenhaag/SERVIR-Mekong/HAND_MERIT').clip(geom)
+        HAND = ee.Image('users/arjenhaag/SERVIR-Mekong/HAND_MERIT')
 
         # get HAND mask
         HAND_mask = HAND.gt(float(hand_thresh))
 
 
-        water = SurfaceWaterAlgorithm(geom,images, pcnt_perm, pcnt_temp, water_thresh, ndvi_thresh, HAND_mask)
+        water = SurfaceWaterAlgorithm(geom,images, pcnt_perm, pcnt_temp, water_thresh, ndvi_thresh, HAND_mask).clip(countries)
         waterMap = getTileLayerUrl(water.updateMask(water.eq(2)).visualize(min=0,max=2,palette='#ffffff,#9999ff,#00008b'))
 
     elif algorithm == 'JRC':
-        water = JRCAlgorithm(geom,iniTime,endTime)
+        water = JRCAlgorithm(geom,iniTime,endTime).clip(countries)
         waterMap = getTileLayerUrl(water.visualize(min=0,max=1,bands='water',palette='#ffffff,#00008b'))
 
     else:
@@ -340,5 +354,18 @@ def getPrecipMap(accumulation=1):
                                                 palette='#000080,#0045ff,#00fbb2,#67d300,#d8ff22,#ffbe0c,#ff0039,#c95df5,#fef8fe'
                                                )
                                )
-
     return precipMap
+
+def getAdminMap():
+    countries = ee.FeatureCollection('USDOS/LSIB_SIMPLE/2017')
+
+    # Create an empty image into which to paint the features, cast to byte.
+    empty = ee.Image().byte()
+
+    # Paint all the polygon edges with the same number and width, display.
+    outline = empty.paint(
+      featureCollection=countries,
+      width=2
+    )
+
+    return getTileLayerUrl(outline.visualize())
