@@ -356,8 +356,12 @@ def getPrecipMap(accumulation=1):
                                )
     return precipMap
 
-def getAdminMap():
-    countries = ee.FeatureCollection('USDOS/LSIB_SIMPLE/2017')
+def getAdminMap(geom):
+    def spatialSelect(feature):
+        test = ee.Algorithms.If(geom.contains(feature.geometry()),feature,None)
+        return ee.Feature(test)
+
+    countries = ee.FeatureCollection('USDOS/LSIB_SIMPLE/2017').map(spatialSelect,True)
 
     # Create an empty image into which to paint the features, cast to byte.
     empty = ee.Image().byte()
