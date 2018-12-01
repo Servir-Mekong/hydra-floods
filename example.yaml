@@ -1,0 +1,24 @@
+configuration:
+  name: test
+  # region: <path/to/file>
+  country: Cambodia
+  boundingbox:
+    - 97
+    - 5
+    - 106
+    - 21
+  credentials: /Users/kmarkert/credentials.netrc
+
+download:
+  products:
+    - landsat
+    - viirs
+    - atms
+  outdir: ./
+
+run:
+  products:
+    - landsat
+    - viirs
+    - atms
+  outdir: <path/to/output/directory>
