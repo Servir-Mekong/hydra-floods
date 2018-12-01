@@ -1,2 +1,3 @@
-from .geeutils import *
-from .datasets import *
+from . import fetch
+from . import geeutils
+from . import datasets

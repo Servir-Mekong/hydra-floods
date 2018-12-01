@@ -1,6 +1,19 @@
+import os
+import glob
+import gzip
 import netrc
+import shutil
 import ftplib
+import tarfile
+import requests
 import datetime
+import subprocess
+import pandas as pd
+from osgeo import gdal
+import geopandas as gpd
+from shapely import geometry
+from itertools import groupby
+from landsat.google_download import GoogleDownload
 
 def viirs(date,h,v,outdir='./',creds=None):
     """Function to download VIIRS NRT data for specified time and tile
@@ -24,39 +37,199 @@ def viirs(date,h,v,outdir='./',creds=None):
     acct = netrc.netrc(creds)
     usr,_,pswrd = acct.hosts['https://urs.earthdata.nasa.gov']
 
+    today = datetime.datetime.now()
+
+    if outdir[-1] != '/':
+        outdir = outdir+'/'
+
     basename = 'VNP09GA_NRT.A{0}{1:03d}.h{2:02d}v{3:02d}.001.h5'
 
-    yr = date.year
-    dt = (date-datetime.datetime(yr,1,1)).days + 1
+    if (today - date).days > 8:
+        yr = date.year
+        dt = (date-datetime.datetime(yr,1,1)).days + 1
+        url = 'https://e4ftl01.cr.usgs.gov//DP102/VIIRS/VNP09GA.001/{0}.{1:02d}.{2:02d}/'\
+                .format(yr,date.month,date.day)
+        with requests.Session() as s:
+            s.auth = (usr, pswrd)
 
-    url = 'nrt3.modaps.eosdis.nasa.gov'
-    directory = '/allData/5000/VNP09GA_NRT/Recent/'
+            r1 = s.request('get', url)
+            r = s.get(r1.url, auth=(usr, pswrd))
+
+            if r.ok:
+                result = r.content.split(' '.encode())
+                filtered = []
+                for i in result:
+                    if 'href'.encode() in i:
+                        this = i.split('"'.encode())[1]
+                        if this[-3:] =='.h5'.encode():
+                            filtered.append(this.decode("utf-8"))
+
+                print(filtered)
+                for f in filtered:
+                    if 'h{:02d}'.format(h) in f\
+                    and 'v{:02d}'.format(v)  in f:
+                        filename = basename.format(yr,dt,h,v)
+                        outFile = outdir + filename
+                        if os.path.exists(outFile) != True:
+                            newurl = url+f
+                            r3 = s.request('get', newurl)
+                            r4 = s.get(r3.url, auth=(usr, pswrd))
+
+                            with open(outFile, 'wb') as this:
+                                this.write(r4.content) # Say
+
+    else:
+        yr = date.year
+        dt = (date-datetime.datetime(yr,1,1)).days + 1
+
+        url = 'https://nrt3.modaps.eosdis.nasa.gov/api/v2/content/archives/allData/5000/VNP09GA_NRT/Recent/'
+        filename = basename.format(yr,dt,h,v)
+        fileUrl = url + filename
+
+        outFile = outdir + filename
+        if os.path.exists(outFile) != True:
+            with requests.Session() as s:
+                s.auth = (usr, pswrd)
+
+                r1 = s.request('get', fileUrl)
+                r2 = s.get(r1.url, auth=(usr, pswrd))
+
+                with open(outFile, 'wb') as f:
+                   f.write(r2.content)
+
+    return outFile
+
+def modis(date,h,v,outdir='./',creds=None):
+    return
+
+
+def landsat(date,p,r,outdir='./',updateScenes=False,maxClouds=100):
+    if outdir[-1] != '/':
+        outdir = outdir+'/'
+
+    if updateScenes == True:
+        # get the latest scene metadata
+        subprocess.run(['landsat', '--update-scenes'],shell=True)
+
+    sDate = (date - datetime.timedelta(1)).strftime('%Y-%m-%d')
+    eDate = (date + datetime.timedelta(1)).strftime('%Y-%m-%d')
+
+    downloader = GoogleDownload(sDate,eDate,8,path=p, row=r,
+                                max_cloud_percent=maxClouds,
+                                output_path=outdir)
+
+    search = list(downloader.scenes_low_cloud.SCENE_ID)
+
+    if len(search) == 1:
+        fileList = search[0]
+        downloader.download()
+    else: fileList = None
+
+    return None
+
+def atms(date,outdir='./',creds=None):
+    if outdir[-1] != '/':
+        outdir = outdir+'/'
+
+    today = datetime.datetime.now()
+
+    tDiff = (today-date).days
+
+    if tDiff > 95:
+        raise ValueError('date argument is outside of range, must be within 95days of today')
+
+    url = 'ftp-npp.bou.class.noaa.gov'
 
     ftp = ftplib.FTP(url)
-    ftp.login(usr,pswrd)
+    ftp.login('anonymous','anonymous')
 
-    ftp.cwd(directory)
+    dateStr = date.strftime('%Y%m%d')
 
-    filename = basename.format(yr,dt,h,v)
-    with open(outdir + filename, 'wb') as f:
-       ftp.retrbinary('RETR ' + filename, f.write)
+    products = ['ATMS-SDR-Ellipsoid-Geo','ATMS-SDR']
+
+    basepath = '~/{0}/ATMS-SDR/{1}/NPP/'
+
+    tarballs = []
+    for i in products:
+        ftp.cwd(basepath.format(dateStr,i))
+        files = ftp.nlst()
+        for file in files:
+            if file[-4:] == '.tar':
+                outFile = outdir + file
+                tarballs.append(outFile)
+                if os.path.exists(outFile) != True:
+                    with open(outFile, 'wb') as f:
+                       ftp.retrbinary('RETR ' + file, f.write)
 
     ftp.close()
 
-    return
+    for t in tarballs:
+        with tarfile.open(t,'r') as tar:
+            tar.extractall(path=outdir)
 
-def atms(date,outdir='./'creds=None):
-    if outdir[-1] != '/':
-        outdir = outdir+'/'
-        
-    
-    
-    return
+    swathballs = glob.glob(os.path.join(outdir,'*.gz'))
+    for sb in swathballs:
+        outFile = sb[:-3]
 
-if __name__ == "__main__":
-    outdir = '/home/ubuntu/hydra/data/'
-    creds = '/home/ubuntu/hydra/earthdata.netrc'
-    h = 27
-    v = 7
-    now = datetime.datetime.now() - datetime.timedelta(1)
-    fetchNrtViirs(now,h,v,outdir,creds)
+        with gzip.open(sb,'rb') as f_in, open(outFile,"wb") as f_out:
+            shutil.copyfileobj(f_in, f_out)
+        os.remove(sb)
+
+    fileList = glob.glob(os.path.join(outdir,'*.h5'))
+
+    return fileList
+
+def spatialSwathFilter(region,h5files,subgroup='//All_Data/ATMS-SDR-GEO_All/'):
+    sortKey = lambda x: x.split('_')[-6]
+    swathGroups, keys = [],[]
+    for k,g in groupby(sorted(h5files,key=sortKey),sortKey):
+        swathGroups.append(list(g))
+        keys.append(k)
+
+    geoms,sdrnames,geonames = [],[],[]
+    for sg in swathGroups:
+        geoFile,sdrFile = sorted(sg)
+
+        geoBase = 'HDF5:"{0}":{1}{2}'
+
+        lats = gdal.Open(geoBase.format(geoFile,subgroup,'Latitude')).ReadAsArray()
+        lons = gdal.Open(geoBase.format(geoFile,subgroup,'Longitude')).ReadAsArray()
+
+        wVerts = [(lons[i,0],lats[i,0]) for i in range(lats.shape[0]) if (lons[i,0]>-200)and(lats[i,0]>-200)][::-1]
+        nVerts = [(lons[0,i],lats[0,i]) for i in range(lats.shape[1]) if (lons[0,i]>-200)and(lats[0,i]>-200)]
+        eVerts = [(lons[i,-1],lats[i,-1]) for i in range(lats.shape[0]) if (lons[i,-1]>-200)and(lats[i,-1]>-200)]
+        sVerts = [(lons[-1,i],lats[-1,i]) for i in range(lats.shape[1]) if (lons[-1,i]>-200)and(lats[-1,i]>-200)]
+        sVerts.append(wVerts[0])
+
+        verts = wVerts + nVerts + eVerts + sVerts
+        geoms.append(geometry.Polygon(verts))
+        sdrnames.append(sdrFile)
+        geonames.append(geoFile)
+
+    swathGeo = gpd.GeoDataFrame(pd.DataFrame({'sdr':sdrnames,'geo':geonames,'geometry':geoms}),geometry=geoms)
+    swathGeo.crs = {'init':'epsg:4326'}
+
+    intersection = gpd.overlay(region,swathGeo,how='intersection')
+
+    return list(intersection.sdr),list(intersection.geo)
+
+def findTiles(region, tiles):
+    """Returns the tile IDs that need to be downloaded for
+    a given region bounded by *region*."""
+
+    if region is None:
+        raise ValueError("No bounding box provided for study area. Aborting download!")
+        ids = None
+    else:
+        intersection = gpd.overlay(region,tiles,how='intersection')
+
+        if 'PATH' in intersection.columns:
+            h,v = 'PATH','ROW'
+        elif 'h' in intersection.columns:
+            h,v = 'h','v'
+        else:
+            raise AttributeError('cannot parse the needed tile information from provided geopadas dataframe')
+
+        ids = [(intersection.iloc[i][h],intersection.iloc[i][v]) for i in range(len(intersection))]
+
+    return ids
