@@ -1,3 +1,4 @@
 from . import fetch
 from . import geeutils
-from . import datasets
+from . import processing
+from . import hfcli
