@@ -1,5 +1,5 @@
 configuration:
-  name: test
+  name: example
   # region: <path/to/file>
   country: Cambodia
   boundingbox:
@@ -7,18 +7,23 @@ configuration:
     - 5
     - 106
     - 21
-  credentials: /Users/kmarkert/credentials.netrc
 
 download:
-  products:
-    - landsat
-    - viirs
-    - atms
+  credentials: /Users/kmarkert/credentials.netrc
   outdir: ./
 
-run:
-  products:
-    - landsat
-    - viirs
-    - atms
-  outdir: <path/to/output/directory>
+process:
+  atms:
+    hand: /Users/kmarkert/Documents/Kel/misc/hydra/mer_mm_h1ki.tif
+    # seed: <path/to/seed/file.tif>
+    daily: True
+
+  landsat:
+
+  viirs:
+    downscale: False
+    # slaveDate: 2019-01-01
+    transform: True
+
+
+  outdir: ./
