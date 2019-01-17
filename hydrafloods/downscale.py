@@ -42,7 +42,6 @@ class STARFM(object):
         else:
             Cijk = Sijk * Tijk * Dijk
 
-
         Wijk = (1/Cijk) / np.sum(1/Cijk)
 
         return Wijk
@@ -129,20 +128,21 @@ class USTARFM(object):
         return
 
 class Bathtub(object):
-    def __init__(self,gr,probablistic=False,demStdDev=4.2):
+    def __init__(self,gr,probablistic=False,demStdDev=4.2,nIter=100):
         self.gr = gr
 
         return
 
     def selGridByCell(self,i,j,fWater,hand):
-        cell = fWaterSel.isel(dict(lat=i,lon=j))
+        cell = fWater.isel(dict(lat=i,lon=j))
         x = cell.coords['lon'].values
         y = cell.coords['lat'].values
-        res = atms.attrs['resolution']
+        res = fWater.attrs['resolution']
         return hand.sel(dict(lat=slice(y+res,y-res),lon=slice(x-res,x+res)))
 
     def grids2raster(self,fWater,raster,grids,yRange,xRange):
         remap = raster.copy()
+        remap[:,:,:,:,:] = -32768
         # print(remap.shape)
         cnt = 0
         # print(grids[0].shape)
@@ -151,81 +151,92 @@ class Bathtub(object):
                 cell = fWater.isel(dict(lat=i,lon=j))
                 x = cell.coords['lon'].values
                 y = cell.coords['lat'].values
-                res = atms.attrs['resolution']
+                res = fWater.attrs['resolution']
                 remap.sel(dict(lat=slice(y+res,y-res),lon=slice(x-res,x+res)))[:,:,:,:,:] = grids[cnt].values
                 cnt += 1
 
+        remap.coords['band'] = ['water','mask']
+
         return remap
 
-    def fillGrid(self,grid,fraction):
+    def fillGrid(self,grid,fraction,seed=None):
 
         water = grid.copy()
-        water.values = np.zeros(water.shape)
-
-        elv = range(15)
-
-        results = list(map(lambda x: xr.where(grid==x,x+1,water),elv))
-        result = xr.concat(results,dim='z')
-
-        depth = result.sum(dim='z')
-        depth = xr.where(depth==0,30,depth)
-
-        simFracs = list(map(lambda x: depth.where(depth<=x).count().values / float(depth.size),elv))
-        diff = np.array(list(map(lambda x: simFracs[x] - fraction, elv)))
-        absDiff = np.abs(diff)
-
-        maxDepth = absDiff.argmin()
-        try:
-            minDepth = np.where(diff<=0)[0].argmax()
-        except:
-            minDepth = 0
-        resid = diff[maxDepth]
-
-        simWater = depth <= maxDepth
-
-        dFlat = depth.isel(dict(time=0,band=0))
-
-        if resid > 0:
-            rIdx = np.where(dFlat == maxDepth)
-            rand = np.zeros(dFlat.shape) + rIdx[0].size
-
-            rand[rIdx[0],rIdx[1]] = np.random.random(rIdx[0].size) * rIdx[0].size
-
-            thresh = rIdx[0].size * (fraction / simFracs[maxDepth])
-
-            residWater = rand<thresh
+        if np.isnan(fraction):
+            final = water.copy()
+            final[:,:,:,:,:] = 0
 
         else:
-            residWater = np.zeros(dFlat.shape)
+            water.values = np.zeros(water.shape)
 
-        residWater = xr.DataArray(residWater,coords={'lat':simWater.coords['lat'].values,
-                                                     'lon':simWater.coords['lon'].values},
-                                             dims=['lat','lon'])
+            elv = range(15)
 
-        final = simWater.astype(np.bool) | residWater.astype(np.bool)
-        final = final.expand_dims('z').transpose('lat','lon','z','band','time')
+            results = list(map(lambda x: xr.where(grid==x,x+1,water),elv))
+            result = xr.concat(results,dim='z')
+
+            depth = result.sum(dim='z')
+            depth = xr.where(depth==0,30,depth)
+
+            simFracs = list(map(lambda x: depth.where(depth<=x).count().values / float(depth.size),elv))
+            diff = np.array(list(map(lambda x: simFracs[x] - fraction, elv)))
+            absDiff = np.abs(diff)
+
+            maxDepth = absDiff.argmin()
+            resid = diff[maxDepth-1]
+
+            simWater = depth <= maxDepth
+
+            dFlat = depth.isel(dict(time=0,band=0))
+
+            if resid > 0:
+                rIdx = np.where(dFlat == maxDepth)
+                rand = np.zeros(dFlat.shape) + rIdx[0].size
+
+                rand[rIdx[0],rIdx[1]] = np.random.random(rIdx[0].size) * rIdx[0].size
+
+                thresh = rIdx[0].size * (fraction / simFracs[maxDepth])
+
+                residWater = rand<thresh
+
+            else:
+                residWater = np.zeros(dFlat.shape)
+
+            residWater = xr.DataArray(residWater,coords={'lat':simWater.coords['lat'].values,
+                                                         'lon':simWater.coords['lon'].values},
+                                                 dims=['lat','lon'])
+
+            final = simWater.astype(np.bool) | residWater.astype(np.bool)
+            final = final.expand_dims('z').transpose('lat','lon','z','band','time')
 
         return final
 
 
-    def apply(self,fWater,hand):
-        fWaterSel = fWater.sel(dict(lat=slice(self.gr.north,self.gr.south),
-                                    lon=slice(self.gr.west,self.gr.east)))
+    def apply(self,fWater,hand,seedRaster=None,parallel=False):
 
-        handSel = hand.sel(dict(lat=slice(self.gr.north,self.gr.south),
-                                lon=slice(self.gr.west,self.gr.east)))
-
-        xDim = range(len(fWaterSel.coords['lon'].values))
-        yDim = range(len(fWaterSel.coords['lat'].values))
+        xDim = range(len(fWater.coords['lon'].values))
+        yDim = range(len(fWater.coords['lat'].values))
 
         idxs = [[i,j] for i in yDim for j in xDim]
 
-        fracs = map(lambda i: fWaterSel.isel(dict(lat=i[0],lon=i[1])).values.flatten()[0], idxs)
-        grids = map(lambda i: self.selGridByCell(i[0],i[1],fWaterSel,handSel),idxs)
+        fracs = list(map(lambda i: fWater.isel(dict(lat=i[0],lon=i[1])).values.flatten()[0], idxs))
+        grids = list(map(lambda i: self.selGridByCell(i[0],i[1],fWater,hand),idxs))
 
-        args = zip(*[grids,fracs])
-        waterGrids = map(lambda x: fillGrid(x[0],x[1]),args)
+        args = list(zip(*[grids,fracs]))
+
+        if parallel==True:
+            ncores = mp.cpu_count() - 1
+            p = mp.Pool(ncores)
+            waterGrids = p.map(self._applyParallel,args)
+
+        else:
+            waterGrids = list(map(lambda x: self.fillGrid(x[0],x[1]),args))
 
         waterMap = self.grids2raster(fWater,hand,waterGrids,yDim,xDim)
+        waterMap = waterMap.isel(band=slice(0,1))
+        waterMap.coords['bands'] = 'water'
 
         return waterMap
+
+    def _applyParallel(self,args):
+        grid,frac = args
+        return self.fillGrid(grid,frac)
