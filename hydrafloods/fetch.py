@@ -8,6 +8,7 @@ import tarfile
 import requests
 import datetime
 import subprocess
+import numpy as np
 import pandas as pd
 from osgeo import gdal
 import geopandas as gpd
@@ -179,21 +180,32 @@ def atms(date,outdir='./',creds=None):
 
     return fileList
 
-def spatialSwathFilter(region,h5files,subgroup='//All_Data/ATMS-SDR-GEO_All/'):
+def groupSwathFiles(h5files):
     sortKey = lambda x: x.split('_')[-6]
     swathGroups, keys = [],[]
     for k,g in groupby(sorted(h5files,key=sortKey),sortKey):
-        swathGroups.append(list(g))
+        swathGroups.append(sorted(list(g)))
         keys.append(k)
+    return swathGroups
+
+
+def spatialSwathFilter(region,h5files,subgroup='//All_Data/ATMS-SDR-GEO_All/'):
+    swathGroups = groupSwathFiles(h5files)
 
     geoms,sdrnames,geonames = [],[],[]
     for sg in swathGroups:
-        geoFile,sdrFile = sorted(sg)
+        geoFile,sdrFile = sg
 
         geoBase = 'HDF5:"{0}":{1}{2}'
 
         lats = gdal.Open(geoBase.format(geoFile,subgroup,'Latitude')).ReadAsArray()
         lons = gdal.Open(geoBase.format(geoFile,subgroup,'Longitude')).ReadAsArray()
+        view = gdal.Open(geoBase.format(geoFile,subgroup,'SatelliteZenithAngle')).ReadAsArray()
+
+        yp,xp = np.where(view<50)
+        minindex,maxindex = xp.min(),xp.max()
+        lons = lons[:,minindex:maxindex]
+        lats = lats[:,minindex:maxindex]
 
         wVerts = [(lons[i,0],lats[i,0]) for i in range(lats.shape[0]) if (lons[i,0]>-200)and(lats[i,0]>-200)][::-1]
         nVerts = [(lons[0,i],lats[0,i]) for i in range(lats.shape[1]) if (lons[0,i]>-200)and(lats[0,i]>-200)]

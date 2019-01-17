@@ -1,4 +1,5 @@
 from __future__ import print_function,division
+import datetime
 import numpy as np
 from scipy import ndimage
 from PIL import Image, ImageDraw
@@ -117,3 +118,31 @@ def mask(linearRing,yCoords,xCoords):
     mask = np.array(img)
 
     return mask
+
+def decode_date(string):
+  """Decodes a date from a command line argument, returning msec since epoch".
+  Args:
+    string: See AssetSetCommand class comment for the allowable
+      date formats.
+  Returns:
+    long, ms since epoch
+  Raises:
+    argparse.ArgumentTypeError: if string does not conform to a legal
+      date format.
+  """
+
+  try:
+    return int(string)
+  except ValueError:
+    date_formats = ['%Y%m%d',
+                    '%Y-%m-%d',
+                    '%Y-%m-%dT%H:%M:%S',
+                    '%Y-%m-%dT%H:%M:%S.%f']
+    for date_format in date_formats:
+      try:
+        dt = datetime.datetime.strptime(string, date_format)
+        return dt
+      except ValueError:
+        continue
+  raise argparse.ArgumentTypeError(
+      'Invalid value for property of type "date": "%s".' % string)
