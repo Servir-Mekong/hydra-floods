@@ -85,7 +85,6 @@ def viirs(date,h,v,outdir='./',creds=None,product=None):
         url = 'https://nrt3.modaps.eosdis.nasa.gov/api/v2/content/archives/allData/5000/{0}/Recent/'.format(product+'_NRT')
         filename = basename.format(product+'_NRT',yr,dt,h,v)
         fileUrl = url + filename
-        print(fileUrl)
 
         outFile = outdir + filename
         if os.path.exists(outFile) != True:
@@ -124,7 +123,7 @@ def modis(date,h,v,outdir='./',creds=None,platform='terra',product=None):
         dt = (date-datetime.datetime(yr,1,1)).days + 1
         url = 'https://e4ftl01.cr.usgs.gov/{0}/{1}.006/{2}.{3:02d}.{4:02d}/'\
                 .format(sensor,product,yr,date.month,date.day)
-        print(url)
+
         with requests.Session() as s:
             s.auth = (usr, pswrd)
 
