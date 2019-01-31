@@ -12,6 +12,12 @@ download:
   credentials: /Users/kmarkert/credentials.netrc
   outdir: ./
 
+  viirs:
+    product: VNP09GA
+  modis:
+    product: MYD09GQ
+    platform: aqua
+
 process:
   atms:
     hand: /Users/kmarkert/Documents/Kel/misc/hydra/mer_mm_h1ki.tif
@@ -24,6 +30,5 @@ process:
     downscale: False
     # slaveDate: 2019-01-01
     transform: True
-
 
   outdir: ./

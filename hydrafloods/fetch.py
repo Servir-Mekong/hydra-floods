@@ -16,7 +16,7 @@ from shapely import geometry
 from itertools import groupby
 from landsat.google_download import GoogleDownload
 
-def viirs(date,h,v,outdir='./',creds=None):
+def viirs(date,h,v,outdir='./',creds=None,product=None):
     """Function to download VIIRS NRT data for specified time and tile
 
     Args:
@@ -43,13 +43,13 @@ def viirs(date,h,v,outdir='./',creds=None):
     if outdir[-1] != '/':
         outdir = outdir+'/'
 
-    basename = 'VNP09GA_NRT.A{0}{1:03d}.h{2:02d}v{3:02d}.001.h5'
+    basename = '{0}.A{1}{2:03d}.h{3:02d}v{4:02d}.001.h5'
 
     if (today - date).days > 8:
         yr = date.year
         dt = (date-datetime.datetime(yr,1,1)).days + 1
-        url = 'https://e4ftl01.cr.usgs.gov//DP102/VIIRS/VNP09GA.001/{0}.{1:02d}.{2:02d}/'\
-                .format(yr,date.month,date.day)
+        url = 'https://e4ftl01.cr.usgs.gov/DP102/VIIRS/{0}.001/{1}.{2:02d}.{3:02d}/'\
+                .format(product,yr,date.month,date.day)
         with requests.Session() as s:
             s.auth = (usr, pswrd)
 
@@ -65,11 +65,10 @@ def viirs(date,h,v,outdir='./',creds=None):
                         if this[-3:] =='.h5'.encode():
                             filtered.append(this.decode("utf-8"))
 
-                print(filtered)
                 for f in filtered:
                     if 'h{:02d}'.format(h) in f\
                     and 'v{:02d}'.format(v)  in f:
-                        filename = basename.format(yr,dt,h,v)
+                        filename = basename.format(product,yr,dt,h,v)
                         outFile = outdir + filename
                         if os.path.exists(outFile) != True:
                             newurl = url+f
@@ -83,9 +82,10 @@ def viirs(date,h,v,outdir='./',creds=None):
         yr = date.year
         dt = (date-datetime.datetime(yr,1,1)).days + 1
 
-        url = 'https://nrt3.modaps.eosdis.nasa.gov/api/v2/content/archives/allData/5000/VNP09GA_NRT/Recent/'
-        filename = basename.format(yr,dt,h,v)
+        url = 'https://nrt3.modaps.eosdis.nasa.gov/api/v2/content/archives/allData/5000/{0}/Recent/'.format(product+'_NRT')
+        filename = basename.format(product+'_NRT',yr,dt,h,v)
         fileUrl = url + filename
+        print(fileUrl)
 
         outFile = outdir + filename
         if os.path.exists(outFile) != True:
@@ -100,8 +100,79 @@ def viirs(date,h,v,outdir='./',creds=None):
 
     return outFile
 
-def modis(date,h,v,outdir='./',creds=None):
-    return
+def modis(date,h,v,outdir='./',creds=None,platform='terra',product=None):
+    if outdir[-1] != '/':
+        outdir = outdir+'/'
+
+    acct = netrc.netrc(creds)
+    usr,_,pswrd = acct.hosts['https://urs.earthdata.nasa.gov']
+
+    today = datetime.datetime.now()
+
+    if platform.lower() in ['terra','aqua']:
+        if platform.lower() == 'terra':
+            sensor = 'MOLT'
+        else:
+            sensor = 'MOLA'
+    else:
+        raise ValueError('platform options are "terra"|"aqua" entered values is : {}'.format(platform))
+
+    basename = '{0}.A{1}{2:03d}.h{3:02d}v{4:02d}.006.hdf'
+
+    if (today - date).days > 8:
+        yr = date.year
+        dt = (date-datetime.datetime(yr,1,1)).days + 1
+        url = 'https://e4ftl01.cr.usgs.gov/{0}/{1}.006/{2}.{3:02d}.{4:02d}/'\
+                .format(sensor,product,yr,date.month,date.day)
+        print(url)
+        with requests.Session() as s:
+            s.auth = (usr, pswrd)
+
+            r1 = s.request('get', url)
+            r = s.get(r1.url, auth=(usr, pswrd))
+
+            if r.ok:
+                result = r.content.split(' '.encode())
+                filtered = []
+                for i in result:
+                    if 'href'.encode() in i:
+                        this = i.split('"'.encode())[1]
+                        if this[-4:] =='.hdf'.encode():
+                            filtered.append(this.decode("utf-8"))
+
+                for f in filtered:
+                    if 'h{:02d}'.format(h) in f\
+                    and 'v{:02d}'.format(v)  in f:
+                        filename = basename.format(product,yr,dt,h,v)
+                        outFile = outdir + filename
+                        if os.path.exists(outFile) != True:
+                            newurl = url+f
+                            r3 = s.request('get', newurl)
+                            r4 = s.get(r3.url, auth=(usr, pswrd))
+
+                            with open(outFile, 'wb') as this:
+                                this.write(r4.content) # Say
+
+    else:
+        yr = date.year
+        dt = (date-datetime.datetime(yr,1,1)).days + 1
+
+        url = 'https://nrt3.modaps.eosdis.nasa.gov/api/v2/content/archives/allData/6/{0}/Recent/'.format(product)
+        filename = basename.format(product,yr,dt,h,v)
+        fileUrl = url + filename[:-4] + '.NRT.hdf'
+
+        outFile = outdir + filename
+        if os.path.exists(outFile) != True:
+            with requests.Session() as s:
+                s.auth = (usr, pswrd)
+
+                r1 = s.request('get', fileUrl)
+                r2 = s.get(r1.url, auth=(usr, pswrd))
+
+                with open(outFile, 'wb') as f:
+                   f.write(r2.content)
+
+    return outFile
 
 
 def landsat(date,p,r,outdir='./',updateScenes=False,maxClouds=100):

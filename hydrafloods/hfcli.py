@@ -67,6 +67,10 @@ class hydrafloods(object):
                 warning.warn("output dir for downloading could not be parsed from provided yaml file, setting output dir to current dir",
                             UserWarning)
                 self.ftchOut = './'
+            if 'viirs' in ftchKeys:
+                self.viirsFetch = ftch['viirs']
+            if 'modis' in ftchKeys:
+                self.modisFetch = ftch['modis']
 
             if 'atms' in prcsKeys:
                 self.atmsParams = prcs['atms']
@@ -89,9 +93,8 @@ class hydrafloods(object):
 
     def download(self, product, date,return_list=False):
         date = utils.decode_date(date)
-        print(date)
 
-        if product in ['atms','viirs','landsat']:
+        if product in ['atms','viirs','landsat','modis']:
             dateDir = os.path.join(self.ftchOut,date.strftime('%Y%m%d'))
             if os.path.exists(dateDir) == False:
                 os.mkdir(dateDir)
@@ -112,10 +115,23 @@ class hydrafloods(object):
                 files = [f for f in files if f is not None]
 
             elif product == 'viirs':
+                product = self.viirsFetch['product']
                 tileShp = gpd.read_file(os.path.join(self.filePath,'data/viirs_sinu.geojson'))
                 downTiles = fetch.findTiles(self.region,tileShp)
 
-                files = list(map(lambda x: fetch.viirs(date,x[0],x[1],prodDir,creds=self.credentials)
+                files = list(map(lambda x: fetch.viirs(date,x[0],x[1],prodDir,creds=self.credentials,
+                                                       product=product)
+                                ,downTiles)
+                            )
+
+            elif product == 'modis':
+                product,platform = self.modisFetch['product'],self.modisFetch['platform']
+                tileShp = gpd.read_file(os.path.join(self.filePath,'data/viirs_sinu.geojson'))
+                downTiles = fetch.findTiles(self.region,tileShp)
+                print(downTiles)
+
+                files = list(map(lambda x: fetch.modis(date,x[0],x[1],prodDir,creds=self.credentials,
+                                                       product=product,platform=platform)
                                 ,downTiles)
                             )
 
