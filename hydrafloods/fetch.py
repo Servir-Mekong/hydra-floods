@@ -15,6 +15,7 @@ import geopandas as gpd
 from shapely import geometry
 from itertools import groupby
 from landsat.google_download import GoogleDownload
+from landsat.update_landsat_metadata import update_metadata_lists
 
 def viirs(date,h,v,outdir='./',creds=None,product=None):
     """Function to download VIIRS NRT data for specified time and tile
@@ -99,7 +100,7 @@ def viirs(date,h,v,outdir='./',creds=None,product=None):
 
     return outFile
 
-def modis(date,h,v,outdir='./',creds=None,platform='terra',product=None):
+def modis(date,h,v,outdir='./',creds=None,product=None):
     if outdir[-1] != '/':
         outdir = outdir+'/'
 
@@ -108,13 +109,14 @@ def modis(date,h,v,outdir='./',creds=None,platform='terra',product=None):
 
     today = datetime.datetime.now()
 
-    if platform.lower() in ['terra','aqua']:
-        if platform.lower() == 'terra':
+    if product:
+        platform = product[:3]
+        if platform.upper() == 'MOD':
             sensor = 'MOLT'
         else:
             sensor = 'MOLA'
     else:
-        raise ValueError('platform options are "terra"|"aqua" entered values is : {}'.format(platform))
+        raise ValueError('product keyword was provided as None please specify product to fetch')
 
     basename = '{0}.A{1}{2:03d}.h{3:02d}v{4:02d}.006.hdf'
 
@@ -178,9 +180,9 @@ def landsat(date,p,r,outdir='./',updateScenes=False,maxClouds=100):
     if outdir[-1] != '/':
         outdir = outdir+'/'
 
-    if updateScenes == True:
-        # get the latest scene metadata
-        subprocess.run(['landsat', '--update-scenes'],shell=True)
+    # if updateScenes:
+    #     # get the latest landsat metadata
+    #     update_metadata_lists()
 
     sDate = (date - datetime.timedelta(1)).strftime('%Y-%m-%d')
     eDate = (date + datetime.timedelta(1)).strftime('%Y-%m-%d')
