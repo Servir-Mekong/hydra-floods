@@ -1,4 +1,5 @@
 import ee
+from ee.ee_exception import EEException
 import datetime
 
 try:
