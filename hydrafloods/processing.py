@@ -1,8 +1,5 @@
 import ee
 import numpy as np
-import xarray as xr
-import pysptools.eea as eea
-import pysptools.abundance_maps as amp
 from skimage.morphology import disk
 from skimage.filters import threshold_otsu, rank
 
@@ -10,11 +7,25 @@ import rastersmith as rs
 
 from . import geeutils, downscale
 
-class Sentinel1(object):
-    def __init__(self,):
+
+class eeProcess(object):
+    def __init__(time_start,time_end,region):
+        self.iniTime = time_start
+        self.endTime = time_end
+        self.region = region
+
+    def export(self,image):
+
+
+
+class Sentinel1(eeProcess):
+    def __init__(self,time_start,time_end,region):
+        eeProcess.__init__(self,time_start,time_end,region)
         return
 
     @staticmethod
+    def exportFloodMap()
+
     def getFloodMap(gr,time_start,time_end,
                     canny_threshold=7,    # threshold for canny edge detection
                     canny_sigma=1,        # sigma value for gaussian filter
