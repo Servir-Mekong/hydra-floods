@@ -1,5 +1,8 @@
 import ee
 from ee.ee_exception import EEException
+import math
+import string
+import random
 import datetime
 
 try:
@@ -14,12 +17,46 @@ except EEException as e:
 
 landShp = ee.FeatureCollection('USDOS/LSIB/2013')
 
+# helper function to convert qa bit image to flag
+def extractBits(image, start, end, newName):
+    # Compute the bits we need to extract.
+    pattern = 0;
+    for i in range(start,end):
+       pattern += int(math.pow(2, i))
+
+    # Return a single band image of the extracted QA bits, giving the band
+    # a new name.
+    return image.select([0], [newName])\
+                  .bitwiseAnd(pattern)\
+                  .rightShift(start);
+
 
 def getTileLayerUrl(ee_image_object):
     map_id = ee.Image(ee_image_object).getMapId()
     tile_url_template = "https://earthengine.googleapis.com/map/{mapid}/{{z}}/{{x}}/{{y}}?token={token}"
     return tile_url_template.format(**map_id)
 
+
+def exportImage(image,region,assetId,description=None,scale=90,crs='EPSG:4326'):
+    if (description == None) or (type(description) != str):
+        description = ''.join(random.SystemRandom().choice(
+        string.ascii_letters) for _ in range(8)).lower()
+    # get serializable geometry for export
+    exportRegion = region.bounds().getInfo()['coordinates']
+
+    # set export process
+    export = ee.batch.Export.image.toAsset(image,
+      description = description,
+      assetId = assetId,
+      scale = scale,
+      region = exportRegion,
+      maxPixels = 1e13,
+      crs = crs
+    )
+    # start export process
+    export.start()
+
+    return
 
 def otsu_function(histogram):
     counts = ee.Array(ee.Dictionary(histogram).get('histogram'))
@@ -46,27 +83,20 @@ def otsu_function(histogram):
     return output
 
 
-def s1WaterMap(geom,iniTime,endTime,
-               canny_threshold=7,    # threshold for canny edge detection
-               canny_sigma=1,        # sigma value for gaussian filter
-               canny_lt=7,           # lower threshold for canny detection
-               smoothing=100,        # amount of smoothing in meters
-               connected_pixels=200, # maximum size of the neighborhood in pixels
-               edge_length=50,       # minimum length of edges from canny detection
-               smooth_edges=100):
+def bootstrapOtsu(collection,target_date,
+                  canny_threshold=7,    # threshold for canny edge detection
+                  canny_sigma=1,        # sigma value for gaussian filter
+                  canny_lt=7,           # lower threshold for canny detection
+                  smoothing=100,        # amount of smoothing in meters
+                  connected_pixels=200, # maximum size of the neighborhood in pixels
+                  edge_length=50,       # minimum length of edges from canny detection
+                  smooth_edges=100):
 
-    def spatialSelect(feature):
-        test = ee.Algorithms.If(geom.contains(feature.geometry()),feature,None)
-        return ee.Feature(test)
+    tDate = ee.Date(target_date)
+    target = collection.filterDate(tDate,tDate.advance(1,'day')).mean()\
+                        .focal_median(smoothing, 'circle', 'meters')
 
-    collection = ee.ImageCollection('COPERNICUS/S1_GRD')\
-                 .filterBounds(geom)\
-                 .filter(ee.Filter.listContains('transmitterReceiverPolarisation', 'VV'))\
-                 .select('VV').filterDate(iniTime, endTime)
-
-    after = collection.mosaic()
-
-    smoothed = after.focal_median(smoothing, 'circle', 'meters')
+    smoothed = collection.mosaic().focal_median(smoothing, 'circle', 'meters')
 
     canny = ee.Algorithms.CannyEdgeDetector(smoothed,canny_threshold,canny_sigma)
 
@@ -94,13 +124,9 @@ def s1WaterMap(geom,iniTime,endTime,
 
     threshold = otsu_function(histogram.get('VV_histogram'));
 
-    countries = landShp.filterBounds(geom).map(spatialSelect,True)
+    water = target.mask(target.lt(threshold)).clip(landShp.geometry())
 
-    water = smoothed.mask(smoothed.lt(threshold)).clip(countries)
-
-    mapUrl = getTileLayerUrl(water.visualize(palette='#9999ff'))
-
-    return mapUrl
+    return water
 
 
 

@@ -1,242 +1,113 @@
 from __future__ import print_function,division
-import itertools
-import numpy as np
-import xarray as xr
-import multiprocessing as mp
+import ee
+
+
+def starfm(fineCollection,coarseCollection,target_date='1970-01-01',windowSize=33,A=0.5):
+    def apply_starfm(img):
+        t = ee.Date(img.get('system:time_start'))
 
-import rastersmith as rs
+        base = fineCollection.filterDate(t.advance(-2,'month'),t)\
+                .sort('system:time_start',False).reduce(ee.Reducer.firstNonNull())
 
+        slv =  coarseCollection.filterDate(t.advance(-2,'month'),t)\
+                .sort('system:time_start',False).reduce(ee.Reducer.firstNonNull())
 
-class STARFM(object):
-    def __init__(self,gr,windowSize=33,A=0.5):
-        self.gr = gr
+        Tijk = img.select('time').subtract(base.select('time_first'))
 
-        if windowSize%2 == 0:
-            print("Selected window size of {0} is an even number, \
-                  forcing window size to be odd number by subtracting 1")
-            windowSize = windowSize-1
-        self.w = windowSize
+        Sijk = img.subtract(slv).abs().reduceNeighborhood(ee.Reducer.sum(),square,'kernel',True,'boxcar')\
+                .rename(bandRemap.get('new'))
 
-        self.center= int(np.around((self.w-1)/2.))
-        self.A = A
-        self.buff = int((self.w - 1) / 2)
+        Cijk = Sijk.multiply(Tijk).convolve(Dijk)
+        Wijk = one.divide(Cijk).divide(one.divide(Cijk)\
+                  .reduceNeighborhood(ee.Reducer.sum(),Dijk))
 
-    def calcWeights(self,imgWindow,slaveWindow,logWeight=False):
-        weights = imgWindow.copy()
-        weights[:,:,:,:,:] = 1
+        nBands = ee.Number(base.bandNames().length())
+        expected = ee.Number(ee.List(bandRemap.get('new')).length())
 
-        yPos = np.array(np.where(weights[:,:,0,:,0])[0]).reshape(weights.shape)
-        xPos = np.array(np.where(weights[:,:,0,:,0])[1]).reshape(weights.shape)
+        outImg = ee.Algorithms.If(nBands.neq(expected), None,
+                    base.divide(Wijk.reduceNeighborhood(ee.Reducer.sum(),Dijk)).add(Sijk)
+                    .set('system:time_start',t)
+                    .rename(bandRemap.get('new'))
+                    )
 
-        dijk = np.sqrt((self.center-xPos)**2 + (self.center-yPos)**2)
-        Dijk = 1 + (dijk/self.A)
+        return outImg
 
-        Sijk = np.abs(imgWindow-slaveWindow)
+    iniTime = ee.Date.fromYMD(1970,1,1)
+    target = ee.Date(target_date)
 
-        Tijk = self.tDiff
-        if Tijk < 1:
-            Tijk = 1
+    bandRemap = ee.Dictionary({
+      'landsat': ee.List(['B2','B3','B4','B5','B6','B7','time']),
+      'viirs': ee.List(['M2','M4','M5','M7','M10','M11','time']),
+      'new': ee.List(['blue','green','red','nir','swir1','swir2','time'])
+    });
 
-        if logWeight:
-            Cijk = np.log(Sijk) * np.log(Tijk) * np.log(Dijk)
-        else:
-            Cijk = Sijk * Tijk * Dijk
+    one = ee.Image.constant(1)
+    centerPos = ee.Number((windowSize-1)/2)
+    pos = ee.Array(ee.List.sequence(0,windowSize-1))
+    xPos = pos.repeat(1,windowSize)
+    yPos = pos.repeat(1,windowSize).transpose()
 
-        Wijk = (1/Cijk) / np.sum(1/Cijk)
+    dijk = ee.Array(centerPos).subtract(xPos).pow(2).add(
+           ee.Array(centerPos).subtract(yPos).pow(2)).sqrt()
 
-        return Wijk
+    dW = ee.Array(1).add(dijk.divide(ee.Array(A)))
 
-    def getDownscaled(self,coarse,fine,slave,pos):
-        self.yEdges = [pos[0]-self.buff,pos[0]+self.buff]
-        self.xEdges = [pos[1]-self.buff,pos[1]+self.buff]
-        # print(pos)
+    square = ee.Kernel.square(windowSize,'pixels')
+    Dijk = ee.Kernel.fixed(windowSize,windowSize,dW.toList(),centerPos,centerPos,True)
 
-        if ((pos[0] < self.center) | (pos[1] < self.center)) |\
-           ((self.gr.dims[0] - pos[0] < self.center) | (self.gr.dims[1] - pos[1] < self.center)):
+    result = coarseCollection.filterDate(target.advance(-3,'month'),target.advance(3,'month'))\
+                .map(apply_starfm,True)
 
-           result = np.nan
+    final = ee.Image(result.filterDate(target,target.advance(1,'day')).first())
 
-        else:
-            # M_t0
-            cWindow = coarse.isel(dict(lat=slice(self.yEdges[0],self.yEdges[1]),
-                                       lon=slice(self.xEdges[0],self.xEdges[1]))
-                                 )
-            # L_t0
-            fWindow = fine.isel(dict(lat=slice(self.yEdges[0],self.yEdges[1]),
-                                     lon=slice(self.xEdges[0],self.xEdges[1]))
-                               )
-            # M_tk
-            sWindow = slave.isel(dict(lat=slice(self.yEdges[0],self.yEdges[1]),
-                                      lon=slice(self.xEdges[0],self.xEdges[1]))
-                                )
+    return final
 
-            # Wijk calculation
-            weights = self.calcWeights(fWindow,sWindow)#.where(clusters==0)
+def bathtub(wfrac,hand,permanent=None):
+    '''
+    Function to fit hi-resolution HAND model to water fraction estimate
+    args:
+        wFrac (ee.Image): water fraction image, values must be 0-1
+        hand (ee.Image): height above nearest drainage (HAND) image, units in meters
+        permanent (ee.Image): permanent water image to seed HAND filling
+    '''
+    def fillGrids(d):
+        d = ee.Number(d)
+        dMap = hand.lte(d).Or(permWater).reduceResolution(
+         reducer=ee.Reducer.mean(),
+         bestEffort=True,
+         maxPixels = 1024).reproject(crs=proj)
 
-            # predict the
-            outWindow = (fWindow.isel(time=0)/np.sum(weights)) + cWindow.isel(time=0) - sWindow.isel(time=0)
+        diff = wfrac.subtract(dMap).abs()
+        return diff
 
-            cntrPx = outWindow.isel(dict(lat=self.center,lon=self.center)).values
+    def minimizeDepth(d):
+        d = ee.Number(d)
+        dMap = hand.lte(d).Or(permWater)
+        rd = dMap.reduceResolution(
+          reducer = ee.Reducer.mean(),
+          bestEffort = True,
+          maxPixels = 1024
+        ).reproject(crs=proj)
 
-            try:
-                result = cntrPx.astype(np.float)
-            except TypeError:
-                result = np.nan
+        diff = wfrac.subtract(rd).abs()
 
-        return result
+        out = nil.where(diff.eq(minDiff),dMap)
+        err = nil.where(diff.eq(minDiff),diff)
+        return out.rename('water').addBands(err.rename('error'))
 
+    nil = ee.Image(0)
+    if permanent:
+        permWater = permanent
+    else:
+        permWater = ee.Image(0)
+    proj = wfrac.projection()
 
-    def apply(self,coarse,fine,slave,parallel=False):
-        self.tDiff = np.abs((coarse.attrs['date']-slave.attrs['date']).days)
+    depths = ee.List.sequence(0,20)
 
-        outRast = fine.copy()
+    depthMaps = ee.ImageCollection(depths.map(fillGrids))
+    minDiff = depthMaps.min()
 
-        iters = [[i,j] for i in range(self.gr.dims[0]) for j in range(self.gr.dims[1])]
+    waterMap = ee.ImageCollection(depths.map(minimizeDepth))
+    final = waterMap.select('water').max().addBands(waterMap.select('error').min())
 
-        if parallel:
-            ncores = mp.cpu_count() - 1
-            p = mp.Pool(ncores)
-            args = ((coarse,fine,slave,x) for x in iters)
-            pred = p.map(self._applyParallel,args)
-
-        else:
-            pred = map(lambda x: self.getDownscaled(coarse,fine,slave,x),iters)
-
-        out = np.array(list(pred)).reshape(outRast.shape)
-        outRast[:,:,:,:,:] = out
-
-        outRast.coords['time'] = coarse.coords['time']
-
-        return outRast
-
-    def _applyParallel(self,args):
-        coarse,fine,slave,x = args
-        return self.getDownscaled(coarse,fine,slave,x)
-
-
-class STRUM(object):
-    def __init__():
-        print("Algorithm not yet implemented...check back soon")
-
-        return
-
-
-class USTARFM(object):
-    def __init__():
-        print("Algorithm not yet implemented...check back soon")
-
-        return
-
-class Bathtub(object):
-    def __init__(self,gr,probablistic=False,demStdDev=4.2,nIter=100):
-        self.gr = gr
-
-        return
-
-    def selGridByCell(self,i,j,fWater,hand):
-        cell = fWater.isel(dict(lat=i,lon=j))
-        x = cell.coords['lon'].values
-        y = cell.coords['lat'].values
-        res = fWater.attrs['resolution']
-        return hand.sel(dict(lat=slice(y+res,y-res),lon=slice(x-res,x+res)))
-
-    def grids2raster(self,fWater,raster,grids,yRange,xRange):
-        remap = raster.copy()
-        remap[:,:,:,:,:] = -32768
-        # print(remap.shape)
-        cnt = 0
-        # print(grids[0].shape)
-        for i in yRange:
-            for j in xRange:
-                cell = fWater.isel(dict(lat=i,lon=j))
-                x = cell.coords['lon'].values
-                y = cell.coords['lat'].values
-                res = fWater.attrs['resolution']
-                remap.sel(dict(lat=slice(y+res,y-res),lon=slice(x-res,x+res)))[:,:,:,:,:] = grids[cnt].values
-                cnt += 1
-
-        remap.coords['band'] = ['water','mask']
-
-        return remap
-
-    def fillGrid(self,grid,fraction,seed=None):
-
-        water = grid.copy()
-        if np.isnan(fraction):
-            final = water.copy()
-            final[:,:,:,:,:] = 0
-
-        else:
-            water.values = np.zeros(water.shape)
-
-            elv = range(15)
-
-            results = list(map(lambda x: xr.where(grid==x,x+1,water),elv))
-            result = xr.concat(results,dim='z')
-
-            depth = result.sum(dim='z')
-            depth = xr.where(depth==0,30,depth)
-
-            simFracs = list(map(lambda x: depth.where(depth<=x).count().values / float(depth.size),elv))
-            diff = np.array(list(map(lambda x: simFracs[x] - fraction, elv)))
-            absDiff = np.abs(diff)
-
-            maxDepth = absDiff.argmin()
-            resid = diff[maxDepth-1]
-
-            simWater = depth <= maxDepth
-
-            dFlat = depth.isel(dict(time=0,band=0))
-
-            if resid > 0:
-                rIdx = np.where(dFlat == maxDepth)
-                rand = np.zeros(dFlat.shape) + rIdx[0].size
-
-                rand[rIdx[0],rIdx[1]] = np.random.random(rIdx[0].size) * rIdx[0].size
-
-                thresh = rIdx[0].size * (fraction / simFracs[maxDepth])
-
-                residWater = rand<thresh
-
-            else:
-                residWater = np.zeros(dFlat.shape)
-
-            residWater = xr.DataArray(residWater,coords={'lat':simWater.coords['lat'].values,
-                                                         'lon':simWater.coords['lon'].values},
-                                                 dims=['lat','lon'])
-
-            final = simWater.astype(np.bool) | residWater.astype(np.bool)
-            final = final.expand_dims('z').transpose('lat','lon','z','band','time')
-
-        return final
-
-
-    def apply(self,fWater,hand,seedRaster=None,parallel=False):
-
-        xDim = range(len(fWater.coords['lon'].values))
-        yDim = range(len(fWater.coords['lat'].values))
-
-        idxs = [[i,j] for i in yDim for j in xDim]
-
-        fracs = list(map(lambda i: fWater.isel(dict(lat=i[0],lon=i[1])).values.flatten()[0], idxs))
-        grids = list(map(lambda i: self.selGridByCell(i[0],i[1],fWater,hand),idxs))
-
-        args = list(zip(*[grids,fracs]))
-
-        if parallel==True:
-            ncores = mp.cpu_count() - 1
-            p = mp.Pool(ncores)
-            waterGrids = p.map(self._applyParallel,args)
-
-        else:
-            waterGrids = list(map(lambda x: self.fillGrid(x[0],x[1]),args))
-
-        waterMap = self.grids2raster(fWater,hand,waterGrids,yDim,xDim)
-        waterMap = waterMap.isel(band=slice(0,1))
-        waterMap.coords['bands'] = 'water'
-
-        return waterMap
-
-    def _applyParallel(self,args):
-        grid,frac = args
-        return self.fillGrid(grid,frac)
+    return final

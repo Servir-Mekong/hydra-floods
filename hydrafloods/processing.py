@@ -1,142 +1,128 @@
+from __future__ import absolute_import
+import os
 import ee
-import numpy as np
-from skimage.morphology import disk
-from skimage.filters import threshold_otsu, rank
-
-import rastersmith as rs
-
-from . import geeutils, downscale
+from ee.ee_exception import EEException
+from . import geeutils, downscale, fetch, preprocess, utils
 
 
-class eeProcess(object):
-    def __init__(time_start,time_end,region):
+class collectionDomain(object):
+    def __init__(self,region,time_start,time_end):
+        # TODO: add exceptions to check datatypes
+        self.region = region # dtype = ee.Geometry
         self.iniTime = time_start
         self.endTime = time_end
-        self.region = region
-
-    def export(self,image):
-
-
-
-class Sentinel1(eeProcess):
-    def __init__(self,time_start,time_end,region):
-        eeProcess.__init__(self,time_start,time_end,region)
+        # self.iniEE = ee.Date(time_start) # dtype = str as YYYY-MM-DD
+        # self.endEE = ee.Date(time_end) # dtype = ee.Date
         return
 
-    @staticmethod
-    def exportFloodMap()
 
-    def getFloodMap(gr,time_start,time_end,
-                    canny_threshold=7,    # threshold for canny edge detection
-                    canny_sigma=1,        # sigma value for gaussian filter
-                    canny_lt=7,           # lower threshold for canny detection
-                    smoothing=100,        # amount of smoothing in meters
-                    connected_pixels=200, # maximum size of the neighborhood in pixels
-                    edge_length=50,       # minimum length of edges from canny detection
-                    smooth_edges=100,
-                    ):
 
-        geom = ee.Geometry.Rectangle([gr.west,gr.south,gr.east,gr.north])
+class Sentinel1(collectionDomain):
+    def __init__(self,region,time_start,time_end):
+        super(Sentinel1, self).__init__(region,time_start,time_end)
 
-        mapResult = geeutils.s1WaterMap(geom,time_start,time_end,canny_threshold,
-                                        canny_sigma,canny_lt,smoothing,
-                                        connected_pixels,edge_length,
-                                        smooth_edges)
+        self.collection = ee.ImageCollection('COPERNICUS/S1_GRD')\
+                            .filterBounds(self.region)\
+                            .filter(ee.Filter.listContains('transmitterReceiverPolarisation', 'VV'))\
+                            .filterDate(self.iniTime, self.endTime)\
+                            .map(self._maskEdges)\
+                            .select('VV')
+
+        return
+
+
+    def waterMap(self,target_date,
+                canny_threshold=7,    # threshold for canny edge detection
+                canny_sigma=1,        # sigma value for gaussian filter
+                canny_lt=7,           # lower threshold for canny detection
+                smoothing=100,        # amount of smoothing in meters
+                connected_pixels=200, # maximum size of the neighborhood in pixels
+                edge_length=50,       # minimum length of edges from canny detection
+                smooth_edges=100,
+                ):
+
+        mapResult = geeutils.bootstrapOtsu(self.collection,target_date,canny_threshold,
+                                           canny_sigma,canny_lt,smoothing,
+                                           connected_pixels,edge_length,
+                                           smooth_edges)
 
         return mapResult
 
 
-class Atms(object):
-    def __init__(self):
+    def _maskEdges(self,img):
+        angles = img.select('angle')
+        return img.updateMask(angles.lt(45).And(angles.gt(31)))
+
+
+
+class Atms(collectionDomain):
+    def __init__(self,region,time_start,time_end,collectionid=''):
+        super(Atms, self).__init__(region,time_start,time_end)
+
+        self.collection = ee.ImageCollection(collectionid)\
+                            .filterBounds(self.region)\
+                            .filterDate(self.iniTime,self.endTime)
         return
 
-    @staticmethod
-    def maskClouds(ds,threshold=-20):
-        rain = ds.sel(band='C16').astype(np.float) - ds.sel(band='C1').astype(np.float)
 
-        cloudMask = rain > threshold
-
-        return ds.raster.updateMask(cloudMask)
-
-    @classmethod
-    def getWaterFraction(cls,ds,cloudThresh=-20,constrain=True,maskClouds=True):
-
-        if maskClouds:
-            atmsNoClouds = cls.maskClouds(ds,threshold=cloudThresh)
-        else:
-            atmsNoClouds = ds.copy()
-
-        dBtr = atmsNoClouds.sel(band='C4').astype(np.float) - atmsNoClouds.sel(band='C3').astype(np.float)
-        dBtr.coords['band'] = 'dBtr'
-
-        channels = xr.concat([atmsNoClouds.sel(band=['C3','C4','C16']).isel(time=0,z=0),
-                              dBtr.isel(time=0,z=0)],dim='band')
-        arr = channels.values
-        arr[np.isnan(arr)] = -9999
-
-        nClasses = 3
-        nfindr = eea.NFINDR()
-        U = nfindr.extract(arr, nClasses, maxit=100, normalize=True, ATGP_init=True)
-
-        drop = np.argmin(list(map(lambda x:U[x,:].mean(),range(nClasses))))
-        waterIdx = np.argmin(list(map(lambda x:np.delete(U,drop,axis=1)[x,:],range(nClasses-2))))
-
-        if waterIdx == 0:
-            bandList = ['water','land','mask']
-        else:
-            bandList = ['land','water','mask']
-
-        nnls = amp.NNLS()
-        amaps = nnls.map(arr, U, normalize=True)
-
-        drop = np.argmin(list(map(lambda x:amaps[:,:,x].mean(),range(amaps.shape[2]))))
-
-        unmixed = np.delete(amaps,drop,axis=2)
-
-        unmixed[unmixed==0] = np.nan
-
-        scaled = np.zeros_like(unmixed)
-        for i in range(scaled.shape[2]):
-            summed = unmixed[:,:,i]/unmixed.sum(axis=2)
-            scaled[:,:,i] = (summed - np.nanmin(summed)) / (np.nanmax(summed) - np.nanmin(summed))
-
-        scaled = scaled - 0.25
-        scaled[scaled<0] = 0
-
-        fWater = atmsNoClouds.sel(band=['C1','C2','mask']).copy()
-        fWater[:,:,0,:2,0] = scaled[:,:,:]
-        fWater.coords['band'] = bandList
-
-        return fWater.raster.updateMask(atmsNoClouds.sel(band='mask'))
+    def extract(self,date,region,outdir='./',creds=None,gridding_radius=50000):
+        files = fetch.atms(date,region,outdir,creds)
+        geotiffs = list(map(lambda x: preprocess.atms(x,gridding_radius), files))
+        return geotiffs
 
 
+    def load(self,files,gcsBucket='',eeAsset=''):
+        if gcsBucket[-1] != '/':
+            gcsBucket += '/'
+        if eeAsset[-1] != '/':
+            eeAsset += '/'
 
-class Landsat8(object):
-    def __init__():
+        for f in files:
+            fName = os.path.basename(f)
+            utils.push_to_gcs(f,gcsBucket)
+            bso = gcsBucket + fName
+            tstr = fName.split('.')[3]
+            t = '{0}-{1}-{2}:{3}:00'.format(tstr[:4],tstr[4:6],tstr[6:11],tstr[11:])
+            utils.push_to_gee(bso,eeAsset,properties={'time_start':t})
+
         return
+
+
+    def waterMap(self,hand,permanent=None):
+        inImage = self.collection.mean().divide(10000)
+        mapResult = downscale.bathtub(inImage,hand,permanent)
+
+        return mapResult
+
 
 
 class Viirs(object):
-    def __init__(self):
+    def __init__(self,region,time_start,time_end,collectionid=''):
+        super(Viirs, self).__init__(region,time_start,time_end)
+
+        self.collection = ee.ImageCollection(collectionid)\
+                            .filterBounds(self.region)\
+                            .filterDate(self.iniTime,self.endTime)
         return
 
-    @staticmethod
-    def getWaterMask(ds,transform=True):
-        if transform:
-            ds = 1 / (1 + (np.e ** ds))
 
-        arr = ds.isel(time=0,z=0,band=0).values
-        global_otsu = threshold_otsu(arr[~np.isnan(arr)])
-        waterMask = ds >= global_otsu
+    def extract(self,date,region,outdir='./',creds=None):
 
-        return waterMask.where(waterMask>0)
+        return
+
+    def load(self,files,gcsBucket='',eeAsset=''):
+
+        return
+
+    def downscale():
+
+        return
+
+    def waterMap():
+
+        return
 
 
 class Modis(object):
-    def __init__():
-        return
-
-
-class Sentinel2(object):
     def __init__():
         return

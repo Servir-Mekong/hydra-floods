@@ -1,8 +1,10 @@
 from __future__ import print_function,division
 import datetime
+import ee
+import os
+import sys
+import subprocess
 import numpy as np
-from scipy import ndimage
-from PIL import Image, ImageDraw
 
 
 def find_nearest(xx,yy,xval,yval):
@@ -89,35 +91,47 @@ def hist_match(source, template):
     return interp_t_values[bin_idx].reshape(oldshape)
 
 
-def clip(toBeClipped, toClipTo, targetCoordslonKey='ILon',latKey='ILat'):
-    if len(targetCoords) != 2:
-        raise Error('Wrong input for targetCoords argument, expected list of [lat, lon] keys')
+def push_to_gcs(file,bucketPath):
+    if os.path.exists(file):
+        cmd = "gsutil cp {0} {1}".format(file,bucketPath)
+        proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        out, err = proc.communicate()
+    else:
+        raise ValueError('file "{0} does not exist'.format(file))
+    return
 
-    templateLon = toBeClipped[target]
-    templateLat = toBeClipped[latKey]
+def push_to_gee(bucketObj,assetCollection,properties=None):
+    name = os.path.basename(bucketObj).replace('.','_')
+    asset = assetCollection + name
+    binPath = os.path.dirname(sys.executable)
+    cmd = "{0}/earthengine upload image --asset_id={1} {2}".format(binPath,asset,bucketObj)
+    proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    out, err = proc.communicate()
+    print(out)
+    if properties:
+        pStr = ''
 
-    mask = np.zeros_like(templateLon)
+        running = True
+        while running == True:
+            tasks = ee.batch.Task.list()
+            if 'COMPLETED' in str(tasks[0]):
+                running = False
+            elif 'FAILED' in str(tasks[0]):
+                print('EE upload process failed for image {}'.format(bucketObj))
+                sys.exit(1)
 
-    minx,maxx = toClipTo['Lon'].min(),toClipTo['Lon'].max()
-    miny,maxy = toClipTo['Lat'].min(),toClipTo['Lat'].max()
+        for i in properties:
+             p = i
+             val = properties[i]
+             pStr += '--{0} {1} '.format(p,val)
 
-    mask = np.ma.masked_where(templateLon < minx, mask)
-    mask = np.ma.masked_where(templateLon > maxx, mask)
-    mask = np.ma.masked_where(templateLat < miny, mask)
-    mask = np.ma.masked_where(templateLat > maxy, mask)
+        cmd = "{0}/earthengine asset set {1} {2}".format(binPath,pStr,asset)
+        proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        out, err = proc.communicate()
+        print(out)
 
     return
 
-def mask(linearRing,yCoords,xCoords):
-
-    verts = geoverts_2_imgverts(linearRing,yCoords,xCoords)
-
-    # Create a mask from the convex hull vertices
-    img = Image.new('L', (yCoords.shape[1], yCoords.shape[0]), 0)
-    ImageDraw.Draw(img).polygon(verts, outline=1, fill=1)
-    mask = np.array(img)
-
-    return mask
 
 def decode_date(string):
   """Decodes a date from a command line argument, returning msec since epoch".
@@ -146,3 +160,11 @@ def decode_date(string):
         continue
   raise argparse.ArgumentTypeError(
       'Invalid value for property of type "date": "%s".' % string)
+
+def parse_atms_time(infile):
+
+    return
+
+def parse_viirs_time(infile):
+
+    return

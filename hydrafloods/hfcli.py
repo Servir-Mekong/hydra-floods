@@ -1,16 +1,18 @@
+from __future__ import absolute_import
 import os
+import ee
 import fire
 import glob
 import yaml
+import datetime
 import warnings
-import xarray as xr
+import pandas as pd
 import geopandas as gpd
-import rastersmith as rs
 
-from . import fetch
 from . import utils
-from . import downscale
-from . import processing as proc
+from .processing import *
+
+ee.Initialize()
 
 class hydrafloods(object):
     def __init__(self,configuration=None):
@@ -91,160 +93,54 @@ class hydrafloods(object):
 
         return
 
-    def download(self, product, date,return_list=False):
-        date = utils.decode_date(date)
-
-        if product in ['atms','viirs','landsat','modis']:
-            dateDir = os.path.join(self.ftchOut,date.strftime('%Y%m%d'))
-            if os.path.exists(dateDir) == False:
-                os.mkdir(dateDir)
-
-            prodDir = os.path.join(dateDir,product)
-            if os.path.exists(prodDir) == False:
-                os.mkdir(prodDir)
-
-            files = []
-            if product == 'landsat':
-                tileShp = gpd.read_file(os.path.join(self.filePath,'data/landsat_wrs2.geojson'))
-                downTiles = fetch.findTiles(self.region,tileShp)
-                print(downTiles)
-
-                files = list(map(lambda x: fetch.landsat(date,x[0],x[1],prodDir,maxClouds=50)
-                                ,downTiles)
-                            )
-                files = [f for f in files if f is not None]
-
-            elif product == 'viirs':
-                product = self.viirsFetch['product']
-                tileShp = gpd.read_file(os.path.join(self.filePath,'data/viirs_sinu.geojson'))
-                downTiles = fetch.findTiles(self.region,tileShp)
-
-                files = list(map(lambda x: fetch.viirs(date,x[0],x[1],prodDir,creds=self.credentials,
-                                                       product=product)
-                                ,downTiles)
-                            )
-
-            elif product == 'modis':
-                product,platform = self.modisFetch['product'],self.modisFetch['platform']
-                tileShp = gpd.read_file(os.path.join(self.filePath,'data/viirs_sinu.geojson'))
-                downTiles = fetch.findTiles(self.region,tileShp)
-                print(downTiles)
-
-                files = list(map(lambda x: fetch.modis(date,x[0],x[1],prodDir,creds=self.credentials,
-                                                       product=product,platform=platform)
-                                ,downTiles)
-                            )
-
-            elif product == 'atms':
-                h5files = fetch.atms(date,prodDir,creds=None)
-
-                sdrFiles, geoFiles = fetch.spatialSwathFilter(self.region,h5files)
-
-                files = list(zip(*[sdrFiles,geoFiles]))
-
-                for h5 in h5files:
-                    if (h5 not in sdrFiles) and (h5 not in geoFiles):
-                        os.remove(h5)
-
-            else:
-                files = None
-
-        else:
-            raise NotImplementedError('select product is currently not implemented, please check back with later versions')
-
-        if return_list:
-            return files
-
-        return
 
     def process(self,product, date):
-        date = utils.decode_date(date)
+        if product in ['sentinel1','atms','viirs']:
+            dt = utils.decode_date(date)
 
-        if product in ['atms','viirs','landsat']:
-            dateDir = os.path.join(self.ftchOut,date.strftime('%Y%m%d'))
+            dateDir = os.path.join(self.ftchOut,dt.strftime('%Y%m%d'))
             prodDir = os.path.join(dateDir,product)
 
+            geom = ee.Geometry.Rectangle(list(self.region.bounds.values[0]))
+
             if product == 'atms':
+                if os.path.exists(dateDir) != True:
+                    os.mkdir(dateDir)
+                if os.path.exists(prodDir) != True:
+                    os.mkdir(prodDir)
+
+                nextDay = (dt + datetime.timedelta(1)).strftime('%Y-%m-%d')
+
+                collId = 'projects/servir-mekong/hydrafloods/atms_waterfraction'
+                worker = Atms(geom,date,nextDay,collectionid=collId)
                 params = self.atmsParams
                 paramKeys = list(params.keys())
 
-                grRes = 20000
-                atmsGr = rs.Grid(region=self.region.bounds.values[0],resolution=grRes)
-                gr = rs.Grid(region=self.region.bounds.values[0],resolution=90)
+                geotiffs = worker.extract(dt,self.region,outdir=prodDir,creds=self.credentials,gridding_radius=50000)
+                worker.load(geotiffs,'gs://servirmekong/hydrafloods/atms/',collId)
 
-                bathtub = downscale.Bathtub(gr)
+                permanentWater = ee.Image('projects/servir-mekong/yearly_primitives_smoothed/water/water2017').gt(50)
+                hand = ee.Image('users/arjenhaag/SERVIR-Mekong/HAND_MERIT')
 
-                files = glob.glob(os.path.join(prodDir,'*.h5'))
-                swaths = fetch.groupSwathFiles(files)
-                ds = list(map(lambda x: rs.Atms.read(x[1],x[0]),swaths))
+                waterImage = worker.waterMap(hand,permanent=permanentWater)
+                mask = waterImage.select('water')
+                waterImage = waterImage.updateMask(mask).set({'system:time_start':ee.Date(date).millis(),'sensor':product})
+                assetTarget = 'projects/servir-mekong/hydrafloods/surface_water/' + '{0}_bathtub_{1}'.format(product,date.replace('-',''))
 
-                waterFrac = map(lambda x: proc.Atms.getWaterFraction(x),ds)
-                gridded = map(lambda x: rs.mapping.coregister(x,to=atmsGr),waterFrac)
-
-                if 'hand' in paramKeys:
-                    hand = rs.Arbitrary.read(params['hand'],bandNames=['hand'],time=ds[0].attrs['date'])\
-                            .sel(dict(lat=slice(gr.north,gr.south),lon=slice(gr.west,gr.east)))
-                else:
-                    raise ValueError('hand file data source must be specified in configuration for atms processing')
-
-                # if 'seed' in paramKeys:
-                #     seed = rs.Arbitrary.read(params['seed'])
-                # else:
-                #     # need to add warning for not using seed file
-                #     pass
-
-                if 'daily' in paramKeys:
-                    if params['daily'] in [True,'True','true',1]:
-                        fWater = xr.concat(gridded,dim='time').mean(dim='time').expand_dims('time').sel(band='water')
-                        fWater.attrs['resolution'] = rs.meters2dd((atmsGr.yy.mean(),atmsGr.xx.mean()),scale=grRes)
-                        waterMap = bathtub.apply(fWater,hand,parallel=False)
-                        waterMap.raster.writeGeotiff(prodDir,self.conf['name'],noData=0)
-
-                    elif params['daily'] in [False,'False','false',0]:
-                        gridded = map(lambda x: x.attrs['resolution'])
-                        waterMap = map(lambda x: bathtub.apply(x,hand),waterFrac)
-                        for i,x in enumerate(waterMap):
-                            x.raster.writeGeotiff(prodDir,self.conf['name'],noData=-9999)
-                    else:
-                        raise ValueError('type boolean required for daily parameter in atms processing')
-                else:
-                    raise ValueError('daily parameter in atms processing is required')
+                geeutils.exportImage(waterImage,geom,assetTarget)
 
             elif product == 'viirs':
                 params = self.viirsParams
                 paramKeys = list(params.keys())
 
-                gr = rs.Grid(region=self.region.bounds.values[0],resolution=500)
-
-                files = glob.glob(os.path.join(prodDir,'*.h5'))
-                ds = map(lambda x: rs.Viirs.read(x),files)
-                proj = list(map(lambda x: rs.mapping.reproject(x,outEpsg='4326',outResolution=500,method='nearest'),ds))
-                gridded = map(lambda x: rs.mapping.coregister(x,to=gr),proj)
-
-                # apply the internal mask for all rasters
-                masked = map(lambda x: x.raster.applyMask(), gridded)
-
-                mosaic = xr.concat(masked,dim='time').mean(dim='time').expand_dims('time')
-                mosaic.coords['time'] =  proj[0].coords['time']
-
-                mndwi = mosaic.raster.normalizedDifference(band1='M4',band2='I3',outBandName='mndwi')
-
-                if 'downscale' in paramKeys:
-                    print(params['downscale'])
-                    if params['downscale'] in [False,'False','false',0]:
-                        waterMap = proc.Viirs.getWaterMask(mndwi,transform=False)
-                        waterMap.attrs = proj[0].attrs
-                        waterMap.raster.writeGeotiff(prodDir,self.conf['name'],noData=-9999)
-                    else:
-                        raise NotImplementedError()
-                else:
-                    raise ValueError('downscale parameter in viirs processing is required')
-
-            elif product == 'landsat':
-                params = self.landsatParams
-                paramKeys = list(params.keys())
-
-
+            elif product == 'sentinel1':
+                tomorrow = (dt + datetime.timedelta(1)).strftime('%Y-%m-%d')
+                nextDay = (dt + datetime.timedelta(-12)).strftime('%Y-%m-%d')
+                worker = Sentinel1(geom,nextDay,tomorrow)
+                waterImage = worker.waterMap(date)
+                waterImage = waterImage.set({'system:time_start':ee.Date(date).millis(),'sensor':product}).rename('water')
+                assetTarget = 'projects/servir-mekong/hydrafloods/surface_water/' + '{0}_bootStrapOtsu_{1}'.format(product,date.replace('-',''))
+                geeutils.exportImage(waterImage,geom,assetTarget)
 
             else:
                 raise NotImplementedError('select product is currently not implemented, please check back with later versions')
