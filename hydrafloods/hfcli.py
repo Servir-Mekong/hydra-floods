@@ -107,7 +107,7 @@ class hydrafloods(object):
         return
 
 
-    def process(self,product, date):
+    def process(self,product, date,skipPreprocessing=False):
         if product in ['sentinel1','atms','viirs']:
             dt = utils.decode_date(date)
 
@@ -131,10 +131,14 @@ class hydrafloods(object):
                 params = self.atmsParams
                 paramKeys = list(params.keys())
 
-                geotiffs = worker.extract(dt,self.region,outdir=prodDir,creds=self.credentials,gridding_radius=50000)
-                worker.load(geotiffs,self.stagingBucket,collId)
+                if skipPreprocessing == False:
+                    geotiffs = worker.extract(dt,self.region,outdir=prodDir,creds=self.credentials,gridding_radius=50000)
+                    worker.load(geotiffs,self.stagingBucket,collId)
 
-                permanentWater = ee.Image(self.atmsParams['seed'])
+                if 'seed' in list(self.atmsParams.keys()):
+                    permanentWater = ee.Image(self.atmsParams['seed'])
+                else:
+                    permanentWater = None
 
                 waterImage = worker.waterMap(hand,permanent=permanentWater)
                 mask = waterImage.select('water')
@@ -152,8 +156,9 @@ class hydrafloods(object):
                 tomorrow = (dt + datetime.timedelta(1)).strftime('%Y-%m-%d')
                 nextDay = (dt + datetime.timedelta(-12)).strftime('%Y-%m-%d')
                 worker = Sentinel1(geom,nextDay,tomorrow)
-                waterImage = worker.waterMap(date).And(hand.lt(30))
-                waterImage = waterImage.set({'system:time_start':ee.Date(date).millis(),'sensor':product}).rename('water')
+                waterImage = worker.waterMap(date,geom).And(hand.lt(30))
+                waterImage = waterImage.updateMask(waterImage).rename('water')\
+                    .set({'system:time_start':ee.Date(date).millis(),'sensor':product})
                 assetTarget = self.targetAsset + '{0}_logitTransform_{1}'.format(product,date.replace('-',''))
                 description= 'SENTINEL1_WATER_'+date
                 geeutils.exportImage(waterImage,geom,assetTarget,description=description)
