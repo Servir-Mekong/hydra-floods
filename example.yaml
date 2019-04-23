@@ -1,34 +1,28 @@
 configuration:
   name: example
   # region: <path/to/file>
-  country: Cambodia
+  country: Myanmar
   boundingbox:
     - 97
     - 5
     - 106
     - 21
-
-download:
-  credentials: /Users/kmarkert/credentials.netrc
-  outdir: ./
-
-  viirs:
-    product: VNP09GA
-  modis:
-    product: MYD09GQ
-    platform: aqua
+  # logdir: ./
+  credentials: <path/to/credentials/file>
+  stagingBucket: <gcs/storage/bucket>
+  targetAsset: <output/ee/asset/collection>
+  workdir: ./
 
 process:
-  atms:
-    hand: /Users/kmarkert/Documents/Kel/misc/hydra/mer_mm_h1ki.tif
-    # seed: <path/to/seed/file.tif>
-    daily: True
+  hand: <hand/ee/asset/path>
 
-  landsat:
+  atms:
+    waterFractionAsset: <waterfraction/output/ee/asset/colleciton>
+    probablistic: False # currently not used
+    seed: <permanent/water/mask>
+
+  sentinel1:
+    threshold: 0 # currently not used
 
   viirs:
-    downscale: False
-    # slaveDate: 2019-01-01
-    transform: True
-
-  outdir: ./
+    algorithm: bar # currently not used

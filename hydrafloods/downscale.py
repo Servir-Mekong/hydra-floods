@@ -108,6 +108,6 @@ def bathtub(wfrac,hand,permanent=None):
     minDiff = depthMaps.min()
 
     waterMap = ee.ImageCollection(depths.map(minimizeDepth))
-    final = waterMap.select('water').max().addBands(waterMap.select('error').min())
+    final = waterMap.select('water').max().addBands(waterMap.select('error').min().float())
 
     return final

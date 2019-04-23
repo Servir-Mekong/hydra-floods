@@ -22,21 +22,21 @@ class hydrafloods(object):
 
             with open(yamlFile,'r') as stream:
                 try:
-                    struct = yaml.load(stream)
+                    struct = yaml.load(stream,Loader=yaml.SafeLoader)
                 except yaml.YAMLError as exc:
                     print(exc)
 
             conf = struct['configuration']
             self.conf = conf
-            ftch = struct['download']
-            self.ftch = ftch
+
             prcs = struct['process']
             self.prcs = prcs
 
             confKeys = list(conf.keys())
-            ftchKeys = list(ftch.keys())
             prcsKeys = list(prcs.keys())
 
+
+            # parse top-level configuration key information
             if 'name' in confKeys:
                 self.name = conf['name']
             else:
@@ -44,6 +44,7 @@ class hydrafloods(object):
 
             if 'region' in confKeys:
                 self.region = gpd.read_file(conf['region'])
+
             elif 'country' in confKeys:
                 world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
                 country = world[world.name == conf['country']]
@@ -55,38 +56,50 @@ class hydrafloods(object):
             elif 'boundingbox' in confKeys:
                 from shapely import geometry
                 self.region = gpd.GeoDataFrame(pd.DataFrame({'id':[0],'geometry':[geometry.box(*conf['boundingbox'])]}))
+
             else:
                 raise AttributeError('provided yaml file does not have a specified region in configuration')
 
-            if 'credentials' in ftchKeys:
-                self.credentials = ftch['credentials']
+            if 'credentials' in confKeys:
+                self.credentials = conf['credentials']
             else:
                 self.credentials = None
 
-            if 'outdir' in ftchKeys:
-                self.ftchOut = ftch['outdir']
+            if 'stagingBucket' in confKeys:
+                self.stagingBucket = conf['stagingBucket']
             else:
-                warning.warn("output dir for downloading could not be parsed from provided yaml file, setting output dir to current dir",
+                self.stagingBucket = None
+
+            if 'targetAsset' in confKeys:
+                self.targetAsset = conf['targetAsset']
+                # if ~self.targetAsset.endswith('/'):
+                #     self.targetAsset += '/'
+            else:
+                self.targetAsset = None
+
+            if 'workdir' in confKeys:
+                self.workdir = conf['workdir']
+            else:
+                warning.warn("working dir for processing could not be parsed from provided yaml file, setting working dir to current dir",
                             UserWarning)
-                self.ftchOut = './'
-            if 'viirs' in ftchKeys:
-                self.viirsFetch = ftch['viirs']
-            if 'modis' in ftchKeys:
-                self.modisFetch = ftch['modis']
+                self.workdir = './'
+
+            # parse processing specific key information
+            if 'hand' in prcsKeys:
+                self.hand = prcs['hand']
+            else:
+                warning.warn("HAND assetID could not be parsed from provided yaml file, setting default global hand model",
+                            UserWarning)
+                self.hand = 'users/gena/GlobalHAND/30m/hand-5000'
 
             if 'atms' in prcsKeys:
                 self.atmsParams = prcs['atms']
-            if 'landsat' in prcsKeys:
-                self.landsatParams = prcs['landsat']
+
             if 'viirs' in prcsKeys:
                 self.viirsParams = prcs['viirs']
 
-            if 'outdir' in prcsKeys:
-                self.prcsOut = prcs['outdir']
-            else:
-                warning.warn("output dir for processing could not be parsed from provided yaml file, setting output dir to current dir",
-                            UserWarning)
-                self.prcsOut = './'
+            if 'sentinel1' in prcsKeys:
+                self.s1Params = prcs['sentinel1']
 
         else:
             raise ValueError('yamlfile configuration argument must be specified')
@@ -94,14 +107,16 @@ class hydrafloods(object):
         return
 
 
-    def process(self,product, date):
+    def process(self,product, date,skipPreprocessing=False):
         if product in ['sentinel1','atms','viirs']:
             dt = utils.decode_date(date)
 
-            dateDir = os.path.join(self.ftchOut,dt.strftime('%Y%m%d'))
+            dateDir = os.path.join(self.workdir,dt.strftime('%Y%m%d'))
             prodDir = os.path.join(dateDir,product)
 
             geom = ee.Geometry.Rectangle(list(self.region.bounds.values[0]))
+
+            hand = ee.Image(self.hand)
 
             if product == 'atms':
                 if os.path.exists(dateDir) != True:
@@ -111,23 +126,27 @@ class hydrafloods(object):
 
                 nextDay = (dt + datetime.timedelta(1)).strftime('%Y-%m-%d')
 
-                collId = 'projects/servir-mekong/hydrafloods/atms_waterfraction'
+                collId = self.atmsParams['waterFractionAsset']
                 worker = Atms(geom,date,nextDay,collectionid=collId)
                 params = self.atmsParams
                 paramKeys = list(params.keys())
 
-                geotiffs = worker.extract(dt,self.region,outdir=prodDir,creds=self.credentials,gridding_radius=50000)
-                worker.load(geotiffs,'gs://servirmekong/hydrafloods/atms/',collId)
+                if skipPreprocessing == False:
+                    geotiffs = worker.extract(dt,self.region,outdir=prodDir,creds=self.credentials,gridding_radius=50000)
+                    worker.load(geotiffs,self.stagingBucket,collId)
 
-                permanentWater = ee.Image('projects/servir-mekong/yearly_primitives_smoothed/water/water2017').gt(50)
-                hand = ee.Image('users/arjenhaag/SERVIR-Mekong/HAND_MERIT')
+                if 'seed' in list(self.atmsParams.keys()):
+                    permanentWater = ee.Image(self.atmsParams['seed'])
+                else:
+                    permanentWater = None
 
                 waterImage = worker.waterMap(hand,permanent=permanentWater)
                 mask = waterImage.select('water')
                 waterImage = waterImage.updateMask(mask).set({'system:time_start':ee.Date(date).millis(),'sensor':product})
-                assetTarget = 'projects/servir-mekong/hydrafloods/surface_water/' + '{0}_bathtub_{1}'.format(product,date.replace('-',''))
+                assetTarget = self.targetAsset + '{0}_bathtub_{1}'.format(product,date.replace('-',''))
+                description= 'ATMS_WATER_'+date
 
-                geeutils.exportImage(waterImage,geom,assetTarget)
+                geeutils.exportImage(waterImage,geom,assetTarget,description=description)
 
             elif product == 'viirs':
                 params = self.viirsParams
@@ -137,10 +156,12 @@ class hydrafloods(object):
                 tomorrow = (dt + datetime.timedelta(1)).strftime('%Y-%m-%d')
                 nextDay = (dt + datetime.timedelta(-12)).strftime('%Y-%m-%d')
                 worker = Sentinel1(geom,nextDay,tomorrow)
-                waterImage = worker.waterMap(date)
-                waterImage = waterImage.set({'system:time_start':ee.Date(date).millis(),'sensor':product}).rename('water')
-                assetTarget = 'projects/servir-mekong/hydrafloods/surface_water/' + '{0}_bootStrapOtsu_{1}'.format(product,date.replace('-',''))
-                geeutils.exportImage(waterImage,geom,assetTarget)
+                waterImage = worker.waterMap(date,geom).And(hand.lt(30))
+                waterImage = waterImage.updateMask(waterImage).rename('water')\
+                    .set({'system:time_start':ee.Date(date).millis(),'sensor':product})
+                assetTarget = self.targetAsset + '{0}_logitTransform_{1}'.format(product,date.replace('-',''))
+                description= 'SENTINEL1_WATER_'+date
+                geeutils.exportImage(waterImage,geom,assetTarget,description=description)
 
             else:
                 raise NotImplementedError('select product is currently not implemented, please check back with later versions')
