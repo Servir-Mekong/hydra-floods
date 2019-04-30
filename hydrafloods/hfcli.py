@@ -110,6 +110,7 @@ class hydrafloods(object):
     def process(self,product, date,skipPreprocessing=False):
         if product in ['sentinel1','atms','viirs']:
             dt = utils.decode_date(date)
+            tomorrow = (dt + datetime.timedelta(1)).strftime('%Y-%m-%d')
 
             dateDir = os.path.join(self.workdir,dt.strftime('%Y%m%d'))
             prodDir = os.path.join(dateDir,product)
@@ -124,10 +125,8 @@ class hydrafloods(object):
                 if os.path.exists(prodDir) != True:
                     os.mkdir(prodDir)
 
-                nextDay = (dt + datetime.timedelta(1)).strftime('%Y-%m-%d')
-
                 collId = self.atmsParams['waterFractionAsset']
-                worker = Atms(geom,date,nextDay,collectionid=collId)
+                worker = Atms(geom,date,tomorrow,collectionid=collId)
                 params = self.atmsParams
                 paramKeys = list(params.keys())
 
@@ -153,9 +152,10 @@ class hydrafloods(object):
                 paramKeys = list(params.keys())
 
             elif product == 'sentinel1':
-                tomorrow = (dt + datetime.timedelta(1)).strftime('%Y-%m-%d')
-                nextDay = (dt + datetime.timedelta(-12)).strftime('%Y-%m-%d')
-                worker = Sentinel1(geom,nextDay,tomorrow)
+                # tomorrow = (dt + datetime.timedelta(1)).strftime('%Y-%m-%d')
+                # nextDay = (dt + datetime.timedelta(-12)).strftime('%Y-%m-%d')
+                print(date,tomorrow)
+                worker = Sentinel1(geom,date,tomorrow)
                 waterImage = worker.waterMap(date,geom).And(hand.lt(30))
                 waterImage = waterImage.updateMask(waterImage).rename('water')\
                     .set({'system:time_start':ee.Date(date).millis(),'sensor':product})
@@ -169,6 +169,10 @@ class hydrafloods(object):
         else:
             raise NotImplementedError('select product is currently not implemented, please check back with later versions')
 
+        return
+
+    def run_tests(self):
+        raise NotImplementedError('test functionality not implemented...please ')
         return
 
 def main():
