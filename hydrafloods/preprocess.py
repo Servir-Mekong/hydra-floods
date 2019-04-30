@@ -5,7 +5,7 @@ import xarray as xr
 from scipy import ndimage, interpolate
 from osgeo import gdal,osr
 from pyproj import Proj,transform
-from pyresample import kd_tree, geometry, utils
+from pyresample import bilinear, geometry, utils
 
 
 def viirs(infile):
@@ -138,8 +138,11 @@ def atms(infile,gridding_radius=25000,):
     # TODO: dynamically estimate sigama based on beam footprints
     eps = 0.1
 
-    result = kd_tree.resample_nearest(swath_def,ds.land_frac.values,area_def,
-                                      radius_of_influence=gridding_radius, epsilon=0.1, fill_value=nd)
+    result = bilinear.resample_bilinear(ds.land_frac.values,swath_def,area_def,
+                                        radius=50e3, neighbours=32,
+                                        nprocs=1, fill_value=nd,
+                                        reduce_data=True, segments=None,
+                                        epsilon=eps)
 
     result[np.where(result>=0)] = np.abs(result[np.where(result>=0)] - 1) * 10000
 

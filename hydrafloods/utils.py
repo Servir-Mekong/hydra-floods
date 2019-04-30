@@ -96,6 +96,7 @@ def push_to_gcs(file,bucketPath):
         cmd = "gsutil cp {0} {1}".format(file,bucketPath)
         proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         out, err = proc.communicate()
+        print(out)
     else:
         raise ValueError('file "{0} does not exist'.format(file))
     return
@@ -103,8 +104,13 @@ def push_to_gcs(file,bucketPath):
 def push_to_gee(bucketObj,assetCollection,properties=None):
     name = os.path.basename(bucketObj).replace('.','_')
     asset = assetCollection + name
+
+    pStr = ''
+    for i in properties:
+         pStr += '--{0} {1} '.format(i,properties[i])
+
     binPath = os.path.dirname(sys.executable)
-    cmd = "{0}/earthengine upload image --asset_id={1} {2}".format(binPath,asset,bucketObj)
+    cmd = "{0}/earthengine upload image --asset_id={1} {2} {3}".format(binPath,asset,pStr,bucketObj)
     proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     out, err = proc.communicate()
     print(out)
@@ -119,16 +125,6 @@ def push_to_gee(bucketObj,assetCollection,properties=None):
             elif 'FAILED' in str(tasks[0]):
                 print('EE upload process failed for image {}'.format(bucketObj))
                 sys.exit(1)
-
-        for i in properties:
-             p = i
-             val = properties[i]
-             pStr += '--{0} {1} '.format(p,val)
-
-        cmd = "{0}/earthengine asset set {1} {2}".format(binPath,pStr,asset)
-        proc = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-        out, err = proc.communicate()
-        print(out)
 
     return
 
