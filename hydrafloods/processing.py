@@ -25,27 +25,42 @@ class Sentinel1(collectionDomain):
                             .filterBounds(self.region)\
                             .filter(ee.Filter.listContains('transmitterReceiverPolarisation', 'VV'))\
                             .filterDate(self.iniTime, self.endTime)\
-                            .map(self._maskEdges)\
-                            .select('VV')
 
         return
 
 
-    def waterMap(self,target_date,
-                canny_threshold=7,    # threshold for canny edge detection
-                canny_sigma=1,        # sigma value for gaussian filter
-                canny_lt=7,           # lower threshold for canny detection
-                smoothing=100,        # amount of smoothing in meters
-                connected_pixels=200, # maximum size of the neighborhood in pixels
-                edge_length=50,       # minimum length of edges from canny detection
-                smooth_edges=100,
-                ):
+    # def waterMap(self,target_date,
+    #             canny_threshold=7,    # threshold for canny edge detection
+    #             canny_sigma=1,        # sigma value for gaussian filter
+    #             canny_lt=7,           # lower threshold for canny detection
+    #             smoothing=100,        # amount of smoothing in meters
+    #             connected_pixels=200, # maximum size of the neighborhood in pixels
+    #             edge_length=50,       # minimum length of edges from canny detection
+    #             smooth_edges=100,
+    #             ):
+    #
+    #     mapResult = geeutils.bootstrapOtsu(self.collection,target_date,canny_threshold,
+    #                                        canny_sigma,canny_lt,smoothing,
+    #                                        connected_pixels,edge_length,
+    #                                        smooth_edges)
+    #
+    #     return mapResult
 
-        mapResult = geeutils.bootstrapOtsu(self.collection,target_date,canny_threshold,
-                                           canny_sigma,canny_lt,smoothing,
-                                           connected_pixels,edge_length,
-                                           smooth_edges)
+    def waterMap(self,target_date,geom,threshold=-1.5):
+        processedColl = self.collection.map(self._maskEdges)\
+                                       .select(['VV','angle'])\
+                                       .map(self._addAbsVV)\
+                                       .map(geeutils.rescaleBands)
+        # apply a despeckle somewhere???
+        img = processedColl.mean()
+        thresholded = geeutils.logitTransform(img.select('AbsVV')).gt(threshold).rename('water')
 
+        # Define a kernel.
+        kernel = ee.Kernel.circle(radius = 1)
+        # Perform an erosion followed by a dilation and focal mode
+        mapResult = thresholded.focal_min(kernel=kernel, iterations=2)\
+                               .focal_max(kernel=kernel, iterations=2)\
+                               .focal_mode(kernel=kernel, iterations=2)
         return mapResult
 
 
@@ -53,6 +68,9 @@ class Sentinel1(collectionDomain):
         angles = img.select('angle')
         return img.updateMask(angles.lt(45).And(angles.gt(31)))
 
+    def _addAbsVV(self,img):
+        wi = img.select('VV').abs().rename('AbsVV')
+        return img.addBands(wi)
 
 
 class Atms(collectionDomain):
@@ -88,15 +106,20 @@ class Atms(collectionDomain):
         return
 
 
-    def waterMap(self,hand,permanent=None):
+    def waterMap(self,hand,permanent=None,probablistic=False):
         inImage = self.collection.mean().divide(10000)
-        mapResult = downscale.bathtub(inImage,hand,permanent)
+        if probablistic:
+            iters = ee.List.sequence(0,99)
+            # handErrs =
+            runs = ee.ImageCollection()
+        else:
+            mapResult = downscale.bathtub(inImage,hand,permanent)
 
         return mapResult
 
 
 
-class Viirs(object):
+class Viirs(collectionDomain):
     def __init__(self,region,time_start,time_end,collectionid=''):
         super(Viirs, self).__init__(region,time_start,time_end)
 
@@ -107,6 +130,7 @@ class Viirs(object):
 
 
     def extract(self,date,region,outdir='./',creds=None):
+
 
         return
 
@@ -123,6 +147,7 @@ class Viirs(object):
         return
 
 
-class Modis(object):
+class Modis(collectionDomain):
     def __init__():
+        super(Modis, self).__init__(region,time_start,time_end)
         return
