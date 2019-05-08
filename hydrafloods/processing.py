@@ -11,8 +11,7 @@ class collectionDomain(object):
         self.region = region # dtype = ee.Geometry
         self.iniTime = time_start
         self.endTime = time_end
-        # self.iniEE = ee.Date(time_start) # dtype = str as YYYY-MM-DD
-        # self.endEE = ee.Date(time_end) # dtype = ee.Date
+
         return
 
 
@@ -25,52 +24,21 @@ class Sentinel1(collectionDomain):
                             .filterBounds(self.region)\
                             .filter(ee.Filter.listContains('transmitterReceiverPolarisation', 'VV'))\
                             .filterDate(self.iniTime, self.endTime)\
+                            .map(self._maskEdges)\
+                            .select('VV')
 
         return
 
 
-    # def waterMap(self,target_date,
-    #             canny_threshold=7,    # threshold for canny edge detection
-    #             canny_sigma=1,        # sigma value for gaussian filter
-    #             canny_lt=7,           # lower threshold for canny detection
-    #             smoothing=100,        # amount of smoothing in meters
-    #             connected_pixels=200, # maximum size of the neighborhood in pixels
-    #             edge_length=50,       # minimum length of edges from canny detection
-    #             smooth_edges=100,
-    #             ):
-    #
-    #     mapResult = geeutils.bootstrapOtsu(self.collection,target_date,canny_threshold,
-    #                                        canny_sigma,canny_lt,smoothing,
-    #                                        connected_pixels,edge_length,
-    #                                        smooth_edges)
-    #
-    #     return mapResult
+    def waterMap(self,target_date,**kwargs):
+        mapResult = geeutils.bootstrapOtsu(self.collection,target_date,**kwargs)
 
-    def waterMap(self,target_date,geom,threshold=-1.5):
-        processedColl = self.collection.map(self._maskEdges)\
-                                       .select(['VV','angle'])\
-                                       .map(self._addAbsVV)\
-                                       .map(geeutils.rescaleBands)
-        # apply a despeckle somewhere???
-        img = processedColl.mean()
-        thresholded = geeutils.logitTransform(img.select('AbsVV')).gt(threshold).rename('water')
-
-        # Define a kernel.
-        kernel = ee.Kernel.circle(radius = 1)
-        # Perform an erosion followed by a dilation and focal mode
-        mapResult = thresholded.focal_min(kernel=kernel, iterations=2)\
-                               .focal_max(kernel=kernel, iterations=2)\
-                               .focal_mode(kernel=kernel, iterations=2)
         return mapResult
 
 
     def _maskEdges(self,img):
         angles = img.select('angle')
         return img.updateMask(angles.lt(45).And(angles.gt(31)))
-
-    def _addAbsVV(self,img):
-        wi = img.select('VV').abs().rename('AbsVV')
-        return img.addBands(wi)
 
 
 class Atms(collectionDomain):
@@ -106,12 +74,23 @@ class Atms(collectionDomain):
         return
 
 
-    def waterMap(self,hand,permanent=None,probablistic=False):
+    def waterMap(self,hand,permanent=None,probablistic=False,nIters=100,elvStdDev=6,probTreshold=0.75):
+        def _downscaleWrapper(iteration):
+            i = ee.Number(iteration)
+            handErr = hand.add(ee.Image.random(i).subtract(0.5).multiply(6)
+                .multiply(elvStdDev))
+            return downscale.bathtub(inImage,handErr,permanent)
+
+
         inImage = self.collection.mean().divide(10000)
         if probablistic:
-            iters = ee.List.sequence(0,99)
-            # handErrs =
-            runs = ee.ImageCollection()
+            iters = ee.List.sequence(0,nIters-1)
+
+            sims = ee.ImageCollection(iters.map(_downscaleWrapper))
+            probs = sims.sum().divide(nIters).rename(['probability','error'])
+            water = probs.select('probability').gt(probTreshold)
+            mapResult = water.addBands(probs)
+
         else:
             mapResult = downscale.bathtub(inImage,hand,permanent)
 

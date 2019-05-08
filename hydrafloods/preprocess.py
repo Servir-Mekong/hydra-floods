@@ -113,7 +113,7 @@ def atms(infile,gridding_radius=25000,):
     xx,yy = transform(inProj,outProj,lons,lats)
     minx,miny = transform(inProj,outProj,-180,-86)
     maxx,maxy = transform(inProj,outProj,180,86)
-    res = 14000
+    res = 16000
 
     eastings = np.arange(round(minx),round(maxx),res)
     northings = np.arange(round(miny),round(maxy),res)
@@ -139,7 +139,7 @@ def atms(infile,gridding_radius=25000,):
     eps = 0.1
 
     result = bilinear.resample_bilinear(ds.land_frac.values,swath_def,area_def,
-                                        radius=50e3, neighbours=32,
+                                        radius=gridding_radius, neighbours=32,
                                         nprocs=1, fill_value=nd,
                                         reduce_data=True, segments=None,
                                         epsilon=eps)

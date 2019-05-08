@@ -125,23 +125,28 @@ class hydrafloods(object):
                 if os.path.exists(prodDir) != True:
                     os.mkdir(prodDir)
 
-                collId = self.atmsParams['waterFractionAsset']
-                worker = Atms(geom,date,tomorrow,collectionid=collId)
                 params = self.atmsParams
                 paramKeys = list(params.keys())
+
+                collId = self.atmsParams['waterFractionAsset']
+                worker = Atms(geom,date,tomorrow,collectionid=collId)
 
                 if skipPreprocessing == False:
                     geotiffs = worker.extract(dt,self.region,outdir=prodDir,creds=self.credentials,gridding_radius=50000)
                     worker.load(geotiffs,self.stagingBucket,collId)
 
-                if 'seed' in list(self.atmsParams.keys()):
+                if 'seed' in paramKeys:
                     permanentWater = ee.Image(self.atmsParams['seed'])
                 else:
                     permanentWater = None
 
-                waterImage = worker.waterMap(hand,permanent=permanentWater)
-                mask = waterImage.select('water')
-                waterImage = waterImage.updateMask(mask).set({'system:time_start':ee.Date(date).millis(),'sensor':product})
+                if 'probablistic' in paramKeys:
+                    runProbs = params['probablistic']
+                else:
+                    runProbs = False
+
+                waterImage = worker.waterMap(hand,permanent=permanentWater,probablistic=runProbs,)
+                waterImage = waterImage.set({'system:time_start':ee.Date(date).millis(),'sensor':product})
                 assetTarget = self.targetAsset + '{0}_bathtub_{1}'.format(product,date.replace('-',''))
                 description= 'ATMS_WATER_'+date
 
@@ -151,15 +156,16 @@ class hydrafloods(object):
                 params = self.viirsParams
                 paramKeys = list(params.keys())
 
+                
+
             elif product == 'sentinel1':
-                # tomorrow = (dt + datetime.timedelta(1)).strftime('%Y-%m-%d')
-                # nextDay = (dt + datetime.timedelta(-12)).strftime('%Y-%m-%d')
+                previous = (dt + datetime.timedelta(-15)).strftime('%Y-%m-%d')
                 print(date,tomorrow)
-                worker = Sentinel1(geom,date,tomorrow)
-                waterImage = worker.waterMap(date,geom).And(hand.lt(30))
-                waterImage = waterImage.updateMask(waterImage).rename('water')\
+                worker = Sentinel1(geom,previous,tomorrow)
+                waterImage = worker.waterMap(date).And(hand.lt(30))
+                waterImage = waterImage.rename('water')\
                     .set({'system:time_start':ee.Date(date).millis(),'sensor':product})
-                assetTarget = self.targetAsset + '{0}_logitTransform_{1}'.format(product,date.replace('-',''))
+                assetTarget = self.targetAsset + '{0}_bootstrapOtsu_{1}'.format(product,date.replace('-',''))
                 description= 'SENTINEL1_WATER_'+date
                 geeutils.exportImage(waterImage,geom,assetTarget,description=description)
 
