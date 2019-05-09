@@ -99,9 +99,9 @@ def bootstrapOtsu(collection,target_date,
     if nImgs <= 0:
         raise EEException('Selected date has no Sentinel-1 imagery, please try processing another date')
 
-    target = despeckle(targetColl.mean())#.focal_median(smoothing, 'circle', 'meters')
+    target = targetColl.mean().focal_median(smoothing, 'circle', 'meters')
 
-    smoothed = despeckle(collection.mosaic())#.focal_median(smoothing, 'circle', 'meters')
+    smoothed = collection.mosaic().focal_median(smoothing, 'circle', 'meters')
 
     canny = ee.Algorithms.CannyEdgeDetector(smoothed,canny_threshold,canny_sigma)
 
