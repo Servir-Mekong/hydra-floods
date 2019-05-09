@@ -14,11 +14,14 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
+def setup(app):
+    app.add_css_file('custom.css')
+
 
 # -- Project information -----------------------------------------------------
 
 project = 'hydrafloods'
-copyright = '2019, Kel Markert'
+copyright = '2019, SERVIR-Mekong'
 author = 'Kel Markert'
 
 
@@ -44,7 +47,12 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
+html_logo = "static/hf_logo.png"
+html_theme_options = {
+    'logo_only': True
+}
+
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

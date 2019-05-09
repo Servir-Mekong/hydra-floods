@@ -1,0 +1,25 @@
+.wy-side-nav-search, .wy-nav-top {
+    background: #34495e;
+}
+
+.wy-nav-side {
+  background: #7f8c8d;
+}
+
+.wy-nav-side .caption-text{
+  color: #78e08f
+}
+
+.wy-nav-side .reference.internal:hover {
+  background: #34495e;
+  color: #bdc3c7;
+}
+
+/* .wy-nav-side .reference.internal.current {
+  color: #bdc3c7;
+  background: #95a5a6;
+}
+
+.wy-nav-side .reference.internal.current .reference.internal {
+  color: #bdc3c7;
+} */
