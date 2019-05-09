@@ -88,8 +88,8 @@ class Atms(collectionDomain):
 
             sims = ee.ImageCollection(iters.map(_downscaleWrapper))
             probs = sims.sum().divide(nIters).rename(['probability','error'])
-            water = probs.select('probability').gt(probTreshold)
-            mapResult = water.addBands(probs)
+            water = probs.select(['probability'],['water']).gt(probTreshold)
+            mapResult = water.addBands(probs.multiply(10000).uint16())
 
         else:
             mapResult = downscale.bathtub(inImage,hand,permanent)

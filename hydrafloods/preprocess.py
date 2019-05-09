@@ -138,9 +138,9 @@ def atms(infile,gridding_radius=25000,):
     # TODO: dynamically estimate sigama based on beam footprints
     eps = 0.1
 
-    result = bilinear.resample_bilinear(ds.land_frac.values,swath_def,area_def,
-                                        radius=gridding_radius, neighbours=32,
-                                        nprocs=1, fill_value=nd,
+    result = bilinear.resample_bilinear(ds.land_frac.where(ds['sat_zen']<50).values,
+                                        swath_def,area_def,radius=gridding_radius,
+                                        neighbours=32,nprocs=1, fill_value=nd,
                                         reduce_data=True, segments=None,
                                         epsilon=eps)
 

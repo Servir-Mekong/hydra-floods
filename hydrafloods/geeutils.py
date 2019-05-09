@@ -93,10 +93,15 @@ def bootstrapOtsu(collection,target_date,
                   smooth_edges=100):
 
     tDate = ee.Date(target_date)
-    target = collection.filterDate(tDate,tDate.advance(1,'day')).mean()\
-                        .focal_median(smoothing, 'circle', 'meters')
+    targetColl = collection.filterDate(tDate,tDate.advance(1,'day'))
 
-    smoothed = collection.mosaic().focal_median(smoothing, 'circle', 'meters')
+    nImgs = targetColl.size().getInfo()
+    if nImgs <= 0:
+        raise EEException('Selected date has no Sentinel-1 imagery, please try processing another date')
+
+    target = despeckle(targetColl.mean())#.focal_median(smoothing, 'circle', 'meters')
+
+    smoothed = despeckle(collection.mosaic())#.focal_median(smoothing, 'circle', 'meters')
 
     canny = ee.Algorithms.CannyEdgeDetector(smoothed,canny_threshold,canny_sigma)
 
@@ -168,7 +173,7 @@ def toDB(img):
 def despeckle(img):
   """ Refined Lee Speckle Filter """
   t = ee.Date(img.get('system:time_start'))
-  angles = img.select('angle')
+  # angles = img.select('angle')
   geom = img.geometry()
   # The RL speckle filter
   img = toNatural(img)
@@ -273,7 +278,7 @@ def despeckle(img):
     .float()
 
 
-  return toDB(result).addBands(angles).clip(geom).set('system:time_start',t.millis())
+  return toDB(result)
 
 
 def SurfaceWaterAlgorithm(aoi,images, pcnt_perm, pcnt_temp, water_thresh, ndvi_thresh, hand_mask):

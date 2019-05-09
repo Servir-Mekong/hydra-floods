@@ -156,11 +156,10 @@ class hydrafloods(object):
                 params = self.viirsParams
                 paramKeys = list(params.keys())
 
-                
+
 
             elif product == 'sentinel1':
                 previous = (dt + datetime.timedelta(-15)).strftime('%Y-%m-%d')
-                print(date,tomorrow)
                 worker = Sentinel1(geom,previous,tomorrow)
                 waterImage = worker.waterMap(date).And(hand.lt(30))
                 waterImage = waterImage.rename('water')\
