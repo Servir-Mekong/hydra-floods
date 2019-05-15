@@ -18,6 +18,7 @@ Documentation
 Getting Started
 ----------------
 * :doc:`installation`
+* :doc:`configuration`
 * :doc:`examples`
 
 .. toctree::
@@ -26,6 +27,7 @@ Getting Started
    :caption: Getting Started
 
    installation
+   configuration
    examples
 
 

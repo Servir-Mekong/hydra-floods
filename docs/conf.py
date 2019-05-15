@@ -48,7 +48,8 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # a list of builtin themes.
 #
 html_theme = 'sphinx_rtd_theme'
-html_logo = "static/hf_logo.png"
+html_logo = "static/hydrafloodsicon_lrg.png"
+html_favicon = "static/hydrafloodsicon_icon.png"
 html_theme_options = {
     'logo_only': True
 }
