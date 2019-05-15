@@ -6,40 +6,35 @@ def starfm(fineCollection,coarseCollection,target_date='1970-01-01',windowSize=3
     def apply_starfm(img):
         t = ee.Date(img.get('system:time_start'))
 
-        base = fineCollection.filterDate(t.advance(-2,'month'),t)\
+        base = fineCollection.filterDate(target.advance(-2,'month'),target)\
                 .sort('system:time_start',False).reduce(ee.Reducer.firstNonNull())
 
-        slv =  coarseCollection.filterDate(t.advance(-2,'month'),t)\
+        slv =  coarseCollection.filterDate(target.advance(-2,'month'),target)\
                 .sort('system:time_start',False).reduce(ee.Reducer.firstNonNull())
 
         Tijk = img.select('time').subtract(base.select('time_first'))
 
         Sijk = img.subtract(slv).abs().reduceNeighborhood(ee.Reducer.sum(),square,'kernel',True,'boxcar')\
-                .rename(bandRemap.get('new'))
+                .rename(bandList)
 
         Cijk = Sijk.multiply(Tijk).convolve(Dijk)
         Wijk = one.divide(Cijk).divide(one.divide(Cijk)\
                   .reduceNeighborhood(ee.Reducer.sum(),Dijk))
 
         nBands = ee.Number(base.bandNames().length())
-        expected = ee.Number(ee.List(bandRemap.get('new')).length())
+        expected = ee.Number(len(bandList))
 
         outImg = ee.Algorithms.If(nBands.neq(expected), None,
                     base.divide(Wijk.reduceNeighborhood(ee.Reducer.sum(),Dijk)).add(Sijk)
                     .set('system:time_start',t)
-                    .rename(bandRemap.get('new'))
+                    .rename(bandList)
                     )
 
         return outImg
 
-    iniTime = ee.Date.fromYMD(1970,1,1)
     target = ee.Date(target_date)
 
-    bandRemap = ee.Dictionary({
-      'landsat': ee.List(['B2','B3','B4','B5','B6','B7','time']),
-      'viirs': ee.List(['M2','M4','M5','M7','M10','M11','time']),
-      'new': ee.List(['blue','green','red','nir','swir1','swir2','time'])
-    });
+    bandList = ee.Image(coarseCollection.first()).bandNames().getInfo()
 
     one = ee.Image.constant(1)
     centerPos = ee.Number((windowSize-1)/2)
@@ -58,9 +53,7 @@ def starfm(fineCollection,coarseCollection,target_date='1970-01-01',windowSize=3
     result = coarseCollection.filterDate(target.advance(-3,'month'),target.advance(3,'month'))\
                 .map(apply_starfm,True)
 
-    final = ee.Image(result.filterDate(target,target.advance(1,'day')).first())
-
-    return final
+    return result
 
 def bathtub(wfrac,hand,permanent=None):
     '''

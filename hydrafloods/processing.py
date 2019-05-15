@@ -5,25 +5,37 @@ from ee.ee_exception import EEException
 from . import geeutils, downscale, fetch, preprocess, utils
 
 
-class collectionDomain(object):
-    def __init__(self,region,time_start,time_end):
+INITIME = ee.Date.fromYMD(1970,1,1)
+BANDREMAP = ee.Dictionary({
+  'landsat': ee.List(['B2','B3','B4','B5','B6','B7','time']),
+  'viirs': ee.List(['M2','M4','M5','M7','M10','M11','time']),
+  'sen2':  ee.List(['B2','B3','B4','B8','B11','B12','time']),
+  'modis': ee.List(['sur_refl_b03','sur_refl_b04','sur_refl_b01','sur_refl_b02','sur_refl_b06','sur_refl_b07']),
+  'new': ee.List(['blue','green','red','nir','swir1','swir2','time'])
+})
+
+class hfCollection(object):
+    def __init__(self,region,time_start,time_end,collectionid=''):
         # TODO: add exceptions to check datatypes
         self.region = region # dtype = ee.Geometry
         self.iniTime = time_start
         self.endTime = time_end
+        self.id = collectionid
+
+        self.collection = ee.ImageCollection(self.id)\
+                            .filterBounds(self.region)\
+                            .filterDate(self.iniTime,self.endTime)
 
         return
 
 
 
-class Sentinel1(collectionDomain):
-    def __init__(self,region,time_start,time_end):
-        super(Sentinel1, self).__init__(region,time_start,time_end)
+class Sentinel1(hfCollection):
+    def __init__(self,*args,**kwargs):
+        super(Sentinel1, self).__init__(*args,**kwargs)
 
-        self.collection = ee.ImageCollection('COPERNICUS/S1_GRD')\
-                            .filterBounds(self.region)\
+        self.collection = self.collection\
                             .filter(ee.Filter.listContains('transmitterReceiverPolarisation', 'VV'))\
-                            .filterDate(self.iniTime, self.endTime)\
                             .map(self._maskEdges)\
                             .select('VV')
 
@@ -41,13 +53,11 @@ class Sentinel1(collectionDomain):
         return img.updateMask(angles.lt(45).And(angles.gt(31)))
 
 
-class Atms(collectionDomain):
-    def __init__(self,region,time_start,time_end,collectionid=''):
-        super(Atms, self).__init__(region,time_start,time_end)
 
-        self.collection = ee.ImageCollection(collectionid)\
-                            .filterBounds(self.region)\
-                            .filterDate(self.iniTime,self.endTime)
+class Atms(hfCollection):
+    def __init__(self,*args,**kwargs):
+        super(Atms, self).__init__(*args,**kwargs)
+
         return
 
 
@@ -98,18 +108,29 @@ class Atms(collectionDomain):
 
 
 
-class Viirs(collectionDomain):
-    def __init__(self,region,time_start,time_end,collectionid=''):
-        super(Viirs, self).__init__(region,time_start,time_end)
+class Viirs(hfCollection):
+    def __init__(self,*args,**kwargs):
+        super(Viirs, self).__init__(*args,**kwargs)
 
-        self.collection = ee.ImageCollection(collectionid)\
-                            .filterBounds(self.region)\
-                            .filterDate(self.iniTime,self.endTime)
+        self.collection = self.collection.map(self._qaMask)\
+            .select(BANDREMAP.get('viirs'),BANDREMAP.get('new'))\
+            .map(geeutils.addIndices)
+
         return
+
+    def _qaMask(self,img):
+        viewing = img.select('SensorZenith').abs().multiply(0.01).lt(30)
+        clouds = geeutils.extractBits(img.select('QF1'),2,3,'cloud_qa').lte(2)
+        shadows = geeutils.extractBits(img.select('QF2'),3,3,'shadow_qa').eq(0)
+        aerosols = geeutils.extractBits(img.select('QF2'),4,4,'aerosol_qa').eq(0)
+        mask = clouds.And(shadows).And(aerosols)
+        t = ee.Date(img.get('system:time_start'))
+        nDays = t.difference(INITIME,'day')
+        time = ee.Image(nDays).int16().rename('time')
+        return img.updateMask(mask).addBands(time)
 
 
     def extract(self,date,region,outdir='./',creds=None):
-
 
         return
 
@@ -117,16 +138,64 @@ class Viirs(collectionDomain):
 
         return
 
-    def downscale():
+    def downscale(self,fineCollection,**kwargs):
+        result = downscale.starfm(fineCollection,self.collection,**kwargs)
+
+        return result
+
+    def waterMap(self,downscaleCollection,target_date):
+        tDate = ee.Date(target_date)
+        image = ee.Image(downscaleCollection.filterDate(tDate,tDate.advance(1,'day')).first())
+        # simple dswe algorithm for water
+        water = image.select('mndwi').gt(-0.5).And(
+                image.select('blue').lt(1000)).And(
+                image.select('nir').lt(2500)).And(
+                image.select('swir1').lt(3000)).And(
+                image.select('swir2').lt(1000))\
+                .rename('water').uint8();
+
+        return water
+
+
+
+class Modis(hfCollection):
+    def __init__(self,*args,**kwargss):
+        super(Modis, self).__init__(*args,**kwargs)
+        return
+
+    def _qaMask(img):
 
         return
 
-    def waterMap():
+
+
+class Landsat(hfCollection):
+    def __init__(self,*args,**kwargs):
+        super(Landsat, self).__init__(*args,**kwargs)
+
+        self.collection = self.collection.map(self._qaMask)\
+            .select(BANDREMAP.get('landsat'),BANDREMAP.get('new'))\
+            .map(geeutils.addIndices)
 
         return
 
+    def _qaMask(self,img):
+        qaCloud = geeutils.extractBits(img.select('pixel_qa'),5,5,'qa').neq(1)
+        qaShadow = geeutils.extractBits(img.select('pixel_qa'),3,3,'qa').neq(1)
+        mask = qaCloud.And(qaShadow)
+        t = ee.Date(img.get('system:time_start'))
+        nDays = t.difference(INITIME,'day')
+        time = ee.Image(nDays).int16().rename('time')
+        return img.updateMask(mask).addBands(time)
 
-class Modis(collectionDomain):
-    def __init__():
-        super(Modis, self).__init__(region,time_start,time_end)
+
+
+
+class Sentinel2(hfCollection):
+    def __init__(self,*args,**kwargs):
+        super(Sentinel2, self).__init__(*args,**kwargs)
+
+        return
+
+    def _qaMask():
         return

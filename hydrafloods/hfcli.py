@@ -120,11 +120,6 @@ class hydrafloods(object):
             hand = ee.Image(self.hand)
 
             if product == 'atms':
-                if os.path.exists(dateDir) != True:
-                    os.mkdir(dateDir)
-                if os.path.exists(prodDir) != True:
-                    os.mkdir(prodDir)
-
                 params = self.atmsParams
                 paramKeys = list(params.keys())
 
@@ -132,6 +127,11 @@ class hydrafloods(object):
                 worker = Atms(geom,date,tomorrow,collectionid=collId)
 
                 if skipPreprocessing == False:
+                    if os.path.exists(dateDir) != True:
+                        os.mkdir(dateDir)
+                    if os.path.exists(prodDir) != True:
+                        os.mkdir(prodDir)
+
                     geotiffs = worker.extract(dt,self.region,outdir=prodDir,creds=self.credentials,gridding_radius=50000)
                     worker.load(geotiffs,self.stagingBucket,collId)
 
@@ -148,28 +148,44 @@ class hydrafloods(object):
                 waterImage = worker.waterMap(hand,permanent=permanentWater,probablistic=runProbs,)
                 waterImage = waterImage.set({'system:time_start':ee.Date(date).millis(),'sensor':product})
                 assetTarget = self.targetAsset + '{0}_bathtub_{1}'.format(product,date.replace('-',''))
-                description= 'ATMS_WATER_'+date
-
-                geeutils.exportImage(waterImage,geom,assetTarget,description=description)
 
             elif product == 'viirs':
+                today = datetime.datetime.now()
+
                 params = self.viirsParams
                 paramKeys = list(params.keys())
 
+                if (today - dt).days < 5:
+                    avail = today - datetime.timedelta(5)
+                    raise NotImplementedError('NRT processing for VIIRS has not been implemented please select a date prior to {}'.format(avail))
+                else:
+                    minDate = (dt - datetime.timedelta(95)).strftime('%Y-%m-%d')
+                    maxDate = (dt + datetime.timedelta(95)).strftime('%Y-%m-%d')
 
+                    worker = Viirs(geom,minDate,maxDate,collectionid='NOAA/VIIRS/001/VNP09GA')
+                    ls = Landsat(geom,minDate,maxDate,collectionid='LANDSAT/LC08/C01/T1_SR')
+                    # s2 = Sentinel2(geom,minDate,maxDate,collectionid='COPERNICUS/S2_SR')
+                    highRes = ls.collection
+
+                    downscaled = worker.downscale(highRes,target_date=date,windowSize=33,A=0.5)
+
+                    waterImage = worker.waterMap(downscaled,date)
+                    waterImage = waterImage.set({'system:time_start':ee.Date(date).millis(),'sensor':product})
+                    assetTarget = self.targetAsset + '{0}_downscaled_dswe_{1}'.format(product,date.replace('-',''))
 
             elif product == 'sentinel1':
                 previous = (dt + datetime.timedelta(-15)).strftime('%Y-%m-%d')
-                worker = Sentinel1(geom,previous,tomorrow)
+                worker = Sentinel1(geom,previous,tomorrow,collectionid='COPERNICUS/S1_GRD')
                 waterImage = worker.waterMap(date).And(hand.lt(30))
                 waterImage = waterImage.rename('water')\
                     .set({'system:time_start':ee.Date(date).millis(),'sensor':product})
                 assetTarget = self.targetAsset + '{0}_bootstrapOtsu_{1}'.format(product,date.replace('-',''))
-                description= 'SENTINEL1_WATER_'+date
-                geeutils.exportImage(waterImage,geom,assetTarget,description=description)
 
             else:
                 raise NotImplementedError('select product is currently not implemented, please check back with later versions')
+
+            description = '{0}_water_{1}'.format(product,date)
+            geeutils.exportImage(waterImage,geom,assetTarget,description=description)
 
         else:
             raise NotImplementedError('select product is currently not implemented, please check back with later versions')
