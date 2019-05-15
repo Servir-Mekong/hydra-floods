@@ -24,6 +24,7 @@ project = 'hydrafloods'
 copyright = '2019, SERVIR-Mekong'
 author = 'Kel Markert'
 
+master_doc = 'index'
 
 # -- General configuration ---------------------------------------------------
 
