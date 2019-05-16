@@ -9,7 +9,7 @@ try:
     ee.Initialize()
 except EEException as e:
     from oauth2client.service_account import ServiceAccountCredentials
-    credentials = ee.ServiceAccountCredentials(
+    credentials = ServiceAccountCredentials.from_p12_keyfile(
     service_account_email='',
     filename='',
     )
@@ -82,6 +82,62 @@ def otsu_function(histogram):
     output = means.sort(bss).get([-1])
     return output
 
+def globalOtsu(collection,target_date,region,
+               canny_threshold=7,    # threshold for canny edge detection
+               canny_sigma=1,        # sigma value for gaussian filter
+               canny_lt=7,           # lower threshold for canny detection
+               smoothing=100,        # amount of smoothing in meters
+               connected_pixels=200, # maximum size of the neighborhood in pixels
+               edge_length=50,       # minimum length of edges from canny detection
+               smooth_edges=100,
+               qualityBand=None,
+               reductionScale=90,
+               initThresh=0,
+               seed=7):
+
+    tDate = ee.Date(target_date)
+    targetColl = collection.filterDate(tDate,tDate.advance(1,'day'))
+
+    if qualityBand == None:
+        histBand = target.bandNames().get(0)
+        target = targetColl.mosaic()\
+            .select(histBand)
+    else:
+        histBand = ee.String(qualityBand)
+        target = targetColl.qualityMosaic(qualityBand)\
+            .select(histBand)
+
+    binary = target.gt(initThresh).rename('binary')
+
+    samps = binary.stratifiedSample(numPoints=20,
+        classBand='binary',
+        region=region,
+        scale=reductionScale,
+        geometries=True,
+        seed=seed,
+        tileScale=8
+    )
+    sampleRegion = samps.geometry().buffer(2500)
+
+    canny = ee.Algorithms.CannyEdgeDetector(target,canny_threshold,canny_sigma)
+
+    connected = canny.mask(canny).lt(canny_lt).connectedPixelCount(connected_pixels, True)
+    edges = connected.gte(edge_length)
+
+    edgeBuffer = edges.focal_max(smooth_edges, 'square', 'meters');
+
+    imageEdge = target.mask(edges)
+    histogram_image = target.mask(edgeBuffer)
+
+    histogram =  histogram_image.reduceRegion(ee.Reducer.histogram(255, 2)\
+                                .combine('mean', None, True)\
+                                .combine('variance', None,True),sampleRegion,reductionScale,bestEffort=True)
+
+    threshold = otsu_function(histogram.get(histBand.cat('_histogram')));
+
+    water = target.gt(threshold).clip(landShp.geometry())
+
+    return water
 
 def bootstrapOtsu(collection,target_date,
                   canny_threshold=7,    # threshold for canny edge detection
@@ -90,18 +146,26 @@ def bootstrapOtsu(collection,target_date,
                   smoothing=100,        # amount of smoothing in meters
                   connected_pixels=200, # maximum size of the neighborhood in pixels
                   edge_length=50,       # minimum length of edges from canny detection
-                  smooth_edges=100):
+                  smooth_edges=100,
+                  qualityBand=None,
+                  reductionScale=90):
 
     tDate = ee.Date(target_date)
     targetColl = collection.filterDate(tDate,tDate.advance(1,'day'))
 
     nImgs = targetColl.size().getInfo()
     if nImgs <= 0:
-        raise EEException('Selected date has no Sentinel-1 imagery, please try processing another date')
+        raise EEException('Selected date has no imagery, please try processing another date')
 
-    target = targetColl.mean().focal_median(smoothing, 'circle', 'meters')
+    if qualityBand == None:
+        target = targetColl.mosaic().focal_median(smoothing, 'circle', 'meters')
+        smoothed = collection.mosaic().focal_median(smoothing, 'circle', 'meters')
+        histBand = target.bandNames().get(0)
+    else:
+        target = targetColl.qualityMosaic(qualityBand).focal_median(smoothing, 'circle', 'meters')
+        smoothed = collection.qualityMosaic(qualityBand).focal_median(smoothing, 'circle', 'meters')
+        histBand = ee.String(qualityBand)
 
-    smoothed = collection.mosaic().focal_median(smoothing, 'circle', 'meters')
 
     canny = ee.Algorithms.CannyEdgeDetector(smoothed,canny_threshold,canny_sigma)
 
@@ -125,11 +189,11 @@ def bootstrapOtsu(collection,target_date,
     histogram_image = smoothed.mask(edgeBuffer)
     histogram = histogram_image.reduceRegion(ee.Reducer.histogram(255, 2)\
                                 .combine('mean', None, True)\
-                                .combine('variance', None,True),polygon,10,bestEffort=True)
+                                .combine('variance', None,True),polygon,reductionScale,bestEffort=True)
 
-    threshold = otsu_function(histogram.get('VV_histogram'));
+    threshold = otsu_function(histogram.get(histBand.cat('_histogram')));
 
-    water = target.mask(target.lt(threshold)).clip(landShp.geometry())
+    water = target.lt(threshold).clip(landShp.geometry())
 
     return water
 

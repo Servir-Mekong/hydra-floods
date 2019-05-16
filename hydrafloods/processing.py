@@ -140,21 +140,31 @@ class Viirs(hfCollection):
 
     def downscale(self,fineCollection,**kwargs):
         result = downscale.starfm(fineCollection,self.collection,**kwargs)
+        self.downscaled = result
+        return
 
-        return result
+    def waterMap(self,target_date,hand,probablistic=False,nIters=100,probTreshold=0.75,**kwargs):
+        def _threholdWrapper(iteration):
+            i = ee.Number(iteration)
+            sim = geeutils.globalOtsu(self.downscaled,target_date,self.region,seed=i,**kwargs)
+            return sim.updateMask(hand.lt(30))
 
-    def waterMap(self,downscaleCollection,target_date):
         tDate = ee.Date(target_date)
-        image = ee.Image(downscaleCollection.filterDate(tDate,tDate.advance(1,'day')).first())
-        # simple dswe algorithm for water
-        water = image.select('mndwi').gt(-0.5).And(
-                image.select('blue').lt(1000)).And(
-                image.select('nir').lt(2500)).And(
-                image.select('swir1').lt(3000)).And(
-                image.select('swir2').lt(1000))\
-                .rename('water').uint8();
 
-        return water
+        if probablistic:
+            iters = ee.List.sequence(0,nIters-1)
+
+            sims = ee.ImageCollection(iters.map(_threholdWrapper))
+            probs = sims.sum().divide(nIters).rename(['probability'])
+            water = probs.select(['probability']).gt(probTreshold).rename('water')
+            mapResult = water.addBands(probs.multiply(10000).uint16())
+
+        else:
+            mapResult = geeutils.globalOtsu(self.downscaled,target_date,self.region,**kwargs)\
+                .updateMask(hand.lt(30))
+
+
+        return mapResult
 
 
 

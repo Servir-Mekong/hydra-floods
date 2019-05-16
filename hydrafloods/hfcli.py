@@ -145,7 +145,7 @@ class hydrafloods(object):
                 else:
                     runProbs = False
 
-                waterImage = worker.waterMap(hand,permanent=permanentWater,probablistic=runProbs,)
+                waterImage = worker.waterMap(hand,permanent=permanentWater,probablistic=runProbs)
                 waterImage = waterImage.set({'system:time_start':ee.Date(date).millis(),'sensor':product})
                 assetTarget = self.targetAsset + '{0}_bathtub_{1}'.format(product,date.replace('-',''))
 
@@ -169,9 +169,15 @@ class hydrafloods(object):
 
                     downscaled = worker.downscale(highRes,target_date=date,windowSize=33,A=0.5)
 
-                    waterImage = worker.waterMap(downscaled,date)
-                    waterImage = waterImage.set({'system:time_start':ee.Date(date).millis(),'sensor':product})
-                    assetTarget = self.targetAsset + '{0}_downscaled_dswe_{1}'.format(product,date.replace('-',''))
+                    if 'probablistic' in paramKeys:
+                        runProbs = params['probablistic']
+                    else:
+                        runProbs = False
+
+                    waterImage = worker.waterMap(date,hand,qualityBand='mndwi',reductionScale=90,probablistic=runProbs)
+                    waterImage = waterImage\
+                        .set({'system:time_start':ee.Date(date).millis(),'sensor':product})
+                    assetTarget = self.targetAsset + '{0}_downscaled_globalOtsu_{1}'.format(product,date.replace('-',''))
 
             elif product == 'sentinel1':
                 previous = (dt + datetime.timedelta(-15)).strftime('%Y-%m-%d')
