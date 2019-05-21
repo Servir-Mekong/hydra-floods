@@ -16,7 +16,7 @@ except EEException as e:
     ee.Initialize(credentials)
 
 landShp = ee.FeatureCollection('USDOS/LSIB/2013')
-S1_polygons = ee.FeatureCollection('projects/server-mekong/hdyrafloods/S1_polygons')
+S1_polygons = ee.FeatureCollection('projects/servir-mekong/hydrafloods/S1_polygons')
 
 # helper function to convert qa bit image to flag
 def extractBits(image, start, end, newName):
