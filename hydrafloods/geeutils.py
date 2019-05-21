@@ -99,7 +99,7 @@ def globalOtsu(collection,target_date,region,
     targetColl = collection.filterDate(tDate,tDate.advance(1,'day'))
 
     if qualityBand == None:
-        histBand = target.bandNames().get(0)
+        histBand = ee.String(target.bandNames().get(0))
         target = targetColl.mosaic()\
             .select(histBand)
     else:
@@ -160,7 +160,7 @@ def bootstrapOtsu(collection,target_date,
     if qualityBand == None:
         target = targetColl.mosaic().focal_median(smoothing, 'circle', 'meters')
         smoothed = collection.mosaic().focal_median(smoothing, 'circle', 'meters')
-        histBand = target.bandNames().get(0)
+        histBand = ee.String(target.bandNames().get(0))
     else:
         target = targetColl.qualityMosaic(qualityBand).focal_median(smoothing, 'circle', 'meters')
         smoothed = collection.qualityMosaic(qualityBand).focal_median(smoothing, 'circle', 'meters')
