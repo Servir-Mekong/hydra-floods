@@ -16,11 +16,12 @@ except EEException as e:
     ee.Initialize(credentials)
 
 landShp = ee.FeatureCollection('USDOS/LSIB/2013')
+S1_polygons = ee.FeatureCollection('projects/server-mekong/hdyrafloods/S1_polygons')
 
 # helper function to convert qa bit image to flag
 def extractBits(image, start, end, newName):
     # Compute the bits we need to extract.
-    pattern = 0;
+    pattern = 0
     for i in range(start,end):
        pattern += int(math.pow(2, i))
 
@@ -28,7 +29,7 @@ def extractBits(image, start, end, newName):
     # a new name.
     return image.select([0], [newName])\
                   .bitwiseAnd(pattern)\
-                  .rightShift(start);
+                  .rightShift(start)
 
 
 def getTileLayerUrl(ee_image_object):
@@ -99,7 +100,7 @@ def globalOtsu(collection,target_date,region,
     targetColl = collection.filterDate(tDate,tDate.advance(1,'day'))
 
     if qualityBand == None:
-        histBand = target.bandNames().get(0)
+        histBand = ee.String(target.bandNames().get(0))
         target = targetColl.mosaic()\
             .select(histBand)
     else:
@@ -124,7 +125,7 @@ def globalOtsu(collection,target_date,region,
     connected = canny.mask(canny).lt(canny_lt).connectedPixelCount(connected_pixels, True)
     edges = connected.gte(edge_length)
 
-    edgeBuffer = edges.focal_max(smooth_edges, 'square', 'meters');
+    edgeBuffer = edges.focal_max(smooth_edges, 'square', 'meters')
 
     imageEdge = target.mask(edges)
     histogram_image = target.mask(edgeBuffer)
@@ -133,7 +134,7 @@ def globalOtsu(collection,target_date,region,
                                 .combine('mean', None, True)\
                                 .combine('variance', None,True),sampleRegion,reductionScale,bestEffort=True)
 
-    threshold = otsu_function(histogram.get(histBand.cat('_histogram')));
+    threshold = otsu_function(histogram.get(histBand.cat('_histogram')))
 
     water = target.gt(threshold).clip(landShp.geometry())
 
@@ -160,7 +161,7 @@ def bootstrapOtsu(collection,target_date,
     if qualityBand == None:
         target = targetColl.mosaic().focal_median(smoothing, 'circle', 'meters')
         smoothed = collection.mosaic().focal_median(smoothing, 'circle', 'meters')
-        histBand = target.bandNames().get(0)
+        histBand = ee.String(target.bandNames().get(0))
     else:
         target = targetColl.qualityMosaic(qualityBand).focal_median(smoothing, 'circle', 'meters')
         smoothed = collection.qualityMosaic(qualityBand).focal_median(smoothing, 'circle', 'meters')
@@ -172,26 +173,18 @@ def bootstrapOtsu(collection,target_date,
     connected = canny.mask(canny).lt(canny_lt).connectedPixelCount(connected_pixels, True)
     edges = connected.gte(edge_length)
 
-    edgeBuffer = edges.focal_max(smooth_edges, 'square', 'meters');
+    edgeBuffer = edges.focal_max(smooth_edges, 'square', 'meters')
 
     imageEdge = smoothed.mask(edges)
 
-    polygon = ee.Geometry.MultiPolygon(
-        [[[[94.32174682617188, 22.916025590238387],
-           [94.47761535644531, 22.915393135699805],
-           [94.4879150390625, 23.02223600607765],
-           [94.32723999023438, 23.026027690875438]]],
-         [[[94.14939880371094, 23.187706723229915],
-           [94.21119689941406, 23.18581317530292],
-           [94.20913696289062, 23.252702265171013],
-           [94.14665222167969, 23.250178757002324]]]])
+    polygon = S1_polygons.filterBounds(target.geometry()).geometry()
 
     histogram_image = smoothed.mask(edgeBuffer)
     histogram = histogram_image.reduceRegion(ee.Reducer.histogram(255, 2)\
                                 .combine('mean', None, True)\
                                 .combine('variance', None,True),polygon,reductionScale,bestEffort=True)
 
-    threshold = otsu_function(histogram.get(histBand.cat('_histogram')));
+    threshold = otsu_function(histogram.get(histBand.cat('_histogram')))
 
     water = target.lt(threshold).clip(landShp.geometry())
 
@@ -307,7 +300,7 @@ def despeckle(img):
   rect_weights = ee.List.repeat(ee.List.repeat(0,7),3).cat(ee.List.repeat(ee.List.repeat(1,7),4))
 
   diag_weights = ee.List([[1,0,0,0,0,0,0], [1,1,0,0,0,0,0], [1,1,1,0,0,0,0],\
-                          [1,1,1,1,0,0,0], [1,1,1,1,1,0,0], [1,1,1,1,1,1,0], [1,1,1,1,1,1,1]]);
+                          [1,1,1,1,0,0,0], [1,1,1,1,1,0,0], [1,1,1,1,1,1,0], [1,1,1,1,1,1,1]])
 
   rect_kernel = ee.Kernel.fixed(7,7, rect_weights, 3, 3, False)
   diag_kernel = ee.Kernel.fixed(7,7, diag_weights, 3, 3, False)
@@ -529,21 +522,21 @@ def JRCAlgorithm(geom,startDate, endDate, month=None):
     # calculate total number of observations
     def calcObs(img):
         # observation is img > 0
-        obs = img.gt(0);
-        return ee.Image(obs).set('system:time_start', img.get('system:time_start'));
+        obs = img.gt(0)
+        return ee.Image(obs).set('system:time_start', img.get('system:time_start'))
 
     # calculate the number of times water
     def calcWater(img):
-        water = img.select('water').eq(2);
-        return ee.Image(water).set('system:time_start', img.get('system:time_start'));
+        water = img.select('water').eq(2)
+        return ee.Image(water).set('system:time_start', img.get('system:time_start'))
 
     observations = myjrc.map(calcObs)
 
     water = myjrc.map(calcWater)
 
     # sum the totals
-    totalObs = ee.Image(ee.ImageCollection(observations).sum().toFloat());
-    totalWater = ee.Image(ee.ImageCollection(water).sum().toFloat());
+    totalObs = ee.Image(ee.ImageCollection(observations).sum().toFloat())
+    totalWater = ee.Image(ee.ImageCollection(water).sum().toFloat())
 
     # calculate the percentage of total water
     returnTime = totalWater.divide(totalObs).multiply(100)
