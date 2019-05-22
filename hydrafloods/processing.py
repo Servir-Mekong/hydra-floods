@@ -196,7 +196,7 @@ class Landsat(hfCollection):
         t = ee.Date(img.get('system:time_start'))
         nDays = t.difference(INITIME,'day')
         time = ee.Image(nDays).int16().rename('time')
-        return img.updateMask(mask).addBands(time)
+        return img.updateMask(mask).addBands(time).uint16()
 
 
 
@@ -205,7 +205,34 @@ class Sentinel2(hfCollection):
     def __init__(self,*args,**kwargs):
         super(Sentinel2, self).__init__(*args,**kwargs)
 
+        self.collection = self.collection.map(self._qaMask)\
+            .select(BANDREMAP.get('sen2'),BANDREMAP.get('new'))\
+            .map(self._bandPassAdjustment)\
+            .map(geeutils.addIndices)
+
         return
 
-    def _qaMask():
-        return
+    def _qaMask(self,img):
+        sclImg = img.select('SCL') # Scene Classification Map
+        mask = sclImg.gte(4).And(sclImg.lte(6))
+        t = ee.Date(img.get('system:time_start'))
+        nDays = t.difference(INITIME,'day')
+        time = ee.Image(nDays).int16().rename('time')
+        return img.updateMask(mask).addBands(time).uint16()
+
+    def _bandPassAdjustment(self,img):
+        bands = ee.List(BANDREMAP.get('new'))
+        # linear regression coefficients for adjustment
+        gain = ee.Array([[0.9778], [1.0053], [0.9765], [0.9983], [0.9987], [1.003],[1.0]])
+        bias = ee.Array([[-0.00411],[-0.00093],[0.00094],[-0.0001],[-0.0015],[-0.0012],[0.0]])
+        # Make an Array Image, with a 1-D Array per pixel.
+        arrayImage1D = img.select(bands).toArray()
+
+        # Make an Array Image with a 2-D Array per pixel, 6x1.
+        arrayImage2D = arrayImage1D.toArray(1)
+
+        componentsImage = ee.Image(gain).multiply(arrayImage2D).add(ee.Image(bias))\
+        .arrayProject([0])\
+        .arrayFlatten([bands]).float()
+
+        return componentsImage.uint16().set('system:time_start',img.get('system:time_start'))

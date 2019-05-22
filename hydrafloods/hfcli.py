@@ -164,17 +164,17 @@ class hydrafloods(object):
 
                     worker = Viirs(geom,minDate,maxDate,collectionid='NOAA/VIIRS/001/VNP09GA')
                     ls = Landsat(geom,minDate,maxDate,collectionid='LANDSAT/LC08/C01/T1_SR')
-                    # s2 = Sentinel2(geom,minDate,maxDate,collectionid='COPERNICUS/S2_SR')
-                    highRes = ls.collection
+                    s2 = Sentinel2(geom,minDate,maxDate,collectionid='COPERNICUS/S2_SR')
+                    highRes = ee.ImageCollection(ls.collection.merge(s2.collection))
 
-                    downscaled = worker.downscale(highRes,target_date=date,windowSize=33,A=0.5)
+                    worker.downscale(highRes,target_date=date,windowSize=33,A=0.5)
 
                     if 'probablistic' in paramKeys:
                         runProbs = params['probablistic']
                     else:
                         runProbs = False
 
-                    waterImage = worker.waterMap(date,hand,qualityBand='mndwi',reductionScale=90,probablistic=runProbs)
+                    waterImage = worker.waterMap(date,hand,qualityBand='mndwi',reductionScale=90,probablistic=runProbs,nIters=50)
                     waterImage = waterImage\
                         .set({'system:time_start':ee.Date(date).millis(),'sensor':product})
                     assetTarget = self.targetAsset + '{0}_downscaled_globalOtsu_{1}'.format(product,date.replace('-',''))
