@@ -197,7 +197,7 @@ def bootstrapOtsu(collection,target_date,
         histogram_image = smoothed.mask(edgeBuffer)
         histogram = histogram_image.reduceRegion(ee.Reducer.histogram(255, 2),polygons.geometry(),reductionScale,bestEffort=True)
 
-        threshold = ee.Number(otsu_function(histogram.get(histBand.cat('_histogram')))).min(upper_threshold)
+        threshold = ee.Number(otsu_function(histogram.get(histBand))).min(upper_threshold)
     else:
         threshold = upper_threshold
 
