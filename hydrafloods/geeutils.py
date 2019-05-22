@@ -157,6 +157,7 @@ def bootstrapOtsu(collection,target_date,
     if nImgs <= 0:
         raise EEException('Selected date has no imagery, please try processing another date')
 
+    polygon = S1_polygons.filterBounds(targetColl.geometry()).geometry()
     if qualityBand == None:
         target = targetColl.mosaic()
         smoothed = target.focal_median(smoothing, 'circle', 'meters')
@@ -174,7 +175,6 @@ def bootstrapOtsu(collection,target_date,
 
     edgeBuffer = edges.focal_max(smooth_edges, 'square', 'meters')
 
-    polygon = S1_polygons.filterBounds(target.geometry()).geometry()
 
     histogram_image = smoothed.mask(edgeBuffer)
     histogram = histogram_image.reduceRegion(ee.Reducer.histogram(255, 2)\
