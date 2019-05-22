@@ -140,6 +140,7 @@ def globalOtsu(collection,target_date,region,
     return water
 
 def bootstrapOtsu(collection,target_date,
+                  neg_buffer=-1500,     # negative buffer for masking potential bad data
                   canny_threshold=7,    # threshold for canny edge detection
                   canny_sigma=1,        # sigma value for gaussian filter
                   canny_lt=7,           # lower threshold for canny detection
@@ -157,16 +158,31 @@ def bootstrapOtsu(collection,target_date,
     if nImgs <= 0:
         raise EEException('Selected date has no imagery, please try processing another date')
 
-    polygon = S1_polygons.filterBounds(targetColl.geometry()).geometry()
+    collGeom = targetColl.geometry()
+    polygons = S1_polygons.filterBounds(collGeom)
+    
+    ids = ee.List(polygons.aggregate_array('id'))
+    random_ids = []
+    for i in range(3):
+        random_ids.append(random.randint(0, ids.size().subtract(1).getInfo()))
+    random_ids = ee.List(random_ids)
+    
+    def getRandomIds(i):
+        return ids.get(i)
+    
+    ids = random_ids.map(getRandomIds)
+    polygons = polygons.filter(ee.Filter.inList('id', ids))
+    
     if qualityBand == None:
-        target = targetColl.mosaic()
+        target   = targetColl.mosaic().set('system:footprint', collGeom.dissolve())
+        target   = target.clip(target.geometry().buffer(neg_buffer))
         smoothed = target.focal_median(smoothing, 'circle', 'meters')
         histBand = ee.String(target.bandNames().get(0))
     else:
-        target = targetColl.qualityMosaic(qualityBand)
+        target   = targetColl.qualityMosaic(qualityBand).set('system:footprint', collGeom.dissolve())
+        target   = target.clip(target.geometry().buffer(neg_buffer))
         smoothed = target.focal_median(smoothing, 'circle', 'meters')
         histBand = ee.String(qualityBand)
-
 
     canny = ee.Algorithms.CannyEdgeDetector(smoothed,canny_threshold,canny_sigma)
 
@@ -175,11 +191,8 @@ def bootstrapOtsu(collection,target_date,
 
     edgeBuffer = edges.focal_max(smooth_edges, 'square', 'meters')
 
-
     histogram_image = smoothed.mask(edgeBuffer)
-    histogram = histogram_image.reduceRegion(ee.Reducer.histogram(255, 2)\
-                                .combine('mean', None, True)\
-                                .combine('variance', None,True),polygon,reductionScale,bestEffort=True)
+    histogram = histogram_image.reduceRegion(ee.Reducer.histogram(255, 2),polygons.geometry(),reductionScale,bestEffort=True)
 
     threshold = otsu_function(histogram.get(histBand.cat('_histogram')))
 
