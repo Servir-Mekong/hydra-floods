@@ -36,7 +36,6 @@ class Sentinel1(hfCollection):
 
         self.collection = self.collection\
                             .filter(ee.Filter.listContains('transmitterReceiverPolarisation', 'VV'))\
-                            .map(self._maskEdges)\
                             .select('VV')
 
         return
@@ -46,7 +45,6 @@ class Sentinel1(hfCollection):
         mapResult = geeutils.bootstrapOtsu(self.collection,target_date,**kwargs)
 
         return mapResult
-
 
     def _maskEdges(self,img):
         angles = img.select('angle')

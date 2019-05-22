@@ -140,6 +140,8 @@ def globalOtsu(collection,target_date,region,
     return water
 
 def bootstrapOtsu(collection,target_date,
+                  neg_buffer=-1500,     # negative buffer for masking potential bad data
+                  upper_threshold=-14,  # upper limit for water threshold
                   canny_threshold=7,    # threshold for canny edge detection
                   canny_sigma=1,        # sigma value for gaussian filter
                   canny_lt=7,           # lower threshold for canny detection
@@ -157,31 +159,47 @@ def bootstrapOtsu(collection,target_date,
     if nImgs <= 0:
         raise EEException('Selected date has no imagery, please try processing another date')
 
-    if qualityBand == None:
-        target = targetColl.mosaic()
-        smoothed = target.focal_median(smoothing, 'circle', 'meters')
-        histBand = ee.String(target.bandNames().get(0))
+    collGeom = targetColl.geometry()
+    polygons = S1_polygons.filterBounds(collGeom)
+    
+    nPolys = polygons.size().getInfo()
+    if nPolys > 0:
+        ids = ee.List(polygons.aggregate_array('id'))
+        random_ids = []
+        for i in range(3):
+            random_ids.append(random.randint(0, ids.size().subtract(1).getInfo()))
+        random_ids = ee.List(random_ids)
+        
+        def getRandomIds(i):
+            return ids.get(i)
+        
+        ids = random_ids.map(getRandomIds)
+        polygons = polygons.filter(ee.Filter.inList('id', ids))
+        
+        if qualityBand == None:
+            target   = targetColl.mosaic().set('system:footprint', collGeom.dissolve())
+            target   = target.clip(target.geometry().buffer(neg_buffer))
+            smoothed = target.focal_median(smoothing, 'circle', 'meters')
+            histBand = ee.String(target.bandNames().get(0))
+        else:
+            target   = targetColl.qualityMosaic(qualityBand).set('system:footprint', collGeom.dissolve())
+            target   = target.clip(target.geometry().buffer(neg_buffer))
+            smoothed = target.focal_median(smoothing, 'circle', 'meters')
+            histBand = ee.String(qualityBand)
+
+        canny = ee.Algorithms.CannyEdgeDetector(smoothed,canny_threshold,canny_sigma)
+
+        connected = canny.mask(canny).lt(canny_lt).connectedPixelCount(connected_pixels, True)
+        edges = connected.gte(edge_length)
+
+        edgeBuffer = edges.focal_max(smooth_edges, 'square', 'meters')
+
+        histogram_image = smoothed.mask(edgeBuffer)
+        histogram = histogram_image.reduceRegion(ee.Reducer.histogram(255, 2),polygons.geometry(),reductionScale,bestEffort=True)
+
+        threshold = ee.Number(otsu_function(histogram.get(histBand))).min(upper_threshold)
     else:
-        target = targetColl.qualityMosaic(qualityBand)
-        smoothed = target.focal_median(smoothing, 'circle', 'meters')
-        histBand = ee.String(qualityBand)
-
-
-    canny = ee.Algorithms.CannyEdgeDetector(smoothed,canny_threshold,canny_sigma)
-
-    connected = canny.mask(canny).lt(canny_lt).connectedPixelCount(connected_pixels, True)
-    edges = connected.gte(edge_length)
-
-    edgeBuffer = edges.focal_max(smooth_edges, 'square', 'meters')
-
-    polygon = S1_polygons.filterBounds(target.geometry()).geometry()
-
-    histogram_image = smoothed.mask(edgeBuffer)
-    histogram = histogram_image.reduceRegion(ee.Reducer.histogram(255, 2)\
-                                .combine('mean', None, True)\
-                                .combine('variance', None,True),polygon,reductionScale,bestEffort=True)
-
-    threshold = otsu_function(histogram.get(histBand.cat('_histogram')))
+        threshold = upper_threshold
 
     water = smoothed.lt(threshold).clip(landShp.geometry())
 
