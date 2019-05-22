@@ -129,7 +129,7 @@ def globalOtsu(collection,target_date,region,
     imageEdge = target.mask(edges)
     histogram_image = target.mask(edgeBuffer)
 
-    histogram =  histogram_image.reduceRegion(ee.Reducer.histogram(255, 2)\
+    histogram =  target.reduceRegion(ee.Reducer.histogram(255, 2)\
                                 .combine('mean', None, True)\
                                 .combine('variance', None,True),sampleRegion,reductionScale,bestEffort=True)
 
