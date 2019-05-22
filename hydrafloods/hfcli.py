@@ -180,7 +180,7 @@ class hydrafloods(object):
                     assetTarget = self.targetAsset + '{0}_downscaled_globalOtsu_{1}'.format(product,date.replace('-',''))
 
             elif product == 'sentinel1':
-                previous = (dt + datetime.timedelta(-15)).strftime('%Y-%m-%d')
+                previous = (dt + datetime.timedelta(0)).strftime('%Y-%m-%d')
                 worker = Sentinel1(geom,previous,tomorrow,collectionid='COPERNICUS/S1_GRD')
                 waterImage = worker.waterMap(date).And(hand.lt(30))
                 waterImage = waterImage.rename('water')\
