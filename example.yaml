@@ -3,10 +3,10 @@ configuration:
   # region: <path/to/file>
   country: Myanmar
   boundingbox:
-    - 97
-    - 5
-    - 106
-    - 21
+    - 91
+    - 9
+    - 102
+    - 29
   # logdir: ./
   credentials: <path/to/credentials/file>
   stagingBucket: <gcs/storage/bucket>
