@@ -6,12 +6,6 @@ def starfm(fineCollection,coarseCollection,target_date='1970-01-01',windowSize=3
     def apply_starfm(img):
         t = ee.Date(img.get('system:time_start'))
 
-        base = fineCollection.filterDate(t.advance(-2,'month'),target)\
-                .sort('system:time_start',False).reduce(ee.Reducer.firstNonNull())
-
-        slv =  coarseCollection.filterDate(t.advance(-2,'month'),target)\
-                .sort('system:time_start',False).reduce(ee.Reducer.firstNonNull())
-
         Tijk = img.select('time').subtract(base.select('time_first'))
 
         Sijk = img.subtract(slv).abs().reduceNeighborhood(ee.Reducer.sum(),square,'kernel',True,'boxcar')\
@@ -50,7 +44,13 @@ def starfm(fineCollection,coarseCollection,target_date='1970-01-01',windowSize=3
     square = ee.Kernel.square(windowSize,'pixels')
     Dijk = ee.Kernel.fixed(windowSize,windowSize,dW.toList(),centerPos,centerPos,True)
 
-    result = coarseCollection.filterDate(target.advance(-3,'month'),target.advance(1,'month'))\
+    base = fineCollection.filterDate(target.advance(-2,'month'),target)\
+            .sort('system:time_start',False).reduce(ee.Reducer.firstNonNull())
+
+    slv =  coarseCollection.filterDate(target.advance(-2,'month'),target)\
+            .sort('system:time_start',False).reduce(ee.Reducer.firstNonNull())
+
+    result = coarseCollection.filterDate(target.advance(-5,'day'),target.advance(5,'day'))\
                 .map(apply_starfm,True)
 
     return result
