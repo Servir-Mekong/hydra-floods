@@ -117,11 +117,12 @@ class Viirs(hfCollection):
         return
 
     def _qaMask(self,img):
-        viewing = img.select('SensorZenith').abs().multiply(0.01).lt(30)
+        viewing = img.select('SensorZenith').abs().multiply(0.01).lt(45)
         clouds = geeutils.extractBits(img.select('QF1'),2,3,'cloud_qa').lte(2)
         shadows = geeutils.extractBits(img.select('QF2'),3,3,'shadow_qa').eq(0)
         aerosols = geeutils.extractBits(img.select('QF2'),4,4,'aerosol_qa').eq(0)
-        mask = clouds.And(shadows).And(aerosols)
+        snows = geeutils.extractBits(img.select('QF2'),5,5,'snow_qa').eq(0)
+        mask = clouds.And(shadows).And(snows).And(aerosols).And(viewing)
         t = ee.Date(img.get('system:time_start'))
         nDays = t.difference(INITIME,'day')
         time = ee.Image(nDays).int16().rename('time')
