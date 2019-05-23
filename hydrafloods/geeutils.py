@@ -116,7 +116,7 @@ def globalOtsu(collection,target_date,region,
         scale=reductionScale,
         geometries=True,
         seed=seed,
-        tileScale=8
+        tileScale=16
     )
     sampleRegion = samps.geometry().buffer(2500)
 
@@ -129,9 +129,10 @@ def globalOtsu(collection,target_date,region,
 
     histogram_image = target.mask(edgeBuffer)
 
-    histogram =  target.reduceRegion(ee.Reducer.histogram(255, 2)\
+    histogram =  histogram_image.reduceRegion(ee.Reducer.histogram(255, 2)\
                                 .combine('mean', None, True)\
-                                .combine('variance', None,True),sampleRegion,reductionScale,bestEffort=True)
+                                .combine('variance', None,True),sampleRegion,reductionScale,bestEffort=True,
+                                tileScale=16)
 
     threshold = otsu_function(histogram.get(histBand.cat('_histogram')))
 
@@ -161,7 +162,7 @@ def bootstrapOtsu(collection,target_date,
 
     collGeom = targetColl.geometry()
     polygons = S1_polygons.filterBounds(collGeom)
-    
+
     nPolys = polygons.size().getInfo()
     if nPolys > 0:
         ids = ee.List(polygons.aggregate_array('id'))
@@ -169,13 +170,13 @@ def bootstrapOtsu(collection,target_date,
         for i in range(3):
             random_ids.append(random.randint(0, ids.size().subtract(1).getInfo()))
         random_ids = ee.List(random_ids)
-        
+
         def getRandomIds(i):
             return ids.get(i)
-        
+
         ids = random_ids.map(getRandomIds)
         polygons = polygons.filter(ee.Filter.inList('id', ids))
-        
+
         if qualityBand == None:
             target   = targetColl.mosaic().set('system:footprint', collGeom.dissolve())
             target   = target.clip(target.geometry().buffer(neg_buffer))
