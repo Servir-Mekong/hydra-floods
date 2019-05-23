@@ -10,7 +10,7 @@ BANDREMAP = ee.Dictionary({
   'landsat': ee.List(['B2','B3','B4','B5','B6','B7','time']),
   'viirs': ee.List(['M2','M4','M5','M7','M10','M11','time']),
   'sen2':  ee.List(['B2','B3','B4','B8','B11','B12','time']),
-  'modis': ee.List(['sur_refl_b03','sur_refl_b04','sur_refl_b01','sur_refl_b02','sur_refl_b06','sur_refl_b07']),
+  'modis': ee.List(['sur_refl_b03','sur_refl_b04','sur_refl_b01','sur_refl_b02','sur_refl_b06','sur_refl_b07','time']),
   'new': ee.List(['blue','green','red','nir','swir1','swir2','time'])
 })
 
@@ -122,11 +122,11 @@ class Viirs(hfCollection):
         shadows = geeutils.extractBits(img.select('QF2'),3,3,'shadow_qa').eq(0)
         aerosols = geeutils.extractBits(img.select('QF2'),4,4,'aerosol_qa').eq(0)
         snows = geeutils.extractBits(img.select('QF2'),5,5,'snow_qa').eq(0)
-        mask = clouds.And(shadows).And(snows).And(aerosols).And(viewing)
+        mask = clouds.And(shadows).And(snows).And(viewing)
         t = ee.Date(img.get('system:time_start'))
         nDays = t.difference(INITIME,'day')
         time = ee.Image(nDays).int16().rename('time')
-        return img.And(mask).addBands(time)
+        return img.updateMask(mask).addBands(time)
 
 
     def extract(self,date,region,outdir='./',creds=None):
@@ -146,7 +146,7 @@ class Viirs(hfCollection):
         def _threholdWrapper(iteration):
             i = ee.Number(iteration)
             sim = geeutils.globalOtsu(self.downscaled,target_date,self.region,seed=i,**kwargs)
-            return sim.updateMask(hand.lt(30))
+            return sim.And(hand.lt(30))
 
         tDate = ee.Date(target_date)
 
@@ -162,19 +162,67 @@ class Viirs(hfCollection):
             mapResult = geeutils.globalOtsu(self.downscaled,target_date,self.region,**kwargs)\
                 .And(hand.lt(30))
 
-
         return mapResult
 
 
 
 class Modis(hfCollection):
-    def __init__(self,*args,**kwargss):
-        super(Modis, self).__init__(*args,**kwargs)
+    def __init__(self,*args,**kwargs):
+        super(Viirs, self).__init__(*args,**kwargs)
+
+        self.collection = self.collection.map(self._qaMask)\
+            .select(BANDREMAP.get('viirs'),BANDREMAP.get('new'))\
+            .map(geeutils.addIndices)
+
         return
 
-    def _qaMask(img):
+    def _qaMask(self,img):
+        viewing = img.select('SensorZenith').abs().multiply(0.01).lt(45)
+        clouds = geeutils.extractBits(img.select('state_1km'),10,10,'cloud_qa').neq(1)
+        shadows = geeutils.extractBits(img.select('state_1km'),2,2,'shadow_qa').eq(0)
+        aerosols = geeutils.extractBits(img.select('state_1km'),6,7,'aerosol_qa').neq(0)
+        snows = geeutils.extractBits(img.select('state_1km'),15,15,'snow_qa').eq(0)
+        mask = clouds.and(shadows).and(snows).and(viewing)
+        t = ee.Date(img.get('system:time_start'))
+        nDays = t.difference(INITIME,'day')
+        time = ee.Image(nDays).int16().rename('time')
+        return img.updateMask(mask).addBands(time)
+
+
+    def extract(self,date,region,outdir='./',creds=None):
 
         return
+
+    def load(self,files,gcsBucket='',eeAsset=''):
+
+        return
+
+    def downscale(self,fineCollection,**kwargs):
+        result = downscale.starfm(fineCollection,self.collection,**kwargs)
+        self.downscaled = result
+        return
+
+    def waterMap(self,target_date,hand,probablistic=False,nIters=100,probTreshold=0.75,**kwargs):
+        def _threholdWrapper(iteration):
+            i = ee.Number(iteration)
+            sim = geeutils.globalOtsu(self.downscaled,target_date,self.region,seed=i,**kwargs)
+            return sim.And(hand.lt(30))
+
+        tDate = ee.Date(target_date)
+
+        if probablistic:
+            iters = ee.List.sequence(0,nIters-1)
+
+            sims = ee.ImageCollection(iters.map(_threholdWrapper))
+            probs = sims.sum().divide(nIters).rename(['probability'])
+            water = probs.select(['probability']).gt(probTreshold).rename('water')
+            mapResult = water.addBands(probs.multiply(10000).uint16())
+
+        else:
+            mapResult = geeutils.globalOtsu(self.downscaled,target_date,self.region,**kwargs)\
+                .And(hand.lt(30))
+
+        return mapResult
 
 
 
