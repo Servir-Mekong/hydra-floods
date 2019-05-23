@@ -28,6 +28,9 @@ class hfCollection(object):
 
         return
 
+    def clip(self,img):
+        return img.clip(self.region)
+
 
 
 class Sentinel1(hfCollection):
@@ -112,6 +115,7 @@ class Viirs(hfCollection):
 
         self.collection = self.collection.map(self._qaMask)\
             .select(BANDREMAP.get('viirs'),BANDREMAP.get('new'))\
+            .map(self.clip)\
             .map(geeutils.addIndices)
 
         return
@@ -168,10 +172,11 @@ class Viirs(hfCollection):
 
 class Modis(hfCollection):
     def __init__(self,*args,**kwargs):
-        super(Viirs, self).__init__(*args,**kwargs)
+        super(Modis, self).__init__(*args,**kwargs)
 
         self.collection = self.collection.map(self._qaMask)\
             .select(BANDREMAP.get('modis'),BANDREMAP.get('new'))\
+            .map(self.clip)\
             .map(geeutils.addIndices)
 
         return
@@ -182,7 +187,7 @@ class Modis(hfCollection):
         shadows = geeutils.extractBits(img.select('state_1km'),2,2,'shadow_qa').eq(0)
         aerosols = geeutils.extractBits(img.select('state_1km'),6,7,'aerosol_qa').neq(0)
         snows = geeutils.extractBits(img.select('state_1km'),15,15,'snow_qa').eq(0)
-        mask = clouds.and(shadows).and(snows).and(viewing)
+        mask = clouds.And(shadows).And(snows).And(viewing)
         t = ee.Date(img.get('system:time_start'))
         nDays = t.difference(INITIME,'day')
         time = ee.Image(nDays).int16().rename('time')
