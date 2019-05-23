@@ -171,7 +171,7 @@ class Modis(hfCollection):
         super(Viirs, self).__init__(*args,**kwargs)
 
         self.collection = self.collection.map(self._qaMask)\
-            .select(BANDREMAP.get('viirs'),BANDREMAP.get('new'))\
+            .select(BANDREMAP.get('modis'),BANDREMAP.get('new'))\
             .map(geeutils.addIndices)
 
         return
