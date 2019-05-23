@@ -125,7 +125,7 @@ class Viirs(hfCollection):
         t = ee.Date(img.get('system:time_start'))
         nDays = t.difference(INITIME,'day')
         time = ee.Image(nDays).int16().rename('time')
-        return img.updateMask(mask).addBands(time)
+        return img.And(mask).addBands(time)
 
 
     def extract(self,date,region,outdir='./',creds=None):
@@ -159,7 +159,7 @@ class Viirs(hfCollection):
 
         else:
             mapResult = geeutils.globalOtsu(self.downscaled,target_date,self.region,**kwargs)\
-                .updateMask(hand.lt(30))
+                .And(hand.lt(30))
 
 
         return mapResult
