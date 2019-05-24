@@ -259,7 +259,6 @@ class Sentinel2(hfCollection):
 
         self.collection = self.collection.map(self._qaMask)\
             .select(BANDREMAP.get('sen2'),BANDREMAP.get('new'))\
-            .map(self._bandPassAdjustment)\
             .map(geeutils.addIndices)
 
         return
