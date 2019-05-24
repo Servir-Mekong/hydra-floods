@@ -108,7 +108,7 @@ class hydrafloods(object):
 
 
     def process(self,product, date,skipPreprocessing=False):
-        if product in ['sentinel1','atms','viirs']:
+        if product in ['sentinel1','atms','viirs','modis']:
             dt = utils.decode_date(date)
             tomorrow = (dt + datetime.timedelta(1)).strftime('%Y-%m-%d')
 
@@ -149,20 +149,25 @@ class hydrafloods(object):
                 waterImage = waterImage.set({'system:time_start':ee.Date(date).millis(),'sensor':product})
                 assetTarget = self.targetAsset + '{0}_bathtub_{1}'.format(product,date.replace('-',''))
 
-            elif product == 'viirs':
+            elif (product == 'viirs') or (product == 'modis'):
                 today = datetime.datetime.now()
-
-                params = self.viirsParams
-                paramKeys = list(params.keys())
 
                 if (today - dt).days < 5:
                     avail = today - datetime.timedelta(5)
-                    raise NotImplementedError('NRT processing for VIIRS has not been implemented please select a date prior to {}'.format(avail))
+                    raise NotImplementedError('NRT processing for VIIRS or MODIS has not been implemented, please select a date prior to {}'.format(avail))
                 else:
-                    minDate = (dt - datetime.timedelta(95)).strftime('%Y-%m-%d')
-                    maxDate = (dt + datetime.timedelta(95)).strftime('%Y-%m-%d')
+                    minDate = (dt - datetime.timedelta(45)).strftime('%Y-%m-%d')
+                    maxDate = (dt + datetime.timedelta(1)).strftime('%Y-%m-%d')
 
-                    worker = Viirs(geom,minDate,maxDate,collectionid='NOAA/VIIRS/001/VNP09GA')
+                    if product == 'modis':
+                        worker = Modis(geom,minDate,maxDate,collectionid='MODIS/006/MOD09GA')
+                        params = self.viirsParams
+                    else:
+                        worker = Viirs(geom,minDate,maxDate,collectionid='NOAA/VIIRS/001/VNP09GA')
+                        params = self.viirsParams
+
+                    paramKeys = list(params.keys())
+
                     ls = Landsat(geom,minDate,maxDate,collectionid='LANDSAT/LC08/C01/T1_SR')
                     s2 = Sentinel2(geom,minDate,maxDate,collectionid='COPERNICUS/S2_SR')
                     highRes = ee.ImageCollection(ls.collection.merge(s2.collection))
@@ -171,10 +176,13 @@ class hydrafloods(object):
 
                     if 'probablistic' in paramKeys:
                         runProbs = params['probablistic']
+                        params.pop('probablistic')
                     else:
                         runProbs = False
+                        nIters=100
+                        probTreshold=0.75
 
-                    waterImage = worker.waterMap(date,hand,qualityBand='mndwi',reductionScale=90,probablistic=runProbs,nIters=50)
+                    waterImage = worker.waterMap(date,hand,probablistic=runProbs,**params)
                     waterImage = waterImage\
                         .set({'system:time_start':ee.Date(date).millis(),'sensor':product})
                     assetTarget = self.targetAsset + '{0}_downscaled_globalOtsu_{1}'.format(product,date.replace('-',''))
