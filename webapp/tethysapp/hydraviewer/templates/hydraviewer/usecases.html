@@ -1,0 +1,150 @@
+{% extends "hydraviewer/base.html" %}
+{% load tethys_gizmos staticfiles %}
+
+
+
+{% block styles %}
+    {{ block.super }}
+    <link href="{% static 'hydraviewer/css/usecase.css' %}" rel="stylesheet"/>
+{% endblock %}
+
+{% block scripts %}
+  {{ block.super }}
+  <script>
+    $(function() {
+      if (document.getElementById("app-content-wrapper").className.includes("show-nav")){
+        document.getElementById("app-content-wrapper").className = "";
+      }
+    })
+  </script>
+{% endblock %}
+
+{% block app_content_override %}
+          <div id="app-content">
+
+            {# Off canvas navigation menu #}
+            {% block app_navigation_override %}
+              <div id="app-navigation">
+                {% block app_navigation %}
+                  <ul class="nav nav-pills nav-stacked">
+                    {% block app_navigation_items %}{% endblock %}
+                  </ul>
+                {% endblock %}
+              </div>
+            {% endblock %}
+
+            {# App content starts here #}
+            <div id="inner-app-content">
+              {% block app_content %}
+		  <h1 style="text-align: center;"><b>Use Cases</b></h1>
+		  <h5 style="text-align: center;">Select a tile below to explore HYDRAFloods surface water maps generated for past flood events in Myanmar</h5>
+		  <br>
+
+
+		    <div class="container-fluid">
+
+		      <div class="row" style="margin-bottom: 15px;">
+			<div class="col-md-4">
+			  <div class="flip-card">
+				<div class="flip-card-inner">
+				  <div class="flip-card-front" id="card_front_1">
+				    <div class="card-image">
+				      <img class="zoom img-responsive"  src="http://floodlist.com/wp-content/uploads/2016/07/floods-2-myanmar-july-2016.jpg">
+				      <div class="centered">Cyclone Komen August 2015</div>
+				    </div>
+				  </div>
+				<div class="flip-card-back" id="card_back_1">
+				    <div class="card-content">
+				           <p class="collapse-text-toggle">
+				             <b>Cyclone Komen August 2015</b><br>During the 2015 monsoon season Cyclone Komen made
+                     landfall in Bangladesh in July, bringing additional heavy rains into Myanmar. These rains lead to a significant
+                     increase in monsoonal flood water, leading to severe flooding and landslides.
+				          </p>
+				          <p class="collapse-text-toggle">
+				              <ul>
+				                 <li>
+				                    <p><a href="/apps/hydraviewer/mapviewer/?sDate=2015-08-11&sensor_txt=sentinel1" target="_blank">Example event 2015-08-11</a></p>
+				                  </li>
+				                </ul>
+				          </p>
+				    </div>
+				</div>
+			      </div>
+			  </div>
+			</div>
+
+			  <!-- <div class="row" style="margin-bottom: 15px;"> -->
+			<div class="col-md-4">
+			  <div class="flip-card">
+				<div class="flip-card-inner">
+				  <div class="flip-card-front" id="card_front_2">
+				    <div class="card-image">
+				            <img class="zoom img-responsive"  src="http://earth-chronicles.com/wp-content/uploads/2016/08/Rem_06CNxDE.jpg">
+				              <div class="centered">Monsoonal Rains July 2016</div>
+
+				    </div>
+				  </div>
+				<div class="flip-card-back" id="card_back_2">
+				    <div class="card-content">
+				           <p class="collapse-text-toggle">
+				                    <b>Monsoonal Rains July 2016</b><br>Heavy monsoonal rains and resultant flooding started in June of
+                            2016. Continued heavy rainfall lead to exacerbated flooding and landslides across the region.
+				          </p>
+				          <p class="collapse-text-toggle">
+				              <ul>
+				                 <li>
+				                    <p><a href="/apps/hydraviewer/mapviewer/?sDate=2016-07-14&sensor_txt=sentinel1" target="_blank">Example event 2016-07-14</a></p>
+				                  </li>
+				                </ul>
+				          </p>
+				    </div>
+				</div>
+			      </div>
+			  </div>
+			</div>
+
+			<div class="col-md-4">
+			  <div class="flip-card">
+				<div class="flip-card-inner">
+				  <div class="flip-card-front" id="card_front_2">
+				    <div class="card-image">
+				            <img class="zoom img-responsive"  src="https://gdb.voanews.com/8CB04EB8-1B16-4183-B2F9-33CB2FD801A9_cx0_cy1_cw0_w1200_s.jpg">
+				              <div class="centered">Monsoonal Rains August 2018</div>
+
+				    </div>
+				  </div>
+				<div class="flip-card-back" id="card_back_2">
+				    <div class="card-content">
+				           <p class="collapse-text-toggle">
+				                    <b>Monsoonal Rains August 2018</b><br>Localized heavy monsoonal rains and thunderstorms lead to the
+                              overflow of rives and eventually a the failure of the Yedashe Township dam in the Bago region.
+				          </p>
+				          <p class="collapse-text-toggle">
+				              <ul>
+				                 <li>
+				                    <p><a href="/apps/hydraviewer/mapviewer/?sDate=2018-08-31&sensor_txt=sentinel1" target="_blank">Example event 2018-08-30</a></p>
+				                  </li>
+				                </ul>
+				          </p>
+				    </div>
+				</div>
+			      </div>
+			  </div>
+			</div>
+
+		      </div>  <!-- close row -->
+		    </div>  <!-- close fluid-container -->
+		</div>
+		{% endblock %}
+
+
+              {# App actions are fixed to the bottom #}
+              {% block app_actions_override %}
+                <div id="app-actions">
+                  {% block app_actions %}{% endblock %}
+                  <div id="app-actions-spacer"></div>
+                </div>
+              {% endblock %}
+            </div>
+          </div>
+        {% endblock %}

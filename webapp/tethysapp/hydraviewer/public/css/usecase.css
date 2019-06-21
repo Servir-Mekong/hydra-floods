@@ -1,0 +1,89 @@
+#app-navigation{
+  display: none;
+}
+
+.toggle-nav{
+    opacity:0.0;
+    pointer-events: none;
+}
+
+#inner-app-content {
+    padding: 0;
+    overflow-y: scroll;
+}
+
+.row {
+  position: relative;
+  width: 100%;
+  padding: 5px
+}
+
+.flip-card {
+  box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.16), 0 2px 10px 0 rgba(0, 0, 0, 0.12);
+  display:inline-flex;
+  justify-content: center;
+  flex-direction: row;
+  margin: auto;
+  box-sizing: border-box;
+  border-radius: 2px;
+  background-clip: padding-box;
+  position: relative;
+  background-color:#FFF;
+  width: 300px;
+  height: 300px;
+  border: 1px solid #f1f1f1;
+  perspective: 1000px;
+  text-align: center;
+  margin-left: 75px;
+}
+
+/* This container is needed to position the front and back side */
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  transition: transform 0.8s;
+  transform-style: preserve-3d;
+}
+
+/* Do an horizontal flip when you move the mouse over the flip box container */
+.flip-card:hover .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+/* Position the front and back side */
+.flip-card-front, .flip-card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+}
+
+/* Style the front side (fallback if image is missing) */
+.flip-card-front {
+  background-color: #bbb;
+  color: white;
+}
+
+/* Style the back side */
+.flip-card-back {
+  padding: 10px;
+  background-color: white;
+  color: white;
+  transform: rotateY(180deg);
+}
+
+.flip-card-back ul {
+  padding-inline-start:0px;
+}
+
+.centered {
+  position: absolute;
+  bottom:0;
+  background: rgb(0, 0, 0); /* Fallback color */
+  background: rgba(0, 5, 36, 0.5); /* Black background with 0.5 opacity */
+  color: #f1f1f1; /* Grey text */
+  width: 100%; /* Full width */
+  padding: 20px; /* Some padding */
+}
