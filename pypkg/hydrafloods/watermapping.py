@@ -65,7 +65,7 @@ def globalOtsu(collection,target_date,region,
 
     return water.rename('water')
 
-def bootstrapOtsu(collection,target_date,
+def bootstrapOtsu(collection,target_date, reductionPolygons,
                   neg_buffer=-1500,     # negative buffer for masking potential bad data
                   upper_threshold=-14,  # upper limit for water threshold
                   canny_threshold=7,    # threshold for canny edge detection
@@ -86,7 +86,7 @@ def bootstrapOtsu(collection,target_date,
         raise EEException('Selected date has no imagery, please try processing another date')
 
     collGeom = targetColl.geometry()
-    polygons = S1_polygons.filterBounds(collGeom)
+    polygons = reductionPolygons.filterBounds(collGeom)
 
     nPolys = polygons.size().getInfo()
     if nPolys > 0:
