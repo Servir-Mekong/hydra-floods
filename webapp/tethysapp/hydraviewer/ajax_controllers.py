@@ -118,3 +118,21 @@ def download_surfacewatermap(request):
             return_obj["error"] = "Error Processing Request. Error: "+ str(e)
 
     return JsonResponse(return_obj)
+
+def get_latest(request):
+        return_obj = {}
+
+        if request.method == 'GET':
+            try:
+                info = request.GET;
+                sensor = info.get('sensor')
+                lat = float(info.get('lat'))
+                lon = float(info.get('lon'))
+
+                return_obj.update(geeutils.get_latest_imagery(sensor,lat,lon))
+                return_obj['sucess'] = 'success'
+
+            except Exception as e:
+                return_obj["error"] = "Error Processing Request. Error: "+ str(e)
+
+        return JsonResponse(return_obj)

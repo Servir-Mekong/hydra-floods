@@ -369,3 +369,24 @@ def getHistoricalMap(geom, startYear, endYear, startMonth, endMonth, method='dis
         raise NotImplementedError('Selected algorithm string not available. Options are: "SWT" or "JRC"')
 
     return waterMap
+
+def get_latest_imagery(sensor,lat,lon,startTime=None,endTime=None):
+    geom = ee.Geometry.Point([lon,lat])
+    coll = ee.ImageCollection(config.WATERCOLLECTION).filter(ee.Filter.eq('sensor',sensor))\
+        #.filterBounds(geom) #TODO: add system:footprint metadata to exports
+
+    if startTime != None:
+        if endTime != None:
+            coll = coll.filterDate(startTime,endTime)
+        else:
+            coll = coll.filterDate(startTime)
+
+    latestImg = ee.Image(coll.sort('system:time_start',False).first())
+
+    thumb = latestImg.unmask(0).visualize(palette='#2b2b2b,#9999ff',min=0,max=1,bands='water')\
+        .getThumbURL()
+
+    pDict = latestImg.getInfo()
+    pDict.update({'thumbnail':thumb})
+
+    return pDict
