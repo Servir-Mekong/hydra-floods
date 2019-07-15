@@ -15,8 +15,8 @@ except EEException as e:
     )
     ee.Initialize(credentials)
 
-landShp = ee.FeatureCollection('USDOS/LSIB/2013')
-S1_polygons = ee.FeatureCollection('projects/servir-mekong/hydrafloods/S1_polygons')
+LAND = ee.FeatureCollection('USDOS/LSIB/2013')
+#S1_polygons = ee.FeatureCollection('projects/servir-mekong/hydrafloods/S1_polygons')
 
 # helper function to convert qa bit image to flag
 def extractBits(image, start, end, newName):
@@ -30,6 +30,10 @@ def extractBits(image, start, end, newName):
     return image.select([0], [newName])\
                   .bitwiseAnd(pattern)\
                   .rightShift(start)
+
+
+def getGeoms(img):
+    return img.geometry()
 
 
 def getTileLayerUrl(ee_image_object):
