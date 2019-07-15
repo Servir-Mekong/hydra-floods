@@ -4,17 +4,138 @@ import random
 from . import geeutils
 
 
+def bmaxOtsu(collection,target_data,region,
+             smoothing=100,
+             qualityBand=None,
+             reductionScale=90,
+             initThresh=0,
+             reverse=False,
+             gridSize=0.1,
+             bmaxThresh=0.75,
+             maxBoxes=100,
+             seed=7):
+
+    def constuctGrid(i):
+        def contructXGrid(j):
+            j = ee.Number(j)
+            box = ee.Feature(ee.Geometry.Rectangle(j,i,j.add(gridSize),i.add(gridSize)))
+            out = ee.Algorithms.If(geom.contains(box.geometry()),box,null)
+            return ee.Feature(out)
+        i = ee.Number(i)
+        out = ee.List.sequence(west,east.subtract(gridSize),gridSize).map(constuctXGrid)
+      return out
+
+
+    def calcBmax(feature):
+        segment = target.clip(feature)
+        initial = segment.lt(initThresh)
+        p1 = ee.Number(initial.reduceRegion(
+            reducer= ee.Reducer.mean(),
+            geometry= feature.geometry(),
+            bestEffort= True,
+            scale= reductionScale,
+        ).get(histBand))
+        p2 = ee.Number(1).subtract(p1)
+
+        m = segment.updateMask(initial).rename('m1').addBands(
+            segment.updateMask(initial.not()).rename('m2')
+        )
+
+        mReduced = m.reduceRegion(
+            reducer= ee.Reducer.mean(),
+            geometry= feature.geometry(),
+            bestEffort= True,
+            scale= reductionScale,
+        )
+
+        m1 = ee.Number(mReduced.get('m1'))
+        m2 = ee.Number(mReduced.get('m2'))
+
+        m1 = ee.Number(ee.Algorithms.If(m1,m1,globalLow))
+        m2 = ee.Number(ee.Algorithms.If(m2,m2,globalHigh))
+
+        sigmab = p1.multiply(p2.multiply(m1.subtract(m2).pow(2)))
+        sigmat = ee.Number(segment.reduceRegion(
+            reducer= ee.Reducer.variance(),
+            geometry= feature.geometry(),
+            bestEffort= True,
+            scale= reductionScale,
+        ).get(histBand))
+        bmax = sigmab.divide(sigmat)
+        return feature.set({'bmax':bmax})
+
+
+    tDate = ee.Date(target_date)
+    targetColl = collection.filterDate(tDate,tDate.advance(1,'day'))
+
+    if qualityBand == None:
+        histBand = ee.String(target.bandNames().get(0))
+        target = targetColl.mosaic()\
+            .select(histBand)
+    else:
+        histBand = ee.String(qualityBand)
+        target = targetColl.qualityMosaic(qualityBand)\
+            .select(histBand)
+
+    searchRegion = ee.Feature(ee.List(targeColl.map(geeutilsgetGeom).toList(1)).get(0))
+
+    theoretical = target.reduceRegion(
+        reducer= ee.Reducer.percentile([10,90]),
+        geometry= searchRegion.geometry(),
+        bestEffort= True,
+        scale: 5000
+    )
+    globalLow = theoretical.get(histBand.cat('_p10'))
+    globalHigh = theoretical.get(histBand.cat('_p90'))
+
+    geom = searchRegion.geometry()
+    bounds = geom.bounds()
+    coords = ee.List(bounds.coordinates().get(0))
+    gridSize = ee.Number(gridSize)
+
+    west = ee.Number(ee.List(coords.get(0)).get(0))
+    south = ee.Number(ee.List(coords.get(0)).get(1))
+    east = ee.Number(ee.List(coords.get(2)).get(0))
+    north = ee.Number(ee.List(coords.get(2)).get(1))
+
+    west = west.subtract(west.mod(gridSize))
+    south = south.subtract(south.mod(gridSize))
+    east = east.add(gridSize.subtract(east.mod(gridSize)))
+    north = north.add(gridSize.subtract(north.mod(gridSize)))
+
+    grid = ee.FeatureCollection(
+      ee.List.sequence(south,north.subtract(gridSize),gridSize).map(constuctGrid).flatten()
+    )
+
+    bmaxes = grid.map(calcBmax).filter(ee.Filter.gt('bmax',bmaxThresh)).randomColumn('random',seed)
+
+    nBoxes = ee.Number(bmax.size())
+    randomThresh = maxBoxes.divide(nBoxes)
+    selection = bmaxes.filter(ee.Filter.lt('random',randomThresh))
+
+    histogram =  histogram_image.reduceRegion(ee.Reducer.histogram(255, 2)\
+                                .combine('mean', None, True)\
+                                .combine('variance', None,True),selection,reductionScale,bestEffort=True,
+                                tileScale=16)
+
+    threshold = geeutils.otsu_function(histogram.get(histBand.cat('_histogram')))
+
+    water = target.gt(threshold).clip(geeutils.LAND.geometry())
+
+    return water.rename('water')
+
 def globalOtsu(collection,target_date,region,
-               canny_threshold=0.05,    # threshold for canny edge detection
+               canny_threshold=0.05, # threshold for canny edge detection
                canny_sigma=0,        # sigma value for gaussian filter
-               canny_lt=0.05,           # lower threshold for canny detection
+               canny_lt=0.05,        # lower threshold for canny detection
                smoothing=100,        # amount of smoothing in meters
                connected_pixels=200, # maximum size of the neighborhood in pixels
                edge_length=50,       # minimum length of edges from canny detection
                smooth_edges=100,
-               qualityBand='mndwi',
+               qualityBand=None,
                reductionScale=90,
                initThresh=0,
+               reverse=False,
                seed=7):
 
     print(canny_threshold,canny_sigma,canny_lt,qualityBand)
@@ -30,8 +151,6 @@ def globalOtsu(collection,target_date,region,
         histBand = ee.String(qualityBand)
         target = targetColl.qualityMosaic(qualityBand)\
             .select(histBand)
-
-    # binary = target.gt(initThresh).rename('binary')
 
     canny = ee.Algorithms.CannyEdgeDetector(target,canny_threshold,canny_sigma)
 
@@ -59,9 +178,9 @@ def globalOtsu(collection,target_date,region,
                                 .combine('variance', None,True),sampleRegion,reductionScale,bestEffort=True,
                                 tileScale=16)
 
-    threshold = otsu_function(histogram.get(histBand.cat('_histogram')))
+    threshold = geeutils.otsu_function(histogram.get(histBand.cat('_histogram')))
 
-    water = target.gt(threshold).clip(landShp.geometry())
+    water = target.gt(threshold).clip(geeutils.LAND.geometry())
 
     return water.rename('water')
 
@@ -76,6 +195,7 @@ def bootstrapOtsu(collection,target_date, reductionPolygons,
                   edge_length=50,       # minimum length of edges from canny detection
                   smooth_edges=100,
                   qualityBand=None,
+                  reverse=False,
                   reductionScale=90):
 
     tDate = ee.Date(target_date)
@@ -127,7 +247,7 @@ def bootstrapOtsu(collection,target_date, reductionPolygons,
     else:
         threshold = upper_threshold
 
-    water = smoothed.lt(threshold).clip(landShp.geometry())
+    water = smoothed.lt(threshold).clip(geeutils.LAND.geometry())
 
     return water
 
@@ -325,7 +445,7 @@ def getHistoricalMap(geom,iniTime,endTime,
         test = ee.Algorithms.If(geom.contains(feature.geometry()),feature,None)
         return ee.Feature(test)
 
-    countries = landShp.filterBounds(geom).map(spatialSelect,True)
+    countries = geeutils.LAND.filterBounds(geom).map(spatialSelect,True)
 
     if climatology:
         if month == None:
