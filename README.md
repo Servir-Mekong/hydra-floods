@@ -50,4 +50,29 @@ $ hydrafloods run_tests
 
 
 ### How-to
-Coming soon...
+
+To initiate the HydraFloods process use the command below.
+
+```
+$hydrafloods process atms 2015-07-19 --configuration myconf.yaml
+```
+**NOTE:**
+Details on the command
+
+$hydrafloods 
+process 
+specify sensor (options include, see processing.py for details)
+* Sentinel2
+* Landsat
+* Modis
+* Viirs
+* Atms
+* Sentinel1
+
+Specify the date
+2015-07-19 --configuration myconf.yaml
+
+--configuration
+
+myconf.yaml
+
