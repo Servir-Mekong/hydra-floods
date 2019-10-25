@@ -63,13 +63,7 @@ Details regarding the command
 
 * process           --- start the hydraflood process
 
-* atms              --- specify sensor (options include, see processing.py for details)
- -  Sentinel2
- -  Landsat
- -  Modis
- -  Viirs
- -  Atms
- -  Sentinel1
+* atms              --- specify sensor (see processing.py for details options include: Sentinel2, Landsat, Modis, Viirs, Atms, Sentinel1)
 
 * 2015-07-19       --- Specify the date of intrest
 
