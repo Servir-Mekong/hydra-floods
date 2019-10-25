@@ -57,22 +57,23 @@ To initiate the HydraFloods process use the command below.
 $hydrafloods process atms 2015-07-19 --configuration myconf.yaml
 ```
 **NOTE:**
-Details on the command
+Details regarding the command
 
-$hydrafloods 
-process 
-specify sensor (options include, see processing.py for details)
-* Sentinel2
-* Landsat
-* Modis
-* Viirs
-* Atms
-* Sentinel1
+* $hydrafloods      --- call the hydrafloods process to begin
 
-Specify the date
-2015-07-19 --configuration myconf.yaml
+* process           --- start the hydraflood process
 
---configuration
+* atms              --- specify sensor (options include, see processing.py for details)
+ -  Sentinel2
+ -  Landsat
+ -  Modis
+ -  Viirs
+ -  Atms
+ -  Sentinel1
 
-myconf.yaml
+* 2015-07-19       --- Specify the date of intrest
+
+* --configuration  --- use the configuration file
+
+* myconf.yaml      --- call the .yaml file that specifies the ROI etc. (see the exampl.yaml for details)
 
