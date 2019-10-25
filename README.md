@@ -38,7 +38,7 @@ Make sure your initialize the `ee` and `gsutil` APIs with Google accounts that h
 
 ```
 $ git clone https://github.com/servir-mekong/hydra-floods.git
-$ cd hydra-floods
+$ cd hydra-floods/py pkg
 $ python setup.py install
 ```
 
