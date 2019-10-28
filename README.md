@@ -59,13 +59,13 @@ $hydrafloods process atms 2015-07-19 --configuration myconf.yaml
 **NOTE:**
 Details regarding the command
 
-* $hydrafloods      --- call the hydrafloods process to begin
+* hydrafloods      --- call the hydrafloods process to begin
 
 * process           --- start the hydraflood process
 
 * atms              --- specify sensor (see processing.py for details options include: Sentinel2, Landsat, Modis, Viirs, Atms, Sentinel1)
 
-* 2015-07-19       --- Specify the date of intrest
+* 2015-07-19       --- specify the date of intrest
 
 * --configuration  --- use the configuration file
 
