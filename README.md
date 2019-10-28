@@ -71,3 +71,5 @@ Details regarding the command
 
 * myconf.yaml      --- call the .yaml file that specifies the ROI etc. (see the exampl.yaml for details)
 
+
+<img src="exampleyaml.jpg" width="100%">
