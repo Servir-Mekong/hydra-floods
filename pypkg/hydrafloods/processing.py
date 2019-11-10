@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 import os
 import ee
+import math
 from ee.ee_exception import EEException
 from . import geeutils, downscale, fetch, preprocess, utils
 
@@ -115,12 +116,13 @@ class Viirs(hfCollection):
 
         self.collection = self.collection.map(self._qaMask)\
             .select(BANDREMAP.get('viirs'),BANDREMAP.get('new'))\
-            .map(self.clip)\
             .map(geeutils.addIndices)
 
         return
 
     def _qaMask(self,img):
+
+
         viewing = img.select('SensorZenith').abs().multiply(0.01).lt(45)
         clouds = geeutils.extractBits(img.select('QF1'),2,3,'cloud_qa').lte(2)
         shadows = geeutils.extractBits(img.select('QF2'),3,3,'shadow_qa').eq(0)
@@ -176,17 +178,18 @@ class Modis(hfCollection):
 
         self.collection = self.collection.map(self._qaMask)\
             .select(BANDREMAP.get('modis'),BANDREMAP.get('new'))\
-            .map(self.clip)\
             .map(geeutils.addIndices)
 
         return
 
     def _qaMask(self,img):
+        cloudBit = int(math.pow(2,10))
+        shadowBit = int(math.pow(2,2))
+        snowBit = int(math.pow(2,15))
         viewing = img.select('SensorZenith').abs().multiply(0.01).lt(45)
-        clouds = geeutils.extractBits(img.select('state_1km'),10,10,'cloud_qa').neq(1)
-        shadows = geeutils.extractBits(img.select('state_1km'),2,2,'shadow_qa').eq(0)
-        aerosols = geeutils.extractBits(img.select('state_1km'),6,7,'aerosol_qa').neq(0)
-        snows = geeutils.extractBits(img.select('state_1km'),15,15,'snow_qa').eq(0)
+        clouds = img.select('state_1km').bitwiseAnd(cloudBit).eq(0)
+        shadows = img.select('state_1km').bitwiseAnd(shadowBit).eq(0)
+        snows = img.select('state_1km').bitwiseAnd(snowBit).eq(0)
         mask = clouds.And(shadows).And(snows)#.And(viewing)
         t = ee.Date(img.get('system:time_start'))
         nDays = t.difference(INITIME,'day')
@@ -242,9 +245,14 @@ class Landsat(hfCollection):
         return
 
     def _qaMask(self,img):
-        qaCloud = geeutils.extractBits(img.select('pixel_qa'),5,5,'qa').neq(1)
-        qaShadow = geeutils.extractBits(img.select('pixel_qa'),3,3,'qa').neq(1)
-        mask = qaCloud.And(qaShadow)
+        cloudBit = int(math.pow(2,5))
+        shadowBit = int(math.pow(2,3))
+        snowBit = int(math.pow(2,4))
+
+        qaCloud = img.select('pixel_qa').bitwiseAnd(cloudBit).eq(0)
+        qaShadow = img.select('pixel_qa').bitwiseAnd(shadowBit).eq(0)
+        qaSnow = img.select('pixel_qa').bitwiseAnd(snowBit).eq(0)
+        mask = qaCloud.And(qaShadow).And(qaSnow)
         t = ee.Date(img.get('system:time_start'))
         nDays = t.difference(INITIME,'day')
         time = ee.Image(nDays).int16().rename('time')
