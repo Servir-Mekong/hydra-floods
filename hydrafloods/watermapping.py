@@ -4,7 +4,7 @@ import random
 from . import geeutils
 
 
-def bmaxOtsu(collection,target_data,region,
+def bmaxOtsu(collection,target_date,region,
              smoothing=100,
              qualityBand=None,
              reductionScale=90,
@@ -19,11 +19,11 @@ def bmaxOtsu(collection,target_data,region,
         def contructXGrid(j):
             j = ee.Number(j)
             box = ee.Feature(ee.Geometry.Rectangle(j,i,j.add(gridSize),i.add(gridSize)))
-            out = ee.Algorithms.If(geom.contains(box.geometry()),box,null)
+            out = ee.Algorithms.If(geom.contains(box.geometry()),box,None)
             return ee.Feature(out)
         i = ee.Number(i)
-        out = ee.List.sequence(west,east.subtract(gridSize),gridSize).map(constuctXGrid)
-      return out
+        out = ee.List.sequence(west,east.subtract(gridSize),gridSize).map(contructXGrid)
+        return out
 
 
     def calcBmax(feature):
@@ -35,10 +35,11 @@ def bmaxOtsu(collection,target_data,region,
             bestEffort= True,
             scale= reductionScale,
         ).get(histBand))
+        p1 = ee.Number(ee.Algorithms.If(p1,p1,0.99))
         p2 = ee.Number(1).subtract(p1)
 
         m = segment.updateMask(initial).rename('m1').addBands(
-            segment.updateMask(initial.not()).rename('m2')
+            segment.updateMask(initial.Not()).rename('m2')
         )
 
         mReduced = m.reduceRegion(
@@ -61,6 +62,7 @@ def bmaxOtsu(collection,target_data,region,
             bestEffort= True,
             scale= reductionScale,
         ).get(histBand))
+        sigmat = ee.Number(ee.Algorithms.If(sigmat,sigmat,2))
         bmax = sigmab.divide(sigmat)
         return feature.set({'bmax':bmax})
 
@@ -77,18 +79,18 @@ def bmaxOtsu(collection,target_data,region,
         target = targetColl.qualityMosaic(qualityBand)\
             .select(histBand)
 
-    searchRegion = ee.Feature(ee.List(targeColl.map(geeutilsgetGeom).toList(1)).get(0))
+    geom = targetColl.map(geeutils.getGeoms).union().geometry()\
+        .intersection(region,1)
 
     theoretical = target.reduceRegion(
         reducer= ee.Reducer.percentile([10,90]),
-        geometry= searchRegion.geometry(),
+        geometry= geom,
         bestEffort= True,
-        scale: 5000
+        scale= 5000
     )
     globalLow = theoretical.get(histBand.cat('_p10'))
     globalHigh = theoretical.get(histBand.cat('_p90'))
 
-    geom = searchRegion.geometry()
     bounds = geom.bounds()
     coords = ee.List(bounds.coordinates().get(0))
     gridSize = ee.Number(gridSize)
@@ -109,11 +111,11 @@ def bmaxOtsu(collection,target_data,region,
 
     bmaxes = grid.map(calcBmax).filter(ee.Filter.gt('bmax',bmaxThresh)).randomColumn('random',seed)
 
-    nBoxes = ee.Number(bmax.size())
-    randomThresh = maxBoxes.divide(nBoxes)
+    nBoxes = ee.Number(bmaxes.size())
+    randomThresh = ee.Number(maxBoxes).divide(nBoxes)
     selection = bmaxes.filter(ee.Filter.lt('random',randomThresh))
 
-    histogram =  histogram_image.reduceRegion(ee.Reducer.histogram(255, 2)\
+    histogram =  target.reduceRegion(ee.Reducer.histogram(255, 2)\
                                 .combine('mean', None, True)\
                                 .combine('variance', None,True),selection,reductionScale,bestEffort=True,
                                 tileScale=16)
