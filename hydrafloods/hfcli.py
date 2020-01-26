@@ -12,13 +12,15 @@ import geopandas as gpd
 from . import utils
 from .processing import *
 
-ee.Initialize()
-
 class hydrafloods(object):
     def __init__(self,configuration=None):
-        if configuration:
+        self.configuration = configuration
+        return
+
+    def _parse_config(self):
+        if self.configuration
             self.filePath = os.path.dirname(os.path.abspath(__file__))
-            yamlFile = configuration
+            yamlFile = self.configFile
 
             with open(yamlFile,'r') as stream:
                 try:
@@ -108,6 +110,13 @@ class hydrafloods(object):
 
 
     def process(self,product, date,skipPreprocessing=False):
+        try:
+            ee.Initialize()
+        except EEException as e:
+            print(e)
+
+        self._parse_config()
+
         if product in ['sentinel1','atms','viirs','modis']:
             dt = utils.decode_date(date)
             tomorrow = (dt + datetime.timedelta(1)).strftime('%Y-%m-%d')
@@ -209,6 +218,19 @@ class hydrafloods(object):
     def run_tests(self):
         raise NotImplementedError('test functionality not implemented...please ')
         return
+
+    @staticmethod
+    def init_env():
+        # authenticate earth engine
+        cmd = "earthengine authenticate"
+        os.system(cmd)
+
+        # initialize gcloud environment
+        cmd = "gcloud init"
+        os.system(cmd)
+
+        return
+
 
 def main():
     fire.Fire(hydrafloods)
