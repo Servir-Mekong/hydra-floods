@@ -3,7 +3,7 @@ import os
 import ee
 import math
 from ee.ee_exception import EEException
-from . import geeutils, downscale, fetch, preprocess, utils
+from . import geeutils, watermapping, downscale, fetch, preprocess, utils
 
 
 INITIME = ee.Date.fromYMD(1970,1,1)
@@ -46,7 +46,7 @@ class Sentinel1(hfCollection):
 
 
     def waterMap(self,target_date,**kwargs):
-        mapResult = geeutils.bootstrapOtsu(self.collection,target_date,**kwargs)
+        mapResult = watermapping.bmaxOtsu(self.collection,target_date,self.region,**kwargs)
 
         return mapResult
 
@@ -245,6 +245,12 @@ class Landsat(hfCollection):
             .map(geeutils.addIndices)
 
         return
+
+    def waterMap(self,target_date,**kwargs):
+        mapResult = watermapping.bmaxOtsu(self.collection,target_date,self.region,**kwargs)
+
+        return mapResult
+
 
     def _qaMask(self,img):
         cloudBit = int(math.pow(2,5))
