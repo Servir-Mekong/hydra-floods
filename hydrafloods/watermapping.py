@@ -71,9 +71,9 @@ def bmaxOtsu(collection,target_date,region,
     targetColl = collection.filterDate(tDate,tDate.advance(1,'day'))
 
     if qualityBand == None:
+        target = targetColl.mosaic().select([0])
         histBand = ee.String(target.bandNames().get(0))
-        target = targetColl.mosaic()\
-            .select(histBand)
+
     else:
         histBand = ee.String(qualityBand)
         target = targetColl.qualityMosaic(qualityBand)\
@@ -115,7 +115,7 @@ def bmaxOtsu(collection,target_date,region,
     randomThresh = ee.Number(maxBoxes).divide(nBoxes)
     selection = bmaxes.filter(ee.Filter.lt('random',randomThresh))
 
-    histogram =  target.reduceRegion(ee.Reducer.histogram(255, 2)\
+    histogram =  target.reduceRegion(ee.Reducer.histogram(255, 1)\
                                 .combine('mean', None, True)\
                                 .combine('variance', None,True),selection,reductionScale,bestEffort=True,
                                 tileScale=16)
