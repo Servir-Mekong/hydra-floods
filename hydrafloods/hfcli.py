@@ -18,7 +18,7 @@ class hydrafloods(object):
         return
 
     def _parse_config(self):
-        if self.configuration
+        if self.configuration:
             self.filePath = os.path.dirname(os.path.abspath(__file__))
             yamlFile = self.configFile
 
