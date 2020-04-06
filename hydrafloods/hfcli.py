@@ -20,7 +20,7 @@ class hydrafloods(object):
     def _parse_config(self):
         if self.configuration:
             self.filePath = os.path.dirname(os.path.abspath(__file__))
-            yamlFile = self.configFile
+            yamlFile = self.configuration
 
             with open(yamlFile,'r') as stream:
                 try:
