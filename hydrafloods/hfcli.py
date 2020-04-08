@@ -13,16 +13,15 @@ from . import utils
 from .processing import *
 
 class hydrafloods(object):
-    def __init__(self,configuration=None):
-        self.configuration = configuration
+    def __init__(self,config=None):
+        self.configuration = config
         return
 
     def _parse_config(self):
-        if self.configuration
+        if self.configuration:
             self.filePath = os.path.dirname(os.path.abspath(__file__))
-            yamlFile = self.configFile
 
-            with open(yamlFile,'r') as stream:
+            with open(self.configuration,'r') as stream:
                 try:
                     struct = yaml.load(stream,Loader=yaml.SafeLoader)
                 except yaml.YAMLError as exc:
@@ -38,32 +37,35 @@ class hydrafloods(object):
             prcsKeys = list(prcs.keys())
 
 
-            # parse top-level configuration key information
+            parse top-level configuration key information
             if 'name' in confKeys:
                 self.name = conf['name']
             else:
                 raise AttributeError('provided yaml file does not have a name parameter in configuration')
 
             if 'region' in confKeys:
-                self.region = gpd.read_file(conf['region'])
+                shp = gpd.read_file(conf['region'])
+                self.region = list(shp.bounds.values[0])
 
             elif 'country' in confKeys:
                 world = gpd.read_file(gpd.datasets.get_path('naturalearth_lowres'))
                 country = world[world.name == conf['country']]
                 if len(country) >= 1:
-                    self.region = country
+                    self.region = list(country.bounds.values[0])
                 else:
                     raise ValueError('could not parse selected country from world shapefile')
 
             elif 'boundingbox' in confKeys:
-                from shapely import geometry
-                self.region = gpd.GeoDataFrame(pd.DataFrame({'id':[0],'geometry':[geometry.box(*conf['boundingbox'])]}))
+                # from shapely import geometry
+                # self.region = gpd.GeoDataFrame(pd.DataFrame({'id':[0],'geometry':[geometry.box(*conf['boundingbox'])]}))
+                self.region = conf['boundingbox']
 
             else:
                 raise AttributeError('provided yaml file does not have a specified region in configuration')
 
             if 'credentials' in confKeys:
                 self.credentials = conf['credentials']
+                self.earthdataLogin = self.credentials['earthdata'].values()
             else:
                 self.credentials = None
 
@@ -124,7 +126,7 @@ class hydrafloods(object):
             dateDir = os.path.join(self.workdir,dt.strftime('%Y%m%d'))
             prodDir = os.path.join(dateDir,product)
 
-            geom = ee.Geometry.Rectangle(list(self.region.bounds.values[0]))
+            geom = ee.Geometry.Rectangle(self.region)
 
             hand = ee.Image(self.hand)
 
@@ -141,7 +143,7 @@ class hydrafloods(object):
                     if os.path.exists(prodDir) != True:
                         os.mkdir(prodDir)
 
-                    geotiffs = worker.extract(dt,self.region,outdir=prodDir,creds=self.credentials,gridding_radius=50000)
+                    geotiffs = worker.extract(dt,self.region,credentials=self.earthdataLogin,outDir=prodDir,gridding_radius=50000)
                     worker.load(geotiffs,self.stagingBucket,collId)
 
                 if 'seed' in paramKeys:
