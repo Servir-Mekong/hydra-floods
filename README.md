@@ -82,4 +82,4 @@ Details regarding the command
 * myconf.yaml      --- call the .yaml file that specifies the ROI etc. (see the exampl.yaml for details)
 
 
-<img src="exampleyaml.JPG" width="50%">
+![config example](docs/_static/exampleyaml.JPG)
