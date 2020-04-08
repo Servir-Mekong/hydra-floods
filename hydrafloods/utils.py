@@ -7,14 +7,6 @@ import subprocess
 import numpy as np
 
 
-def find_nearest(xx,yy,xval,yval):
-    xidx = (np.abs(xx-xval)).argmin()
-    yidx = (np.abs(yy-yval)).argmin()
-
-    ridx = yidx / xx.shape[1]
-    cidx = xidx % xx.shape[1]
-
-    return [ridx,cidx]
 
 def geoverts_2_imgverts(poly,yy,xx):
     """
