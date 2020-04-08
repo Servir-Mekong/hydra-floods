@@ -4,7 +4,8 @@ import requests
 import simplecmr as scmr
 from pathlib import Path
 
-def fetching(conceptid,startTime,region,credentials,outDir,maxResults=500,endTime=None):
+
+def fetching(conceptid, startTime, region, credentials, outDir, maxResults=500, endTime=None):
     """
     Function to download data from NASA by specifying a datase, time and region.
     Uses CMR to handle spatio-temporal query and extracts data download urls
@@ -24,8 +25,8 @@ def fetching(conceptid,startTime,region,credentials,outDir,maxResults=500,endTim
     Returns:
         List of local paths that data was downloaded to
     """
-    
-    startTime = scmr.utils.decode_date(startTime)
+    if type(startTime) != datetime.datetime:
+        startTime = scmr.utils.decode_date(startTime)
     if endTime is None:
         endTime = startTime + datetime.timedelta(seconds=86399)
     else:
@@ -33,23 +34,24 @@ def fetching(conceptid,startTime,region,credentials,outDir,maxResults=500,endTim
 
     # construct query
     query = scmr.Query(conceptid=conceptid,
-        startTime=startTime,
-        endTime=endTime,
-        spatialExtent=region,
-        maxResults=maxResults,
-    )
-    print(query.granules)
+                       startTime=startTime,
+                       endTime=endTime,
+                       spatialExtent=region,
+                       maxResults=maxResults,
+                       )
 
+    # fetch datasets from query
     query.granules.fetch(credentials=credentials,
-        directory=outDir,
-        limit=maxResults,
-        maxWorkers=4
-    )
+                         directory=outDir,
+                         limit=maxResults,
+                         maxWorkers=4
+                         )
 
-    return query.granules.getLocalPaths()
+    # return a list of the granules for later processing
+    return query.granules.getLocalPaths(directory=outDir)
 
 
-def viirs(credentials,startTime='2000-01-01',endTime=None,region=[-180,60,180,85],outDir='./'):
+def viirs(credentials, startTime='2000-01-01', endTime=None, region=[-180, 60, 180, 85], outDir='./'):
     """
     Function to download Suomi-NPP VIIRS surface reflectance data for specified time and region,
     wraps fetching()
@@ -78,19 +80,20 @@ def viirs(credentials,startTime='2000-01-01',endTime=None,region=[-180,60,180,85
         # use science-quality collection
         CONCEPTID = "C1373412034-LPDAAC_ECS"
     else:
-        # use science-quality collection
+        # use LANCE-NRT collection
         CONCEPTID = "C1344293643-LANCEMODIS"
 
     return fetching(conceptid=CONCEPTID,
-        startTime=startTime,
-        region=region,
-        credentials=credentials,
-        outDir=outDir,
-        maxResults=500,
-        endTime=endTime
-    )
+                    startTime=startTime,
+                    region=region,
+                    credentials=credentials,
+                    outDir=outDir,
+                    maxResults=500,
+                    endTime=endTime
+                    )
 
-def modis(credentials,startTime='2000-01-01',endTime=None,region=[-180,60,180,85],outDir='./'):
+
+def modis(credentials, startTime='2000-01-01', endTime=None, region=[-180, 60, 180, 85], outDir='./'):
     """
     Function to download Terra MODIS surface reflectance data for specified time and region,
     wraps fetching()
@@ -119,20 +122,20 @@ def modis(credentials,startTime='2000-01-01',endTime=None,region=[-180,60,180,85
         # use science-quality collection
         CONCEPTID = "C193529902-LPDAAC_ECS"
     else:
-        # use science-quality collection
+        # use LANCE-NRT collection
         CONCEPTID = "C1219249711-LANCEMODIS"
 
     return fetching(conceptid=CONCEPTID,
-        startTime=startTime,
-        region=region,
-        credentials=credentials,
-        outDir=outDir,
-        maxResults=500,
-        endTime=endTime
-    )
+                    startTime=startTime,
+                    region=region,
+                    credentials=credentials,
+                    outDir=outDir,
+                    maxResults=500,
+                    endTime=endTime
+                    )
 
 
-def atms(credentials,startTime='2000-01-01',endTime=None,region=[-180,60,180,85],outDir='./'):
+def atms(credentials, startTime='2000-01-01', endTime=None, region=[-180, 60, 180, 85], outDir='./'):
     """
     Function to download Suomi-NPP ATMS passive microwave data for specified time and region,
     wraps fetching()
@@ -156,10 +159,10 @@ def atms(credentials,startTime='2000-01-01',endTime=None,region=[-180,60,180,85]
 
     CONCEPTID = "C1442068516-GES_DISC"
     return fetching(conceptid=CONCEPTID,
-        startTime=startTime,
-        region=region,
-        credentials=credentials,
-        outDir=outDir,
-        maxResults=500,
-        endTime=endTime
-    )
+                    startTime=startTime,
+                    region=region,
+                    credentials=credentials,
+                    outDir=outDir,
+                    maxResults=500,
+                    endTime=endTime
+                    )
