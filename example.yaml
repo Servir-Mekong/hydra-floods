@@ -8,7 +8,14 @@ configuration:
     - 102
     - 29
   # logdir: ./
-  credentials: <path/to/credentials/file>
+  credentials:
+    eeServiceAccount:
+      email: <service.account@google.cloud.com>
+      key: <path/to/secretKey.json>
+    earthdata:
+      username: <earthdata username>
+      password: <earthdata password>
+
   stagingBucket: <gcs/storage/bucket>
   targetAsset: <output/ee/asset/collection>
   workdir: ./
