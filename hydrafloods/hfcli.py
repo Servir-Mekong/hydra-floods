@@ -20,7 +20,8 @@ class hydrafloods(object):
     def _parse_config(self):
         if self.configuration:
             self.filePath = os.path.dirname(os.path.abspath(__file__))
-
+            yamlFile = self.configuration
+            
             with open(self.configuration,'r') as stream:
                 try:
                     struct = yaml.load(stream,Loader=yaml.SafeLoader)
