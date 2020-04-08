@@ -120,7 +120,7 @@ def bmaxOtsu(collection,target_date,region,
                                 .combine('variance', None,True),selection,reductionScale,bestEffort=True,
                                 tileScale=16)
 
-    threshold = geeutils.otsu_function(histogram.get(histBand.cat('_histogram')))
+    threshold = otsu(histogram.get(histBand.cat('_histogram')))
 
     water = target.gt(threshold).clip(geeutils.LAND.geometry())
 
@@ -140,7 +140,6 @@ def globalOtsu(collection,target_date,region,
                reverse=False,
                seed=7):
 
-    print(canny_threshold,canny_sigma,canny_lt,qualityBand)
 
     tDate = ee.Date(target_date)
     targetColl = collection.filterDate(tDate,tDate.advance(1,'day'))
@@ -180,7 +179,7 @@ def globalOtsu(collection,target_date,region,
                                 .combine('variance', None,True),sampleRegion,reductionScale,bestEffort=True,
                                 tileScale=16)
 
-    threshold = geeutils.otsu_function(histogram.get(histBand.cat('_histogram')))
+    threshold = otsu(histogram.get(histBand.cat('_histogram')))
 
     water = target.gt(threshold).clip(geeutils.LAND.geometry())
 
@@ -252,3 +251,27 @@ def bootstrapOtsu(collection,target_date, reductionPolygons,
     water = smoothed.lt(threshold).clip(geeutils.LAND.geometry())
 
     return water
+
+def otsu(histogram):
+    counts = ee.Array(ee.Dictionary(histogram).get('histogram'))
+    means = ee.Array(ee.Dictionary(histogram).get('bucketMeans'))
+    size = means.length().get([0])
+    total = counts.reduce(ee.Reducer.sum(), [0]).get([0])
+    sums = means.multiply(counts).reduce(ee.Reducer.sum(), [0]).get([0])
+    mean = sums.divide(total)
+    indices = ee.List.sequence(1, size)
+    #Compute between sum of squares, where each mean partitions the data.
+
+    def bss_function(i):
+        aCounts = counts.slice(0, 0, i)
+        aCount = aCounts.reduce(ee.Reducer.sum(), [0]).get([0])
+        aMeans = means.slice(0, 0, i)
+        aMean = aMeans.multiply(aCounts).reduce(ee.Reducer.sum(), [0]).get([0]).divide(aCount)
+        bCount = total.subtract(aCount)
+        bMean = sums.subtract(aCount.multiply(aMean)).divide(bCount)
+        return aCount.multiply(aMean.subtract(mean).pow(2)).add(
+               bCount.multiply(bMean.subtract(mean).pow(2)))
+
+    bss = indices.map(bss_function)
+    output = means.sort(bss).get([-1])
+    return output
