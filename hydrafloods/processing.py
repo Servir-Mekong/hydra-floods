@@ -63,8 +63,8 @@ class Atms(hfCollection):
         return
 
 
-    def extract(self,date,region,outdir='./',creds=None,gridding_radius=50000):
-        files = fetch.atms(date,region,outdir,creds)
+    def extract(self,date,region,credentials,outDir='./',gridding_radius=50000):
+        files = fetch.atms(credentials,startTime=date,endTime=None,region=region,outDir=outDir)
         geotiffs = list(map(lambda x: preprocess.atms(x,gridding_radius), files))
         return geotiffs
 

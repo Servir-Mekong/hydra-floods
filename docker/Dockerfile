@@ -50,12 +50,15 @@ RUN conda install -c conda-forge -y\
             pillow \
             pandas \
             pyproj \
-            tensorflow=1.15 \
+            tensorflow=2.1 \
             geopandas \
             oauth2client \
             earthengine-api \
             fire \
   && conda clean --all -f -y
+
+# install the additional packages through pip/github
+RUN pip install git+git://github.com/kmarkert/simple-cmr.git
 
 # install the hydrafloods package
 RUN pip install git+git://github.com/servir-mekong/hydra-floods.git

@@ -13,3 +13,5 @@ __pycache__/
 
 # ipython checkpoint
 .ipynb_checkpoints/
+
+.DS_Store
