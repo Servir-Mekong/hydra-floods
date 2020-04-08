@@ -3,7 +3,7 @@ import os
 import ee
 import math
 from ee.ee_exception import EEException
-from . import geeutils, thresholding, downscale, fetch, preprocess, utils
+from hydrafloods import geeutils, thresholding, downscale, fetch, preprocess, utils
 
 
 INITIME = ee.Date.fromYMD(1970,1,1)

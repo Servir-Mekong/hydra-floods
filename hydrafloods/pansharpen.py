@@ -1,4 +1,4 @@
 import ee
 from ee.ee_exception import EEException
 import random
-from . import geeutils
+from hydrafloods import geeutils

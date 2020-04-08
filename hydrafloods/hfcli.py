@@ -9,8 +9,8 @@ import warnings
 import pandas as pd
 import geopandas as gpd
 
-from . import utils
-from .processing import *
+from hydrafloods import utils
+from hydrafloods.processing import *
 
 class hydrafloods(object):
     def __init__(self,config=None):
@@ -21,7 +21,7 @@ class hydrafloods(object):
         if self.configuration:
             self.filePath = os.path.dirname(os.path.abspath(__file__))
             yamlFile = self.configuration
-            
+
             with open(self.configuration,'r') as stream:
                 try:
                     struct = yaml.load(stream,Loader=yaml.SafeLoader)
