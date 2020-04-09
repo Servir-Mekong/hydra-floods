@@ -17,12 +17,13 @@ BANDREMAP = ee.Dictionary({
 })
 
 class hfCollection(object):
-    def __init__(self,region,time_start,time_end,collectionid=''):
+    def __init__(self,region,time_start,time_end,collectionid='',useQa=True):
         # TODO: add exceptions to check datatypes
         self.region = region # dtype = ee.Geometry
         self.iniTime = time_start
         self.endTime = time_end
         self.id = collectionid
+        self.useQa = useQa
 
         self.collection = ee.ImageCollection(self.id)\
                             .filterBounds(self.region)\
@@ -54,14 +55,17 @@ class Sentinel1(hfCollection):
     def __init__(self,*args,**kwargs):
         super(Sentinel1, self).__init__(*args,**kwargs)
 
+        if self.useQa:
+            self.collection = self.collection.map(self._qa)
+
         self.collection = self.collection\
-                            .filter(ee.Filter.listContains('transmitterReceiverPolarisation', 'VV'))\
-                            .select('VV')
+                            .filter(ee.Filter.listContains('transmitterReceiverPolarisation', 'VV'))
 
         return
 
-    def _qa(self):
-
+    def _qa(self,img):
+        angles = img.select('angle')
+        return img.updateMask(angles.lt(45).And(angles.gt(31)))
 
 
     def waterMap(self,target_date,**kwargs):
@@ -69,16 +73,15 @@ class Sentinel1(hfCollection):
 
         return mapResult
 
-    def _maskEdges(self,img):
-        angles = img.select('angle')
-        return img.updateMask(angles.lt(45).And(angles.gt(31)))
-
 
 
 class Atms(hfCollection):
     def __init__(self,*args,**kwargs):
         super(Atms, self).__init__(*args,**kwargs)
 
+        return
+
+    def _qa(self,img):
         return
 
 
@@ -133,23 +136,26 @@ class Viirs(hfCollection):
     def __init__(self,*args,**kwargs):
         super(Viirs, self).__init__(*args,**kwargs)
 
-        self.collection = self.collection.map(self._qaMask)\
+        if self.useQa:
+            self.collection = .map(self._qa)
+
+        self.collection = self.collection\
             .select(BANDREMAP.get('viirs'),BANDREMAP.get('new'))\
             .map(geeutils.addIndices)
 
         return
 
-    def _qaMask(self,img):
+    def _qa(self,img):
         cloudBit = int(math.pow(2,2))
         shadowBit = int(math.pow(2,3))
         snowBit = int(math.pow(2,5))
 
-        viewing = img.select('SensorZenith').abs().multiply(0.01).lt(45)
+        viewing = img.select('SensorZenith').abs().multiply(0.01).lt(55)
         clouds = img.select('QF1').bitwiseAnd(shadowBit).eq(0)
         shadows = img.select('QF2').bitwiseAnd(shadowBit).eq(0)
         snows = img.select('QF2').bitwiseAnd(snowBit).eq(0)
 
-        mask = clouds.And(shadows).And(snows)#.And(viewing)
+        mask = clouds.And(shadows).And(snows).And(viewing)
         t = ee.Date(img.get('system:time_start'))
         nDays = t.difference(INITIME,'day')
         time = ee.Image(nDays).int16().rename('time')
@@ -197,13 +203,16 @@ class Modis(hfCollection):
     def __init__(self,*args,**kwargs):
         super(Modis, self).__init__(*args,**kwargs)
 
-        self.collection = self.collection.map(self._qaMask)\
+        if self.useQa:
+            self.collection = self.collection.map(self._qa)
+
+        self.collection = self.collection\
             .select(BANDREMAP.get('modis'),BANDREMAP.get('new'))\
             .map(geeutils.addIndices)
 
         return
 
-    def _qaMask(self,img):
+    def _qa(self,img):
         cloudBit = int(math.pow(2,10))
         shadowBit = int(math.pow(2,2))
         snowBit = int(math.pow(2,15))
@@ -259,7 +268,10 @@ class Landsat(hfCollection):
     def __init__(self,*args,**kwargs):
         super(Landsat, self).__init__(*args,**kwargs)
 
-        self.collection = self.collection.map(self._qaMask)\
+        if self.useQa:
+            self.collection = self.collection.map(self._qa)
+
+        self.collection = self.collection\
             .select(BANDREMAP.get('landsat'),BANDREMAP.get('new'))\
             .map(geeutils.addIndices)
 
@@ -271,7 +283,7 @@ class Landsat(hfCollection):
         return mapResult
 
 
-    def _qaMask(self,img):
+    def _qa(self,img):
         cloudBit = int(math.pow(2,5))
         shadowBit = int(math.pow(2,3))
         snowBit = int(math.pow(2,4))
@@ -292,13 +304,16 @@ class Sentinel2(hfCollection):
     def __init__(self,*args,**kwargs):
         super(Sentinel2, self).__init__(*args,**kwargs)
 
-        self.collection = self.collection.map(self._qaMask)\
+        if self.useQa:
+            self.collection = self.collection.map(self._qa)
+
+        self.collection = self.collection\
             .select(BANDREMAP.get('sen2'),BANDREMAP.get('new'))\
             .map(geeutils.addIndices)
 
         return
 
-    def _qaMask(self,img):
+    def _qa(self,img):
         sclImg = img.select('SCL') # Scene Classification Map
         mask = sclImg.gte(4).And(sclImg.lte(6))
         t = ee.Date(img.get('system:time_start'))
