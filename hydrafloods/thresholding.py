@@ -1,7 +1,7 @@
 import ee
 from ee.ee_exception import EEException
 import random
-from hydrafloods import geeutils
+from hydrafloods import geeutils, decorators
 
 
 def bmaxOtsu(collection,
@@ -14,6 +14,7 @@ def bmaxOtsu(collection,
              maxBoxes=100,
              seed=7):
 
+    @decorators.carryMetadata
     def applyBmax(img):
 
         def constuctGrid(i):
@@ -101,16 +102,14 @@ def bmaxOtsu(collection,
 
         water = ee.Image(ee.Algorithms.If(invert,img.gt(threshold),img.lt(threshold)))
 
-        return water.rename('water').uint8()\
-            .copyProperties(img)\
-            .set('system:time_start',img.get('system:time_start'))
+        return water.rename('water').uint8()
 
     if band is None:
         collection = collection.select([0])
         histBand = ee.String(ee.Image(collection.first()).bandNames().get(0))
 
     else:
-        histBand = ee.String(qualityBand)
+        histBand = ee.String(band)
         collection = collection.select(histBand)
 
     return collection.map(applyBmax)
@@ -131,6 +130,7 @@ def edgeOtsu(collection,
              invert=False,
              seed=7):
 
+    @decorators.carryMetadata
     def applyEdge(img):
         # get preliminary water
         binary = img.lt(initialThreshold).rename('binary');
@@ -154,16 +154,14 @@ def edgeOtsu(collection,
 
         water = ee.Image(ee.Algorithms.If(invert,img.gt(threshold),img.lt(threshold)))
 
-        return water.rename('water').uint8()\
-            .copyProperties(img)\
-            .set('system:time_start',img.get('system:time_start'))
+        return water.rename('water').uint8()
 
     if band is None:
         collection = collection.select([0])
         histBand = ee.String(ee.Image(collection.first()).bandNames().get(0))
 
     else:
-        histBand = ee.String(qualityBand)
+        histBand = ee.String(band)
         collection = collection.select(histBand)
 
     return collection.map(applyEdge)

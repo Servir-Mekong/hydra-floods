@@ -4,6 +4,7 @@ import math
 import string
 import random
 import datetime
+from hydrafloods import decorators
 
 try:
     ee.Initialize()
@@ -141,7 +142,7 @@ def toNatural(img):
 def toDB(img):
     return ee.Image(img).log10().multiply(10.0)
 
-
+@decorators.carryMetadata
 def addIndices(img):
     ndvi = img.normalizedDifference(['nir','red']).rename('ndvi')
     mndwi = img.normalizedDifference(['green','swir1']).rename('mndwi')
@@ -173,4 +174,6 @@ def addIndices(img):
         'w':img.select('swir2')
     }).rename('tcwet')
 
-    return ee.Image.cat([img,ndvi,mndwi,nwi,aewinsh,aewish,tcwet])
+    indices = ee.Image.cat([ndvi,mndwi,nwi,aewinsh,aewish,tcwet])
+
+    return img.addBands(indices)

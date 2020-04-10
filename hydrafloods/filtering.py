@@ -1,18 +1,14 @@
 import ee
 import math
+from hydrafloods import geeutils,decorators
 
-
+@decorators.carryMetadata
 def powerToDb(img):
-    return ee.Image(ee.Image(10).multiply(img.log10())\
-        .copyProperties(img)\
-        .set('system:time_start',img.get('system:time_start')))
+    return ee.Image(10).multiply(img.log10())
 
-
+@decorators.carryMetadata
 def dbToPower(img):
-    return ee.Image(ee.Image(10).pow(img.divide(10))\
-        .copyProperties(img)\
-        .set('system:time_start',img.get('system:time_start')))
-
+    return ee.Image(10).pow(img.divide(10))
 
 def leeSigma(collection,
              window=9,
@@ -20,6 +16,7 @@ def leeSigma(collection,
              looks=4,
              Tk=7):
 
+    @decorators.carryMetadata
     def applyFilter(img):
         img = dbToPower(img)
 
@@ -48,7 +45,7 @@ def leeSigma(collection,
         retainPixel = K.gte(Tk)
         xHat = powerToDb(img.updateMask(retainPixel).unmask(mmse))
 
-        return ee.Image(xHat).rename(bandNames).copyProperties(img)
+        return ee.Image(xHat).rename(bandNames)
 
     bandNames = ee.Image(collection.first()).bandNames()
 
@@ -205,6 +202,7 @@ def leeSigma(collection,
 # The RL speckle filter
 def refinedLee(collection):
 
+    @decorators.carryMetadata
     def applyFilter(image):
         def filter(b):
             img = power.select([b])
@@ -329,17 +327,15 @@ def refinedLee(collection):
 
         result = ee.ImageCollection(bandNames.map(
             filter)).toBands().rename(bandNames)
-        return powerToDb(ee.Image(result))\
-            .copyProperties(image)\
-            .set('system:time_start',image.get('system:time_start'))
+        return powerToDb(ee.Image(result))
 
     return collection.map(applyFilter)
 
 
 def gammaMap(collection,window=7,enl=5):
 
+    @decorators.carryMetadata
     def applyFilter(img):
-
         # Convert image from dB to natural values
         nat_img = dbToPower(img)
 
@@ -375,9 +371,7 @@ def gammaMap(collection,window=7,enl=5):
             .clip(img.geometry())
 
         # Compose a 3 band image with the mean filtered "pure speckle", the "low textured" filtered and the unfiltered portions
-        return result\
-            .copyProperties(image)\
-            .set('system:time_start',image.get('system:time_start'))
+        return result
 
 
     bandNames = ee.Image(collection.first()).bandNames()
