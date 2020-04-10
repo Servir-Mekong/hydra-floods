@@ -5,7 +5,7 @@ import copy
 import math
 from pprint import pformat
 from ee.ee_exception import EEException
-from hydrafloods import geeutils, thresholding, downscale, fetch, preprocess, utils, filtering
+from hydrafloods import geeutils, thresholding, fusion, fetch, preprocess, utils, filtering
 
 
 INITIME = ee.Date('1971-01-01T00:00:00')
@@ -54,8 +54,9 @@ class hfCollection(object):
     def nImages(self):
         return self.collection.size().getInfo()
 
-    def clip(self, img):
-        return img.clip(self.region)
+    def clipToRegion(self):
+        self.collection = self.collection.map(lambda img: img.clip(self.region))
+        return self
 
     def copy(self):
         """
@@ -85,7 +86,7 @@ class hfCollection(object):
 
 
 class Sentinel1(hfCollection):
-    def __init__(self, *args, assetid='COPERNICUS/S1_GRD',**kwargs):
+    def __init__(self, *args, assetid='COPERNICUS/S1_GRD', **kwargs):
         super(Sentinel1, self).__init__(*args,assetid=assetid, **kwargs)
 
         # if self.useQa:
@@ -163,8 +164,8 @@ class Atms(hfCollection):
 
 
 class Viirs(hfCollection):
-    def __init__(self, *args, **kwargs):
-        super(Viirs, self).__init__(*args, **kwargs)
+    def __init__(self, *args, assetid='NOAA/VIIRS/001/VNP09GA', **kwargs):
+        super(Viirs, self).__init__(*args, assetid=assetid, **kwargs)
 
         if self.useQa:
             self.collection = self.collection.map(self._qa)
@@ -189,7 +190,7 @@ class Viirs(hfCollection):
         t = ee.Date(img.get('system:time_start'))
         nDays = t.difference(INITIME, 'day')
         time = ee.Image(nDays).int16().rename('time')
-        return img.updateMask(mask).addBands(time)
+        return img.updateMask(mask).addBands(time).clip(img.geometry())
 
     def extract(self, date, region, outdir='./', creds=None):
 
@@ -230,8 +231,8 @@ class Viirs(hfCollection):
 
 
 class Modis(hfCollection):
-    def __init__(self, *args, **kwargs):
-        super(Modis, self).__init__(*args, **kwargs)
+    def __init__(self, *args, assetid='MODIS/006/MOD09GA', **kwargs):
+        super(Modis, self).__init__(*args, assetid=assetid, **kwargs)
 
         if self.useQa:
             self.collection = self.collection.map(self._qa)
@@ -295,8 +296,8 @@ class Modis(hfCollection):
 
 
 class Landsat(hfCollection):
-    def __init__(self, *args, **kwargs):
-        super(Landsat, self).__init__(*args, **kwargs)
+    def __init__(self, *args, assetid='LANDSAT/LC08/C01/T1_SR', **kwargs):
+        super(Landsat, self).__init__(*args, assetid=assetid, **kwargs)
 
         if self.useQa:
             self.collection = self.collection.map(self._qa)
@@ -329,8 +330,8 @@ class Landsat(hfCollection):
 
 
 class Sentinel2(hfCollection):
-    def __init__(self, *args, **kwargs):
-        super(Sentinel2, self).__init__(*args, **kwargs)
+    def __init__(self, *args, assetid='COPERNICUS/S2_SR', **kwargs):
+        super(Sentinel2, self).__init__(*args,assetid=assetid, **kwargs)
 
         if self.useQa:
             self.collection = self.collection.map(self._qa)
