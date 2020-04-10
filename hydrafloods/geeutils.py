@@ -47,7 +47,7 @@ def exportImage(image, region, assetId, description=None, scale=1000, crs='EPSG:
         description = ''.join(random.SystemRandom().choice(
             string.ascii_letters) for _ in range(8)).lower()
     # get serializable geometry for export
-    exportRegion = region.bounds().getInfo()['coordinates']
+    exportRegion = region.bounds(maxError=1).getInfo()['coordinates']
 
     if pyramiding is None:
         pyramiding = {'.default': 'mean'}
@@ -68,7 +68,7 @@ def exportImage(image, region, assetId, description=None, scale=1000, crs='EPSG:
     return
 
 
-def batchExport(collection, region, collectionAsset, prefix=None, suffix=None, scale=1000, crs='EPSG:4326', metadata=None, pyramiding=None):
+def batchExport(collection, collectionAsset,  region=None, prefix=None, suffix=None, scale=1000, crs='EPSG:4326', metadata=None, pyramiding=None,verbose=False):
     n = collection.size()
     exportImages = collection.sort('system:time_start', False).toList(n)
     nIter = n.getInfo()
@@ -82,6 +82,9 @@ def batchExport(collection, region, collectionAsset, prefix=None, suffix=None, s
         date = datetime.datetime.utcfromtimestamp(
             t / 1e3).strftime("%Y%m%d")
 
+        if region is None:
+            region = img.geometry()
+
         exportName = date
         if prefix is not None:
             exportName = f"{prefix}_" + exportName
@@ -89,7 +92,8 @@ def batchExport(collection, region, collectionAsset, prefix=None, suffix=None, s
             exportName = exportName + f"_{suffix}"
 
         description = exportName
-        print(f"running export for {description}")
+        if verbose:
+            print(f"running export for {description}")
 
         if not collectionAsset.endswith('/'):
             collectionAsset += '/'
