@@ -2,13 +2,6 @@ import ee
 import math
 from hydrafloods import geeutils,decorators
 
-@decorators.carryMetadata
-def powerToDb(img):
-    return ee.Image(10).multiply(img.log10())
-
-@decorators.carryMetadata
-def dbToPower(img):
-    return ee.Image(10).pow(img.divide(10))
 
 def leeSigma(collection,
              window=9,
@@ -18,7 +11,7 @@ def leeSigma(collection,
 
     @decorators.carryMetadata
     def applyFilter(img):
-        img = dbToPower(img)
+        img = geeutils.dbToPower(img)
 
         # MMSE estimator
         mmseMask = img.gte(a1).Or(img.lte(a2))
@@ -43,7 +36,7 @@ def leeSigma(collection,
         K = overThresh.reduceNeighborhood(ee.Reducer.sum(), targetKernel, None, True)
 
         retainPixel = K.gte(Tk)
-        xHat = powerToDb(img.updateMask(retainPixel).unmask(mmse))
+        xHat = geeutils.powerToDb(img.updateMask(retainPixel).unmask(mmse))
 
         return ee.Image(xHat).rename(bandNames)
 
@@ -323,11 +316,11 @@ def refinedLee(collection):
                 .float()
 
         bandNames = image.bandNames()
-        power= dbToPower(image)
+        power= geeutils.dbToPower(image)
 
         result = ee.ImageCollection(bandNames.map(
             filter)).toBands().rename(bandNames)
-        return powerToDb(ee.Image(result))
+        return geeutils.powerToDb(ee.Image(result))
 
     return collection.map(applyFilter)
 
@@ -337,7 +330,7 @@ def gammaMap(collection,window=7,enl=5):
     @decorators.carryMetadata
     def applyFilter(img):
         # Convert image from dB to natural values
-        nat_img = dbToPower(img)
+        nat_img = geeutils.dbToPower(img)
 
         # Get mean and variance
         mean = nat_img.reduceNeighborhood(ee.Reducer.mean(), kernel)
@@ -359,9 +352,9 @@ def gammaMap(collection,window=7,enl=5):
         f = b.multiply(mean).add(d.sqrt()).divide(alpha.multiply(2.0))
 
         caster = ee.Dictionary.fromLists(bandNames, ee.List.repeat('float', 3))
-        img1 = powerToDb(mean.updateMask(ci.lte(cu))
+        img1 = geeutils.powerToDb(mean.updateMask(ci.lte(cu))
                          ).rename(bandNames).cast(caster)
-        img2 = powerToDb(f.updateMask(ci.gt(cu)).updateMask(
+        img2 = geeutils.powerToDb(f.updateMask(ci.gt(cu)).updateMask(
             ci.lt(cmax))).rename(bandNames).cast(caster)
         img3 = img.updateMask(ci.gte(cmax)).rename(bandNames).cast(caster)
 

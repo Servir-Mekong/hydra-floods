@@ -135,12 +135,13 @@ def logitTransform(img):
     return img.divide(ee.Image(1).subtract(img)).log()
 
 
-def toNatural(img):
-    return ee.Image(10.0).pow(img.select(0).divide(10.0))
+@decorators.carryMetadata
+def powerToDb(img):
+    return ee.Image(10).multiply(img.log10())
 
-
-def toDB(img):
-    return ee.Image(img).log10().multiply(10.0)
+@decorators.carryMetadata
+def dbToPower(img):
+    return ee.Image(10).pow(img.divide(10))
 
 @decorators.carryMetadata
 def addIndices(img):
