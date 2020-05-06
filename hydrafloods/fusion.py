@@ -1,8 +1,10 @@
 from __future__ import print_function,division
 import ee
+from hydrafloods import decorators
 
 
-def starfm(fineCollection,coarseCollection,target_date='1970-01-01',windowSize=33,A=0.5):
+def starfm(coarseCollection,fineCollection=None,targetDate='1970-01-01',windowSize=33,A=0.5):
+    @decorators.carryMetadata
     def apply_starfm(img):
         t = ee.Date(img.get('system:time_start'))
 
@@ -13,20 +15,27 @@ def starfm(fineCollection,coarseCollection,target_date='1970-01-01',windowSize=3
 
         Cijk = Sijk.multiply(Tijk).convolve(Dijk)
         Wijk = one.divide(Cijk).divide(one.divide(Cijk)\
-                  .reduceNeighborhood(ee.Reducer.sum(),Dijk))
+                  .convolve(Dijk))
 
         nBands = ee.Number(base.bandNames().length())
         expected = ee.Number(len(bandList))
 
         outImg = ee.Algorithms.If(nBands.neq(expected), None,
-                    base.divide(Wijk.reduceNeighborhood(ee.Reducer.sum(),Dijk)).add(Sijk)
+                    base.divide(Wijk.convolve(Dijk)).add(Sijk)
                     .set('system:time_start',t)
                     .rename(bandList)
                     )
 
-        return outImg
+        return ee.Image(outImg)
 
-    target = ee.Date(target_date)
+    target = ee.Date(targetDate)
+
+    if type(fineCollection) is not ee.imagecollection.ImageCollection:
+        try:
+            fineCollection = getattr(fineCollection,'collection')
+        except Exception as e:
+            raise TypeError('keyword fineCollection needs to be either of type ee.ImageCollection '
+                            'or hf.hfCollection')
 
     bandList = ee.Image(coarseCollection.first()).bandNames().getInfo()
 
