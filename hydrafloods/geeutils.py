@@ -16,6 +16,7 @@ except EEException as e:
     )
     ee.Initialize(credentials)
 
+INITIME = ee.Date('1971-01-01T00:00:00')
 LAND = ee.FeatureCollection('USDOS/LSIB/2013')
 #S1_polygons = ee.FeatureCollection('projects/servir-mekong/hydrafloods/S1_polygons')
 
@@ -35,6 +36,13 @@ def extractBits(image, start, end, newName):
 
 def getGeoms(img):
     return img.geometry()
+
+
+def addTimeBand(img):
+    t = ee.Date(img.get('system:time_start'))
+    nDays = t.difference(INITIME, 'day')
+    time = ee.Image(nDays).int16().rename('time')
+    return img.addBands(time)
 
 
 def getTileLayerUrl(ee_image_object):
@@ -70,6 +78,13 @@ def exportImage(image, region, assetId, description=None, scale=1000, crs='EPSG:
 
 
 def batchExport(collection, collectionAsset,  region=None, prefix=None, suffix=None, scale=1000, crs='EPSG:4326', metadata=None, pyramiding=None,verbose=False):
+    if type(collection) is not ee.imagecollection.ImageCollection:
+        try:
+            collection = getattr(collection,'collection')
+        except Exception as e:
+            raise TypeError('argument collection needs to be either of type ee.ImageCollection '
+                            'or hydrafloods.hfCollection')
+
     n = collection.size()
     exportImages = collection.sort('system:time_start', False).toList(n)
     nIter = n.getInfo()
@@ -146,7 +161,7 @@ def dbToPower(img):
 @decorators.carryMetadata
 def addIndices(img):
     ndvi = img.normalizedDifference(['nir','red']).rename('ndvi')
-    mndwi = img.normalizedDifference(['green','swir1']).rename('mndwi')
+    mndwi = img.normalizedDifference(['green','swir2']).rename('mndwi')
     nwi = img.expression('((b-(n+s+w))/(b+(n+s+w))*100)',{
         'b':img.select('blue'),
         'n':img.select('nir'),
