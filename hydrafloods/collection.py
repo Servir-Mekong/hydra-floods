@@ -3,12 +3,12 @@ import os
 import ee
 import copy
 import math
+import datetime
 from pprint import pformat
 from ee.ee_exception import EEException
 from hydrafloods import geeutils, thresholding, fusion, fetch, preprocess, utils, filtering
 
 
-INITIME = ee.Date('1971-01-01T00:00:00')
 BANDREMAP = ee.Dictionary({
     'landsat': ee.List(['B2', 'B3', 'B4', 'B5', 'B6', 'B7', 'time']),
     'viirs': ee.List(['M2', 'M4', 'M5', 'M7', 'M10', 'M11', 'time']),
@@ -23,7 +23,7 @@ class hfCollection(object):
         # TODO: add exceptions to check datatypes
         self.region = region  # dtype = ee.Geometry
         self.iniTime = time_start
-        self.endTime = time_end
+        self.endTime = time_end + datetime.timedelta(1)
         self.id = assetid
         self.useQa = useQa
 
@@ -34,7 +34,7 @@ class hfCollection(object):
         if useQa:
             coll = coll.map(self._qa)
 
-        self.collection = coll
+        self.collection = coll.map(geeutils.addTimeBand)
 
         return
 
@@ -54,9 +54,19 @@ class hfCollection(object):
     def nImages(self):
         return self.collection.size().getInfo()
 
-    def clipToRegion(self):
-        self.collection = self.collection.map(lambda img: img.clip(self.region))
-        return self
+    def clipToRegion(self,inplace=False):
+        """
+        Clips all of the images to the geographic extent defined by region
+        """
+        clipped = self.collection.map(lambda img: ee.Image(img.clip(self.region)))
+        if inplace:
+            self.collection = clipped
+            return
+        else:
+            outCls = self.copy()
+            outCls.collection = clipped
+            return outCls
+
 
     def copy(self):
         """
@@ -64,7 +74,7 @@ class hfCollection(object):
         """
         return copy.deepcopy(self)
 
-    def apply(self,func,**kwargs):
+    def apply(self,func,inplace=False,**kwargs):
         """
         Wrapper method to apply a function to all of the image in the collection
         Makes a copy of the collection and reasigns the image collection propety
@@ -79,18 +89,28 @@ class hfCollection(object):
         Returns:
             outCls: copy of class with results as image collection property
         """
+        if inplace:
+            self.collection = func(self.collection, **kwargs)
+            return
+        else:
+            outCls = self.copy()
+            outCls.collection = func(self.collection, **kwargs)
+            return outCls
 
-        outCls = self.copy()
-        outCls.collection = func(self.collection, **kwargs)
-        return outCls
+    def merge(self,collection,interleave=False,inplace=False):
+        merged = self.collection.merge(collection.collection)
+        if inplace:
+            self.collection = merged
+            return
+        else:
+            outCls = self.copy()
+            outCls.collection = merged
+            return outCls
 
 
 class Sentinel1(hfCollection):
     def __init__(self, *args, assetid='COPERNICUS/S1_GRD', **kwargs):
         super(Sentinel1, self).__init__(*args,assetid=assetid, **kwargs)
-
-        # if self.useQa:
-        #     self.collection = self.collection.map(self._qa)
 
         self.collection = self.collection\
             .filter(ee.Filter.listContains('transmitterReceiverPolarisation', 'VV'))
@@ -110,7 +130,7 @@ class Sentinel1(hfCollection):
 
 class Atms(hfCollection):
     def __init__(self, *args, **kwargs):
-        super(Atms, self).__init__(*args, **kwargs)
+        super(Atms, self).__init__(*args, useQa=False,**kwargs)
 
         return
 
@@ -167,12 +187,11 @@ class Viirs(hfCollection):
     def __init__(self, *args, assetid='NOAA/VIIRS/001/VNP09GA', **kwargs):
         super(Viirs, self).__init__(*args, assetid=assetid, **kwargs)
 
-        if self.useQa:
-            self.collection = self.collection.map(self._qa)
-
         self.collection = self.collection\
             .select(BANDREMAP.get('viirs'), BANDREMAP.get('new'))\
             .map(geeutils.addIndices)
+
+        self.clipToRegion(inplace=True)
 
         return
 
@@ -186,11 +205,8 @@ class Viirs(hfCollection):
         shadows = img.select('QF2').bitwiseAnd(shadowBit).eq(0)
         snows = img.select('QF2').bitwiseAnd(snowBit).eq(0)
 
-        mask = clouds.And(shadows).And(snows).And(viewing)
-        t = ee.Date(img.get('system:time_start'))
-        nDays = t.difference(INITIME, 'day')
-        time = ee.Image(nDays).int16().rename('time')
-        return img.updateMask(mask).addBands(time).clip(img.geometry())
+        mask = clouds.And(shadows).And(snows)#.And(viewing)
+        return img.updateMask(mask)
 
     def extract(self, date, region, outdir='./', creds=None):
 
@@ -241,6 +257,8 @@ class Modis(hfCollection):
             .select(BANDREMAP.get('modis'), BANDREMAP.get('new'))\
             .map(geeutils.addIndices)
 
+        self.clipToRegion(inplace=True)
+
         return
 
     def _qa(self, img):
@@ -252,9 +270,6 @@ class Modis(hfCollection):
         shadows = img.select('state_1km').bitwiseAnd(shadowBit).eq(0)
         snows = img.select('state_1km').bitwiseAnd(snowBit).eq(0)
         mask = clouds.And(shadows).And(snows)  # .And(viewing)
-        t = ee.Date(img.get('system:time_start'))
-        nDays = t.difference(INITIME, 'day')
-        time = ee.Image(nDays).int16().rename('time')
         return img.updateMask(mask).addBands(time)
 
     def extract(self, date, region, outdir='./', creds=None):
@@ -295,9 +310,9 @@ class Modis(hfCollection):
         return mapResult
 
 
-class Landsat(hfCollection):
+class Landsat8(hfCollection):
     def __init__(self, *args, assetid='LANDSAT/LC08/C01/T1_SR', **kwargs):
-        super(Landsat, self).__init__(*args, assetid=assetid, **kwargs)
+        super(Landsat8, self).__init__(*args, assetid=assetid, **kwargs)
 
         if self.useQa:
             self.collection = self.collection.map(self._qa)
@@ -323,10 +338,7 @@ class Landsat(hfCollection):
         qaShadow = img.select('pixel_qa').bitwiseAnd(shadowBit).eq(0)
         qaSnow = img.select('pixel_qa').bitwiseAnd(snowBit).eq(0)
         mask = qaCloud.And(qaShadow).And(qaSnow)
-        t = ee.Date(img.get('system:time_start'))
-        nDays = t.difference(INITIME, 'day')
-        time = ee.Image(nDays).int16().rename('time')
-        return img.updateMask(mask).addBands(time).uint16()
+        return img.updateMask(mask)
 
 
 class Sentinel2(hfCollection):
@@ -345,10 +357,7 @@ class Sentinel2(hfCollection):
     def _qa(self, img):
         sclImg = img.select('SCL')  # Scene Classification Map
         mask = sclImg.gte(4).And(sclImg.lte(6))
-        t = ee.Date(img.get('system:time_start'))
-        nDays = t.difference(INITIME, 'day')
-        time = ee.Image(nDays).int16().rename('time')
-        return img.updateMask(mask).addBands(time).uint16()
+        return img.updateMask(mask)
 
     def _bandPassAdjustment(self, img):
         bands = ee.List(BANDREMAP.get('new'))
