@@ -10,7 +10,7 @@ def starfm(coarseCollection,fineCollection=None,targetDate='1970-01-01',windowSi
 
         Tijk = img.select('time').subtract(base.select('time_first'))
 
-        Sijk = img.subtract(slv).abs().reduceNeighborhood(ee.Reducer.sum(),square,'kernel',True,'boxcar')\
+        Sijk = img.subtract(slv).abs().convolution(Dijk)\
                 .rename(bandList)
 
         Cijk = Sijk.multiply(Tijk).convolve(Dijk)
@@ -47,6 +47,12 @@ def starfm(coarseCollection,fineCollection=None,targetDate='1970-01-01',windowSi
 
     dijk = ee.Array(centerPos).subtract(xPos).pow(2).add(
            ee.Array(centerPos).subtract(yPos).pow(2)).sqrt()
+
+    weightMax = dijk.get([0,0]).add(1)
+    # flip weights to have heighest in middle
+    # normalize values for convolutions
+    dijk_norm = dijk.subtract(weightMax).abs()\
+        .divide(weightMax.subtract(1))
 
     dW = ee.Array(1).add(dijk.divide(ee.Array(A)))
 
