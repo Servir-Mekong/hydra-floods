@@ -1,0 +1,16 @@
+site_name: HYDRAFloods Documentation
+nav:
+    - Home: index.md
+    - Installation: installation.md
+    - Getting Started: getting-started.md
+    - Datasets: datasets.md
+    - Algorithms: algorithms.md
+    - Applications: applications.md
+    - Command Line Interface: cli.md
+    - API Reference: api.md
+theme: 
+    name: material
+    logo: 'img/hydrafloods_logo.png'
+    favicon: 'img/favicon.ico'
+extra_css:
+    - stylesheets/extra.css
