@@ -9,7 +9,7 @@ You can contribute in many ways:
 
 ### Report Bugs
 
-Report bugs at https://github.com/kmarkert/cartoee/issues.
+Report bugs at https://github.com/servir-mekong/hydra-floods/issues.
 
 If you are reporting a bug, please include:
 
