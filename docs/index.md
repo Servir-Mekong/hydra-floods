@@ -3,7 +3,7 @@
 The Hydrologic Remote Sensing Analysis for Floods (or HYDRAFloods) is an open source Python application for downloading, processing, and delivering surface water maps derived from remote sensing data. The bases behind the tool is to provide sensor agnostic approaches to produce surface water maps. Furthermore, there are applications that leverage multiple remote sensing dataset in conjunction to provide daily surface water maps for flood application. 
 <!-- Mention something about EE. -->
 
-The HYDRAFloods application is built using [Google Earth Engine](https://earthengine.google.com/) and [Google Cloud Platform](https://cloud.google.com/) to leverage cloud computing for large-scale computations and handling high data volume outputs. 
+The HYDRAFloods application is built using [Google Earth Engine](https://earthengine.google.com/) and [Google Cloud Platform](https://cloud.google.com/) to leverage cloud computing for large-scale computations and handling high data volume outputs.  The goal of the package is to allow users access to high-quality, cloud-based surface water mapping algorithms with minimal effort. To achieve this goal, `hydrafloods` provides a high-level API on top of the [Earth Engine Python API](https://developers.google.com/earth-engine) to reduce code duplication, such as filtering or carrying metadata for image processing, and provide complex surface water algorithms in a simple API. Furthermore, the package provides some GCP functionality to read and transfer data to be used within Earth Engine.
 
 
 ## Quick Start
@@ -22,7 +22,7 @@ end_time =  "2019-10-06"
 region = ee.Geometry.Rectangle([104, 11.5, 106, 12.5 ])
 
 # get the Sentinel-1 collection
-# this dataset classes does the spatial-temporal filtering for you 
+# the hf.dataset classes performs the spatial-temporal filtering for you
 s1 = hf.datasets.Sentinel1(region, start_time end_time)
 
 # apply a water mapping function to the S1 dataset 
@@ -41,15 +41,19 @@ water_map = ee.Image(water_imgs.collection.mode())
 hf.geeutils.export_image(
     water_map,
     region,
-    "users/<YOUR_USERNAME>/water_map_example,
+    "users/<YOUR_USERNAME>/water_map_example",
     scale=30,
 )
 ```
+_(This script is complete, it should run "as is")_
 
-At the end of processing, there will be an [Earth Engine export task](https://developers.google.com/earth-engine/exporting#to-asset) that running the process on the EE servers for use later in the EE platform.
+At the end of the script execution, there will be an [Earth Engine export task](https://developers.google.com/earth-engine/exporting#to-asset) that running the process on the EE servers for use later in the EE platform. The resulting surface water image should look like the following.
 
 ![Quick Start Results](img/quick_start_results.png)
-Figure 1. Sentinel-1 backscatter image (left) and resulting surface water map (right) from the example.
+<!-- html code for figure caption -->
+<span class="img_caption" style="display: block; text-align: center; font-size: 14px">
+    __Figure 1.__ Sentinel-1 backscatter image (left) and resulting surface water map (right) from 2019-10-05 for a region in Cambodia as in the example.
+</span>
 
 Learn more throughout the documentation such as [Installation](https://servir-mekong.github.io/hydra-floods/installation/), the [Algorithms available](https://servir-mekong.github.io/hydra-floods/algorithms/), or setting up the package to run operationally using the [CLI](https://servir-mekong.github.io/hydra-floods/cli/).
 
