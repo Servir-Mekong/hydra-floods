@@ -9,9 +9,9 @@ The easiest way to get up and started using the `hydrafloods` packages is via a 
 To start you will need to have [Docker installed](https://docs.docker.com/get-docker/) on your system and running. You will need to pull the pre-built Docker Image for `hydrafloods` and start a new Container from the Image using the following command:
 
 ```sh
-$ docker run -it \
-    -v ~/<PROJECT-DIR>/:/mnt/<PROJECT-DIR> \
-    --name hydrafloods_container kmarkert/hydrafloods
+docker run -it \
+  -v ~/<PROJECT-DIR>/:/mnt/<PROJECT-DIR> \
+  --name hydrafloods_container kmarkert/hydrafloods
 ```
 
 This command should be a one-time process to download the package and start the Container. Additionally, this command will mount a local directory (i.e. `~/<PROEJCT-DIR>`) for use within the Docker Container which allows you to edit files locally and use within the container. Be sure to change `<PROJECTD-DIR>` within the command to an exisiting local directory. Now the Docker Container is running for use!
@@ -21,7 +21,7 @@ Within the Docker Container the `hydrafloods` package and dependencies are pre-i
 If you have exited the Docker Container and want to start it again, use the following command:
 
 ```sh
-$ docker start -ia hydrafloods_container
+docker start -ia hydrafloods_container
 ```
 
 _This command to restart an existing Container is important especially after authenticating the cloud environment so that you do not have to go through the authentication process everytime you run the Docker container._ For more information on working with Docker Images/Containers using the CLI see the [Docker command line documentation](https://docs.docker.com/engine/reference/commandline/cli/).
@@ -31,29 +31,29 @@ _This command to restart an existing Container is important especially after aut
 Another convient way to install the package and its dependencies is using [anaconda](https://www.anaconda.com/). It is recommend using the community maintained [conda-forge](https://conda-forge.github.io/) channel to handle dependencies. Furthermore, it is good practice to use a virtual environment within conda. To create a new environment, install dependencies, and activate the environment:
 
 ```sh
-$ conda create -n hydra -c conda-forge python=3.7 \
-    numpy \
-    scipy \
-    pandas \
-    requests \
-    yaml \
-    xmltodict \
-    gdal \
-    shapely \
-    pyproj \
-    netCDF4 \
-    xarray \
-    pyresample \
-    geopandas \
-    earthengine-api \
-    fire -y
-$ conda activate hydra
+conda create -n hydra -c conda-forge python=3.7 \
+  numpy \
+  scipy \
+  pandas \
+  requests \
+  yaml \
+  xmltodict \
+  gdal \
+  shapely \
+  pyproj \
+  netCDF4 \
+  xarray \
+  pyresample \
+  geopandas \
+  earthengine-api \
+  fire -y
+conda activate hydra
 ```
 
 Finally, we need to install the `hydrafloods` package  and one last dependency via `pip`:
 
 ```sh
-$ pip install simplecmr hydrafloods
+pip install simplecmr hydrafloods
 ```
 
 You will now also need to install the [Google Cloud SDK](https://cloud.google.com/sdk/docs/downloads-versioned-archives) to interface to with the Google cloud. Follow the directions provided by the website.
@@ -71,13 +71,13 @@ After successful installation of the package and dependencies we will need to au
 To intialize the Google Cloud environment and authenticate using your credentials, run the following command:
 
 ```sh
-$ gcloud init
+gcloud init
 ```
 
 To authenticate the Earth Engine Python API with your credentials, run the following:
 
 ```sh
-$ earthengine authenticate
+earthengine authenticate
 ```
 
 Now we are ready to test our installation!
