@@ -1,6 +1,6 @@
 # Welcome to the HYDRAFloods Documentation
 
-The Hydrologic Remote Sensing Analysis for Floods (or HYDRAFloods) is an open source Python application for downloading, processing, and delivering surface water maps derived from remote sensing data. The bases behind the tool is to provide sensor agnostic approaches to produce surface water maps. Furthermore, there are applications that leverage multiple remote sensing dataset in conjunction to provide daily surface water maps for flood application. 
+The Hydrologic Remote Sensing Analysis for Floods (or HYDRAFloods) is an open source Python application for downloading, processing, and delivering surface water maps derived from remote sensing data. The bases behind the tool is to provide sensor agnostic approaches to produce surface water maps. Furthermore, there are workflows that leverage multiple remote sensing dataset in conjunction to provide daily surface water maps for flood application. 
 <!-- Mention something about EE. -->
 
 The HYDRAFloods application is built using [Google Earth Engine](https://earthengine.google.com/) and [Google Cloud Platform](https://cloud.google.com/) to leverage cloud computing for large-scale computations and handling high data volume outputs.  The goal of the package is to allow users access to high-quality, cloud-based surface water mapping algorithms with minimal effort. To achieve this goal, `hydrafloods` provides a high-level API on top of the [Earth Engine Python API](https://developers.google.com/earth-engine) to reduce code duplication, such as filtering or carrying metadata for image processing, and provide complex surface water algorithms in a simple API. Furthermore, the package provides some GCP functionality to read and transfer data to be used within Earth Engine.
@@ -8,7 +8,7 @@ The HYDRAFloods application is built using [Google Earth Engine](https://earthen
 
 ## Quick Start
 
-To highlight an example of the `hydrafloods` API and simplicity to produce high-quality surface water maps we provide a quick example of mapping surface water using Sentinel-1 over the confluence of the Mekong and Tonle Sap rivers, which experiences frequent flooding.
+To highlight a quick example of the `hydrafloods` API and simplicity to produce high-quality surface water maps we provide a quick example of mapping surface water using Sentinel-1 over the confluence of the Mekong and Tonle Sap rivers, which experiences frequent flooding.
 
 ```python
 # import the hydrafloods and ee package
@@ -47,7 +47,7 @@ hf.geeutils.export_image(
 ```
 _(This script is complete, it should run "as is")_
 
-At the end of the script execution, there will be an [Earth Engine export task](https://developers.google.com/earth-engine/exporting#to-asset) that running the process on the EE servers for use later in the EE platform. The resulting surface water image should look like the following.
+At the end of the script execution, there will be an [Earth Engine export task](https://developers.google.com/earth-engine/exporting#to-asset) running the process on the EE servers for use later in the EE platform. The resulting surface water image should look like the following figure. It should be noted that `hydrafloods` can scale quickly and easily by simply changing the start or end time and region to process, allowing for processing of surface water maps with minimal effort in terms of coding.
 
 ![Quick Start Results](img/quick_start_results.png)
 <!-- html code for figure caption -->
@@ -55,7 +55,7 @@ At the end of the script execution, there will be an [Earth Engine export task](
     __Figure 1.__ Sentinel-1 backscatter image (left) and resulting surface water map (right) from 2019-10-05 for a region in Cambodia as in the example.
 </span>
 
-Learn more throughout the documentation such as [Installation](https://servir-mekong.github.io/hydra-floods/installation/), the [Algorithms available](https://servir-mekong.github.io/hydra-floods/algorithms/), or setting up the package to run operationally using the [CLI](https://servir-mekong.github.io/hydra-floods/cli/).
+Learn more about the package throughout the documentation such as [installation](https://servir-mekong.github.io/hydra-floods/installation/), the [algorithms available](https://servir-mekong.github.io/hydra-floods/algorithms/), or setting up the package to run operationally using the [CLI](https://servir-mekong.github.io/hydra-floods/cli/).
 
 
 ## Get in touch
