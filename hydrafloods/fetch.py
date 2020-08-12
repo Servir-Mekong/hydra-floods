@@ -5,53 +5,69 @@ import simplecmr as scmr
 from pathlib import Path
 
 
-def fetching(conceptid, startTime, region, credentials, outDir, maxResults=500, endTime=None):
+def fetching(
+    conceptid,
+    start_time,
+    region,
+    credentials,
+    out_directory,
+    max_results=500,
+    end_time=None,
+):
     """
     Function to download data from NASA by specifying a datase, time and region.
     Uses CMR to handle spatio-temporal query and extracts data download urls
 
     Args:
         conceptid (str): String of dataset concept id to search for
-        startTime (str): Date as string preferrably as ISO8601 format (YYYY-MM-dd)
+        start_time (str): Date as string preferrably as ISO8601 format (YYYY-MM-dd)
         region (tuple|list): Bounding box of region to search as iterable in W,S,E,N order
         credentials (tuple|list): EarthData username and password login credentials as iterable
-        outDir (str|pathlib.Path): Local directory to downaload data to
+        out_directory (str|pathlib.Path): Local directory to downaload data to
     Kwargs:
-        maxResults (int): Maximum number of items to search and download
+        max_results (int): Maximum number of items to search and download
             default = 500
-        endTime (str): Date as string preferrably as ISO8601 format (YYYY-MM-dd)
-            default = None (endTime = startTime + 1day)
+        end_time (str): Date as string preferrably as ISO8601 format (YYYY-MM-dd)
+            default = None (end_time = start_time + 1day)
 
     Returns:
         List of local paths that data was downloaded to
     """
-    if type(startTime) != datetime.datetime:
-        startTime = scmr.utils.decode_date(startTime)
-    if endTime is None:
-        endTime = startTime + datetime.timedelta(seconds=86399)
+    if type(start_time) != datetime.datetime:
+        start_time = scmr.utils.decode_date(start_time)
+    if end_time is None:
+        end_time = start_time + datetime.timedelta(seconds=86399)
     else:
-        endTime = scmr.utils.decode_date(endTime)
+        end_time = scmr.utils.decode_date(end_time)
 
     # construct query
-    query = scmr.Query(conceptid=conceptid,
-                       startTime=startTime,
-                       endTime=endTime,
-                       spatialExtent=region,
-                       maxResults=maxResults,
-                       )
+    query = scmr.Query(
+        conceptid=conceptid,
+        startTime=start_time,
+        endTime=end_time,
+        spatialExtent=region,
+        maxResults=max_results,
+    )
 
     # fetch datasets from query
-    query.granules.fetch(credentials=credentials,
-                         directory=outDir,
-                         limit=maxResults,
-                         maxWorkers=4
-                         )
+    query.granules.fetch(
+        credentials=credentials,
+        directory=out_directory,
+        limit=max_results,
+        maxWorkers=4,
+    )
 
     # return a list of the granules for later processing
-    return query.granules.getLocalPaths(directory=outDir)
+    return query.granules.getLocalPaths(directory=out_directory)
 
 
-def viirs(credentials, startTime='2000-01-01', endTime=None, region=[-180, 60, 180, 85], outDir='./'):
+def viirs(
+    credentials,
+    start_time="2000-01-01",
+    end_time=None,
+    region=[-180, 60, 180, 85],
+    out_directory="./",
+):
     """
     Function to download Suomi-NPP VIIRS surface reflectance data for specified time and region,
     wraps fetching()
@@ -60,13 +76,13 @@ def viirs(credentials, startTime='2000-01-01', endTime=None, region=[-180, 60, 1
         credentials (tuple|list): EarthData username and password login credentials as iterable
 
     Kwargs:
-        startTime (str): Date as string preferrably as ISO8601 format (YYYY-MM-dd)
+        start_time (str): Date as string preferrably as ISO8601 format (YYYY-MM-dd)
             default = 2000-01-01
-        endTime (str): Date as string preferrably as ISO8601 format (YYYY-MM-dd)
-            default = None (endTime = startTime + 1day)
+        end_time (str): Date as string preferrably as ISO8601 format (YYYY-MM-dd)
+            default = None (end_time = start_time + 1day)
         region (tuple|list): Bounding box of region to search as iterable in W,S,E,N order
             default = [-180,60,180,85]
-        outDir (str|pathlib.Path): Local directory to downaload data to
+        out_directory (str|pathlib.Path): Local directory to downaload data to
             default = './' (current working directory)
 
     Returns:
@@ -75,7 +91,7 @@ def viirs(credentials, startTime='2000-01-01', endTime=None, region=[-180, 60, 1
 
     # check if date requested is within science-quality production time
     now = datetime.datetime.now()
-    offset = now - scmr.utils.decode_date(startTime)
+    offset = now - scmr.utils.decode_date(start_time)
     if offset.days > 4:
         # use science-quality collection
         CONCEPTID = "C1373412034-LPDAAC_ECS"
@@ -83,17 +99,24 @@ def viirs(credentials, startTime='2000-01-01', endTime=None, region=[-180, 60, 1
         # use LANCE-NRT collection
         CONCEPTID = "C1344293643-LANCEMODIS"
 
-    return fetching(conceptid=CONCEPTID,
-                    startTime=startTime,
-                    region=region,
-                    credentials=credentials,
-                    outDir=outDir,
-                    maxResults=500,
-                    endTime=endTime
-                    )
+    return fetching(
+        conceptid=CONCEPTID,
+        start_time=start_time,
+        region=region,
+        credentials=credentials,
+        out_directory=out_directory,
+        max_results=500,
+        end_time=end_time,
+    )
 
 
-def modis(credentials, startTime='2000-01-01', endTime=None, region=[-180, 60, 180, 85], outDir='./'):
+def modis(
+    credentials,
+    start_time="2000-01-01",
+    end_time=None,
+    region=[-180, 60, 180, 85],
+    out_directory="./",
+):
     """
     Function to download Terra MODIS surface reflectance data for specified time and region,
     wraps fetching()
@@ -102,13 +125,13 @@ def modis(credentials, startTime='2000-01-01', endTime=None, region=[-180, 60, 1
         credentials (tuple|list): EarthData username and password login credentials as iterable
 
     Kwargs:
-        startTime (str): Date as string preferrably as ISO8601 format (YYYY-MM-dd)
+        start_time (str): Date as string preferrably as ISO8601 format (YYYY-MM-dd)
             default = 2000-01-01
-        endTime (str): Date as string preferrably as ISO8601 format (YYYY-MM-dd)
-            default = None (endTime = startTime + 1day)
+        end_time (str): Date as string preferrably as ISO8601 format (YYYY-MM-dd)
+            default = None (end_time = start_time + 1day)
         region (tuple|list): Bounding box of region to search as iterable in W,S,E,N order
             default = [-180,60,180,85]
-        outDir (str|pathlib.Path): Local directory to downaload data to
+        out_directory (str|pathlib.Path): Local directory to downaload data to
             default = './' (current working directory)
 
     Returns:
@@ -117,7 +140,7 @@ def modis(credentials, startTime='2000-01-01', endTime=None, region=[-180, 60, 1
 
     # check if date requested is within science-quality production time
     now = datetime.datetime.now()
-    offset = now - scmr.utils.decode_date(startTime)
+    offset = now - scmr.utils.decode_date(start_time)
     if offset.days > 4:
         # use science-quality collection
         CONCEPTID = "C193529902-LPDAAC_ECS"
@@ -125,17 +148,24 @@ def modis(credentials, startTime='2000-01-01', endTime=None, region=[-180, 60, 1
         # use LANCE-NRT collection
         CONCEPTID = "C1219249711-LANCEMODIS"
 
-    return fetching(conceptid=CONCEPTID,
-                    startTime=startTime,
-                    region=region,
-                    credentials=credentials,
-                    outDir=outDir,
-                    maxResults=500,
-                    endTime=endTime
-                    )
+    return fetching(
+        conceptid=CONCEPTID,
+        start_time=start_time,
+        region=region,
+        credentials=credentials,
+        out_directory=out_directory,
+        max_results=500,
+        end_time=end_time,
+    )
 
 
-def atms(credentials, startTime='2000-01-01', endTime=None, region=[-180, 60, 180, 85], outDir='./'):
+def atms(
+    credentials,
+    start_time="2000-01-01",
+    end_time=None,
+    region=[-180, 60, 180, 85],
+    out_directory="./",
+):
     """
     Function to download Suomi-NPP ATMS passive microwave data for specified time and region,
     wraps fetching()
@@ -144,13 +174,13 @@ def atms(credentials, startTime='2000-01-01', endTime=None, region=[-180, 60, 18
         credentials (tuple|list): EarthData username and password login credentials as iterable
 
     Kwargs:
-        startTime (str): Date as string preferrably as ISO8601 format (YYYY-MM-dd)
+        start_time (str): Date as string preferrably as ISO8601 format (YYYY-MM-dd)
             default = 2000-01-01
-        endTime (str): Date as string preferrably as ISO8601 format (YYYY-MM-dd)
-            default = None (endTime = startTime + 1day)
+        end_time (str): Date as string preferrably as ISO8601 format (YYYY-MM-dd)
+            default = None (end_time = start_time + 1day)
         region (tuple|list): Bounding box of region to search as iterable in W,S,E,N order
             default = [-180,60,180,85]
-        outDir (str|pathlib.Path): Local directory to downaload data to
+        out_directory (str|pathlib.Path): Local directory to downaload data to
             default = './' (current working directory)
 
     Returns:
@@ -158,11 +188,12 @@ def atms(credentials, startTime='2000-01-01', endTime=None, region=[-180, 60, 18
     """
 
     CONCEPTID = "C1442068516-GES_DISC"
-    return fetching(conceptid=CONCEPTID,
-                    startTime=startTime,
-                    region=region,
-                    credentials=credentials,
-                    outDir=outDir,
-                    maxResults=500,
-                    endTime=endTime
-                    )
+    return fetching(
+        conceptid=CONCEPTID,
+        start_time=start_time,
+        region=region,
+        credentials=credentials,
+        out_directory=out_directory,
+        max_results=500,
+        end_time=end_time,
+    )
