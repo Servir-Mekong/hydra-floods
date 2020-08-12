@@ -1,6 +1,6 @@
 site_name: HYDRAFloods Documentation
 nav:
-    - Home: index.md
+    - Overview: index.md
     - Installation: installation.md
     - Getting Started: getting-started.md
     - Datasets: datasets.md
@@ -14,3 +14,7 @@ theme:
     favicon: 'img/favicon.ico'
 extra_css:
     - stylesheets/extra.css
+
+markdown_extensions:
+    - pymdownx.highlight:
+        use_pygments: true
