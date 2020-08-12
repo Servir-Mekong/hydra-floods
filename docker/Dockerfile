@@ -1,6 +1,23 @@
-FROM continuumio/anaconda3
+FROM continuumio/miniconda3:latest
 
 USER root
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+            build-essential \
+            libssl-dev \
+            libffi-dev \
+            vim \
+            curl \
+  && apt-get purge -y build-essential \
+            libssl-dev \
+            libffi-dev \
+            dpkg-dev \
+            fakeroot \
+            libfakeroot:amd64 \
+  && apt-get autoremove -y \
+  && apt-get clean \
+  && rm -rf /var/lib/apt/lists/*
 
 # install google cloud software development kit and support libraries
 # Downloading gcloud package
@@ -11,27 +28,12 @@ RUN mkdir -p /usr/local/gcloud \
   && tar -C /usr/local/gcloud -xvf /tmp/google-cloud-sdk.tar.gz \
   && /usr/local/gcloud/google-cloud-sdk/install.sh
 
+# remove the gcp-sdk install tarball
+RUN rm /tmp/google-cloud-sdk.tar.gz
+
 # Adding the package path to local
 ENV PATH $PATH:/usr/local/gcloud/google-cloud-sdk/bin
 
-
-# install supporting libraries
-RUN apt-get update \
-  && apt-get install -y \
-            tar \
-            git \
-            curl \
-            nano \
-            wget \
-            dialog \
-            net-tools \
-            build-essential\
-            apt-transport-https \
-            ca-certificates \
-            gnupg \
-  && apt-get autoremove -y \
-  && apt-get clean \
-  && rm -rf /var/lib/apt/lists/*
 
 # install Python dependencies
 RUN conda install -c conda-forge -y\
@@ -50,17 +52,17 @@ RUN conda install -c conda-forge -y\
             pillow \
             pandas \
             pyproj \
-            tensorflow=2.1 \
             geopandas \
             oauth2client \
             earthengine-api \
+            gcsfs \
             fire \
   && conda clean --all -f -y
 
 # install the additional packages through pip/github
-RUN pip install git+git://github.com/kmarkert/simple-cmr.git
+RUN pip install --no-cache-dir git+git://github.com/kmarkert/simple-cmr.git
 
 # install the hydrafloods package
-RUN pip install git+git://github.com/servir-mekong/hydra-floods.git
+RUN pip install --no-cache-dir git+git://github.com/servir-mekong/hydra-floods.git
 
 USER $NB_UID
