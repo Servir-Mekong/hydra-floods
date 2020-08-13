@@ -12,7 +12,7 @@ jobs:
 
     steps:
       - checkout
-      -run:
+      - run:
         name: install dependencies
         command: |
           conda env create -f environment.yml
