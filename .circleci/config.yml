@@ -16,7 +16,6 @@ jobs:
             source ~/.bashrc
             conda activate hydra
             python -c "import hydrafloods as hf"
-            flake8 --statistics 
 workflows:
   version: 2
   build_and_test:
