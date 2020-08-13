@@ -2,7 +2,7 @@ numpy
 scipy
 pandas
 requests
-yaml
+pyyaml
 xmltodict
 gdal
 shapely
