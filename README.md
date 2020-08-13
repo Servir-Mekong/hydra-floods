@@ -3,8 +3,6 @@
 ![docs](https://github.com/Servir-Mekong/hydra-floods/workflows/docs/badge.svg)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![PyPI version](https://badge.fury.io/py/hydrafloods.svg)](https://badge.fury.io/py/hydrafloods)
-[![PyPI pyversions](https://img.shields.io/pypi/pyversions/ansicolortags.svg)](https://pypi.python.org/pypi/ansicolortags/)
-
 
 ## Introduction
 
