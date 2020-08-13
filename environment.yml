@@ -1,0 +1,26 @@
+name: hydra
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - npython=3.7
+  - numpy
+  - scipy
+  - pandas
+  - requests
+  - yaml
+  - xmltodict
+  - gdal
+  - shapely
+  - pyproj
+  - netCDF4
+  - xarray
+  - pyresample
+  - geopandas
+  - earthengine-api
+  - fire
+  - gcsfs
+  - pip:
+    - black
+    - hydrafloods
+    - simplecmr
