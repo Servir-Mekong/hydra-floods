@@ -1,21 +1,22 @@
+version: 2.1
 jobs:
   build:
     docker:
       - image: "continuumio/miniconda3"
     steps:
       - checkout
-      - step:
-        name: "install dependencies"
-        command: |
-          conda env create -f environment.yml
-      - step:
-        name: "install test"
-        command: |
-          conda init bash
-          source ~/.bashrc
-          conda activate hydra
-          python -c "import hydrafloods as hf"
-          flake8 --statistics 
+      - run:
+          name: "install dependencies"
+          command: |
+            conda env create -f environment.yml
+      - run:
+          name: "install test"
+          command: |
+            conda init bash
+            source ~/.bashrc
+            conda activate hydra
+            python -c "import hydrafloods as hf"
+            flake8 --statistics 
 workflows:
   version: 2
   build_and_test:
