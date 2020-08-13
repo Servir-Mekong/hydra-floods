@@ -19,27 +19,6 @@ from hydrafloods import (
 )
 
 
-BANDREMAP = ee.Dictionary(
-    {
-        "landsat7": ee.List(["B1", "B2", "B3", "B4", "B5", "B7"]),
-        "landsat8": ee.List(["B2", "B3", "B4", "B5", "B6", "B7"]),
-        "viirs": ee.List(["M2", "M4", "M5", "M7", "M10", "M11"]),
-        "sen2": ee.List(["B2", "B3", "B4", "B8", "B11", "B12"]),
-        "modis": ee.List(
-            [
-                "sur_refl_b03",
-                "sur_refl_b04",
-                "sur_refl_b01",
-                "sur_refl_b02",
-                "sur_refl_b06",
-                "sur_refl_b07",
-            ]
-        ),
-        "new": ee.List(["blue", "green", "red", "nir", "swir1", "swir2"]),
-    }
-)
-
-
 class Dataset:
     def __init__(self, region, start_time, end_time, asset_id="", use_qa=True):
         # TODO: add exceptions to check datatypes
@@ -48,6 +27,26 @@ class Dataset:
         self.end_time = end_time
         self.asset_id = asset_id
         self.use_qa = use_qa
+
+        self.BANDREMAP = ee.Dictionary(
+            {
+                "landsat7": ee.List(["B1", "B2", "B3", "B4", "B5", "B7"]),
+                "landsat8": ee.List(["B2", "B3", "B4", "B5", "B6", "B7"]),
+                "viirs": ee.List(["M2", "M4", "M5", "M7", "M10", "M11"]),
+                "sen2": ee.List(["B2", "B3", "B4", "B8", "B11", "B12"]),
+                "modis": ee.List(
+                    [
+                        "sur_refl_b03",
+                        "sur_refl_b04",
+                        "sur_refl_b01",
+                        "sur_refl_b02",
+                        "sur_refl_b06",
+                        "sur_refl_b07",
+                    ]
+                ),
+                "new": ee.List(["blue", "green", "red", "nir", "swir1", "swir2"]),
+            }
+        )
 
         imgcollection = (
             ee.ImageCollection(self.asset_id)
@@ -281,7 +280,7 @@ class Viirs(Dataset):
         super(Viirs, self).__init__(*args, asset_id=asset_id, **kwargs)
 
         self.collection = self.collection.select(
-            BANDREMAP.get("viirs"), BANDREMAP.get("new")
+            self.BANDREMAP.get("viirs"), self.BANDREMAP.get("new")
         ).map(geeutils.add_indices)
 
         self.clip_to_region(inplace=True)
@@ -316,7 +315,7 @@ class Modis(Dataset):
         super(Modis, self).__init__(*args, asset_id=asset_id, **kwargs)
 
         self.collection = self.collection.select(
-            BANDREMAP.get("modis"), BANDREMAP.get("new")
+            self.BANDREMAP.get("modis"), self.BANDREMAP.get("new")
         ).map(geeutils.add_indices)
 
         self.clip_to_region(inplace=True)
@@ -349,7 +348,7 @@ class Landsat8(Dataset):
         super(Landsat8, self).__init__(*args, asset_id=asset_id, **kwargs)
 
         self.collection = self.collection.select(
-            BANDREMAP.get("landsat8"), BANDREMAP.get("new")
+            self.BANDREMAP.get("landsat8"), self.BANDREMAP.get("new")
         ).map(geeutils.add_indices)
 
         return
@@ -377,7 +376,9 @@ class Landsat7(Dataset):
     ):
         super(Landsat7, self).__init__(*args, asset_id=asset_id, **kwargs)
 
-        coll = self.collection.select(BANDREMAP.get("landsat7"), BANDREMAP.get("new"))
+        coll = self.collection.select(
+            self.BANDREMAP.get("landsat7"), self.BANDREMAP.get("new")
+        )
 
         if apply_band_adjustment:
             # band bass adjustment coefficients taken from Roy et al., 2016 http://dx.doi.org/10.1016/j.rse.2015.12.024
@@ -422,7 +423,9 @@ class Sentinel2(Dataset):
     ):
         super(Sentinel2, self).__init__(*args, asset_id=asset_id, **kwargs)
 
-        coll = self.collection.select(BANDREMAP.get("sen2"), BANDREMAP.get("new"))
+        coll = self.collection.select(
+            self.BANDREMAP.get("sen2"), self.BANDREMAP.get("new")
+        )
 
         if apply_band_adjustment:
             # band bass adjustment coefficients taken HLS project https://hls.gsfc.nasa.gov/algorithms/bandpass-adjustment/
