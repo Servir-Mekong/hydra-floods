@@ -22,5 +22,6 @@ dependencies:
   - gcsfs
   - pip:
     - black
+    - flake8
     - hydrafloods
     - simplecmr
