@@ -8,7 +8,7 @@ jobs:
     docker:
       - image: continuumio/miniconda3
 
-    workingdir: ~/hydrafloods
+    working_directory: ~/hydrafloods
 
     steps:
       - checkout
