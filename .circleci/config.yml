@@ -6,7 +6,8 @@ jobs:
       - checkout
       - run:
         name: "install dependencies"
-        command: conda env create -f environment.yml
+        command: |
+          conda env create -f environment.yml
       - run:
         name: "install test"
         command: |
@@ -16,7 +17,7 @@ jobs:
           python -c "import hydrafloods as hf"
           flake8 --statistics 
 workflows:
-  version: 2.1
+  version: 2
   build_and_test:
     jobs:
       - build
