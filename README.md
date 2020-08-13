@@ -1,6 +1,6 @@
 # hydra-floods
 
-![docs](https://github.com/Servir-Mekong/hydra-floods/workflows/docs/badge.svg)
+[![docs](https://github.com/Servir-Mekong/hydra-floods/workflows/docs/badge.svg)](https://servir-mekong.github.io/hydra-floods)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![PyPI version](https://badge.fury.io/py/hydrafloods.svg)](https://badge.fury.io/py/hydrafloods)
 [![hydra-floods](https://circleci.com/gh/Servir-Mekong/hydra-floods/tree/master.svg?style=shield)](https://circleci.com/gh/Servir-Mekong/hydra-floods/tree/master)
