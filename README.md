@@ -1,85 +1,103 @@
 # hydra-floods
 
+![docs](https://github.com/Servir-Mekong/hydra-floods/workflows/docs/badge.svg)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![PyPI version](https://badge.fury.io/py/hydrafloods.svg)](https://badge.fury.io/py/hydrafloods)
+[![PyPI pyversions](https://img.shields.io/pypi/pyversions/ansicolortags.svg)](https://pypi.python.org/pypi/ansicolortags/)
+
+
 ## Introduction
-HYDrologic Remote sensing Analysis for Floods (HydraFloods) is a Python application for downloading, processing, and delivering flood maps derived from remote sensing data.
-This is backend behind the [HYDRAViewer](https://github.com/Servir-Mekong/hydrafloodviewer) Geospatial tool which utilizes many remote sesnsing dataset as possible to provide daily (sometime twice daily) flood maps.
 
-![hydrafloodviewer](https://user-images.githubusercontent.com/39947610/65659571-5044b480-e056-11e9-8b1b-d3e82cace3c8.PNG)
-
-[![IMAGE ALT TEXT HERE](https://i.ytimg.com/vi/Iqh_uwtg6yI/hqdefault.jpg)](https://www.youtube.com/watch?v=Iqh_uwtg6yI&feature=youtu.be)
+The Hydrologic Remote Sensing Analysis for Floods (or HYDRAFloods) is an open source Python application for downloading, processing, and delivering surface water maps derived from remote sensing data. The bases behind the tool is to provide sensor agnostic approaches to produce surface water maps. Furthermore, there are workflows that leverage multiple remote sensing dataset in conjunction to provide daily surface water maps for flood application.
 
 ### Installation
 
-1. Create a new [conda environment](https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html) with the required dependencies and activate the environment
+The recommended way to get up and started using the `hydrafloods` packages is via a Docker Image. Using the Docker image will prevent any issues because of any dependencies for differing operating systems. To pull the pre-built image and start a new container, use the following command:
 
 ```
-$ conda create -n hydra -c conda-forge python=3.6 numpy scipy pandas requests yaml xmltodict gdal shapely pyproj netCDF4 xarray pyresample geopandas earthengine-api fire
-
-$ conda activate hydra
+docker run -it \
+  -v ~/<PROJECT-DIR>/:/mnt/<PROJECT-DIR> \
+  --name hydrafloods_container kmarkert/hydrafloods
 ```
 
-2. Install additional packages via `pip` that are not on conda-forge
+This command should be a one-time process to download the package and start the container. Additionally, this command will mount a local directory (i.e. `~/<PROEJCT-DIR>`) for use within the Docker Container which allows you to edit files locally and use within the container. Be sure to change `<PROJECTD-DIR>` within the command to an exisiting local directory.
+
+To use the `hydrafloods` package successfully, Google Cloud and Earth Engine authentication is necessary. Tointialize the Google Cloud environment and authenticate using your credentials, run the following command:
 
 ```
-$ pip install git+git://github.com/KMarkert/simple-cmr.git
+gcloud init
 ```
 
-3. Authenticate the Earth Engine API
+To authenticate the Earth Engine Python API with your credentials, run the following:
 
 ```
-$ earthengine authenticate
+earthengine authenticate
 ```
 
-4. Install [Google Storage Utility command-line interface (gsutil)](https://cloud.google.com/storage/docs/gsutil_install) and the setup the `gsutil` environment
+For more information on setup and installation of the `hydrafloods` package, please see the [Installation Docs](https://servir-github.io/hydra-floods/installation/).
 
+## Example
+
+To highlight a quick example of the `hydrafloods` API and simplicity to produce high-quality surface water maps we provide a quick example of mapping surface water using Sentinel-1 over the confluence of the Mekong and Tonle Sap rivers, which experiences frequent flooding.
+
+```python
+# import the hydrafloods and ee package
+import hydrafloods as hf
+import ee
+ee.Initialize()
+
+# specify start and end time as well as geographic region to process
+start_time = "2019-10-05"
+end_time =  "2019-10-06"
+region = ee.Geometry.Rectangle([104, 11.5, 106, 12.5 ])
+
+# get the Sentinel-1 collection
+# the hf.dataset classes performs the spatial-temporal filtering for you
+s1 = hf.datasets.Sentinel1(region, start_time end_time)
+
+# apply a water mapping function to the S1 dataset
+# this applies the "Edge Otsu" algorithm from https://doi.org/10.3390/rs12152469
+water_imgs = s1.apply_func(
+    hf.thresholding.edge_otsu,
+    initial_threshold=-14,
+    edge_buffer=300
+)
+
+# take the mode from multiple images
+# since this is just imagery from one day, it will simply mosaic the images
+water_map = ee.Image(water_imgs.collection.mode())
+
+# export the water map
+hf.geeutils.export_image(
+    water_map,
+    region,
+    "users/<YOUR_USERNAME>/water_map_example",
+    scale=30,
+)
 ```
-$ gcloud init
-```
 
----
-**NOTE:**
+_(This script is complete, it should run "as is")_
 
-Make sure your initialize the `ee` and `gsutil` APIs with Google accounts that have permissions to read and write to Google Cloud Storage and Google Earth Engine assets.
+At the end of the script execution, there will be an [Earth Engine export task](https://developers.google.com/earth-engine/exporting#to-asset) running the process on the EE servers for use later in the EE platform. The resulting surface water image should look like the following figure. It should be noted that `hydrafloods` can scale quickly and easily by simply changing the start or end time and region to process, allowing for processing of surface water maps with minimal effort in terms of coding.
 
----
+![Quick Start Results](docs/img/quick_start_results.png)
 
-4. Download the hydrafloods source code and install the package
- - COMING SOON: the hydrafloods package will be on PyPI in the near future to prevent installing from source
+<!-- html code for figure caption -->
+<span class="img_caption" style="display: block; text-align: center; font-size: 14px">
+    __Figure 1.__ Sentinel-1 backscatter image (left) and resulting surface water map (right) from 2019-10-05 for a region in Cambodia as in the example.
+</span>
 
-```
-$ git clone https://github.com/servir-mekong/hydra-floods.git
-$ cd hydra-floods/py pkg
-$ python setup.py install
-```
+Learn more about the package throughout the documentation such as [installation](https://servir-mekong.github.io/hydra-floods/installation/), the [algorithms available](https://servir-mekong.github.io/hydra-floods/algorithms/), or setting up the package to run operationally using the [CLI](https://servir-mekong.github.io/hydra-floods/cli/).
 
-5. Test to see if the installation was successful
+## Get in touch
 
-```
-$ hydrafloods run_tests
-```
+- Report bugs, suggest features or view the source code on [GitHub](https://github.com/servir-mekong/hydra-floods).
+- Contact us through a [Technical Assistance Request](https://servir.adpc.net/services/technical-assistance) and mention "hydrafloods"
 
+## Contribute
 
-### How-to
+Contributions are welcome, and they are greatly appreciated! Every little bit helps, and credit will always be given. Please see the [Contributing Guidelines](https://github.com/servir-mekong/hydra-floods/blob/master/CONTRIBUTING.md) for details on where to contribute and how to get started.
 
-To initiate the HydraFloods process use the command below.
+## License
 
-```
-$hydrafloods process atms 2015-07-19 --configuration myconf.yaml
-```
-**NOTE:**
-Details regarding the command
-
-* hydrafloods      --- call the hydrafloods process to begin
-
-* process           --- start the hydraflood process
-
-* atms              --- specify sensor (see processing.py for details options include: Sentinel2, Landsat, Modis, Viirs, Atms, Sentinel1)
-
-* 2015-07-19       --- specify the date of intrest
-
-* --configuration  --- use the configuration file
-
-* myconf.yaml      --- call the .yaml file that specifies the ROI etc. (see the exampl.yaml for details)
-
-
-![config example](docs/_static/exampleyaml.JPG)
+`hydrafloods` is available under the open source [GNU General Public License v3.0](https://github.com/Servir-Mekong/hydra-floods/blob/master/LICENSE).
