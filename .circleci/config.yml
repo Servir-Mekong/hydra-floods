@@ -4,18 +4,28 @@ orbs:
   python: circleci/python@0.2.1
 
 jobs:
-  build-and-test:
-    executor: python/default
+  build:
+    docker:
+      - image: continuumio/miniconda3
+
+    workingdir: ~/hydrafloods
+
     steps:
       - checkout
-      - python/load-cache
-      - python/install-deps
-      - python/save-cache
+      -run:
+        name: install dependencies
+        command: |
+          conda env create -f environment.yml
       - run:
-          command: ./manage.py test
-          name: Test
+          name: install test
+          command: |
+            conda init bash
+            source ~/.bashrc
+            conda activate hydra
+            python -c "import hydrafloods as hf"
+            flake8 --statistics 
 
 workflows:
   main:
     jobs:
-      - build-and-test
+      - build
