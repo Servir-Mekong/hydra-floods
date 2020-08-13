@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name='hydrafloods',
-      version='0.1.0',
+      version='0.1.1',
       description='HYDrologic Remote sensing Analysis for Floods',
       long_description=long_description,
       long_description_content_type="text/markdown",
@@ -14,7 +14,7 @@ setup(name='hydrafloods',
       packages=setuptools.find_packages(),
       author='Kel Markert',
       author_email='kel.markert@gmail.com',
-      license='MIT',
+      license='GNU GPL v3.0',
       zip_safe=False,
       include_package_data=True,
       entry_points={
