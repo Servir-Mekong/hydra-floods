@@ -4,11 +4,11 @@ jobs:
       - image: "continuumio/miniconda3"
     steps:
       - checkout
-      - run:
+      - step:
         name: "install dependencies"
         command: |
           conda env create -f environment.yml
-      - run:
+      - step:
         name: "install test"
         command: |
           conda init bash
