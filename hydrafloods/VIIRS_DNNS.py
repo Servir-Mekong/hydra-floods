@@ -5,7 +5,6 @@ import ee
 import numpy as np
 import math
 import matplotlib.pyplot as pl
-ee.Initialize()
 
 
 def perm_water_mask():

@@ -4,7 +4,6 @@ import ee
 import numpy as np
 import math
 import matplotlib.pyplot as pl
-ee.Initialize()
 
 def perm_water_mask():
     return ee.Image("MODIS/MOD44W/MOD44W_005_2000_02_24").select(['water_mask'], ['b1'])

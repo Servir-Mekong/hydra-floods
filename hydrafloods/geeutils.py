@@ -6,18 +6,6 @@ import random
 import datetime
 from hydrafloods import decorators
 
-try:
-    ee.Initialize()
-
-except EEException:
-    from oauth2client.service_account import ServiceAccountCredentials
-
-    credentials = ServiceAccountCredentials.from_p12_keyfile(
-        service_account_email="", filename="",
-    )
-    ee.Initialize(credentials)
-
-INITIME = ee.Date("1971-01-01T00:00:00")
 
 # helper function to convert qa bit image to flag
 def extract_bits(image, start, end, new_name):
