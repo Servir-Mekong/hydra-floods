@@ -34,7 +34,7 @@ To authenticate the Earth Engine Python API with your credentials, run the follo
 earthengine authenticate
 ```
 
-For more information on setup and installation of the `hydrafloods` package, please see the [Installation Docs](https://servir-github.io/hydra-floods/installation/).
+For more information on setup and installation of the `hydrafloods` package or how to install it using `conda`, please see the [Installation Docs](https://servir-github.io/hydra-floods/installation/).
 
 ## Example
 
