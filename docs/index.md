@@ -23,7 +23,7 @@ region = ee.Geometry.Rectangle([104, 11.5, 106, 12.5 ])
 
 # get the Sentinel-1 collection
 # the hf.dataset classes performs the spatial-temporal filtering for you
-s1 = hf.datasets.Sentinel1(region, start_time end_time)
+s1 = hf.datasets.Sentinel1(region, start_time, end_time)
 
 # apply a water mapping function to the S1 dataset
 # this applies the "Edge Otsu" algorithm from https://doi.org/10.3390/rs12152469
