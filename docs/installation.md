@@ -43,14 +43,16 @@ conda create -n hydra -c conda-forge python=3.7 \
   pyproj \
   netCDF4 \
   xarray \
+  scikit-learn \
   pyresample \
   geopandas \
   earthengine-api \
+  gcsfs \
   fire -y
 conda activate hydra
 ```
 
-Finally, we need to install the `hydrafloods` package  and one last dependency via `pip`:
+Finally, we need to install the `hydrafloods` package and one last dependency via `pip`:
 
 ```sh
 pip install simplecmr hydrafloods
