@@ -32,10 +32,8 @@ def logistic_regression():
     return
 
 
-def image_scaling(image, scaling_feature):
-
+def fc_to_scaler(fc):
     return
-
 
 def random_forest_ee(
     n_trees,

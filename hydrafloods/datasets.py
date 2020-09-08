@@ -32,7 +32,7 @@ class Dataset:
             {
                 "landsat7": ee.List(["B1", "B2", "B3", "B4", "B5", "B7"]),
                 "landsat8": ee.List(["B2", "B3", "B4", "B5", "B6", "B7"]),
-                "viirs": ee.List(["M2", "M4", "M5", "M7", "M10", "M11"]),
+                "viirs": ee.List(["M2", "M4", "I1", "I2", "I3", "M11"]),
                 "sen2": ee.List(["B2", "B3", "B4", "B8", "B11", "B12"]),
                 "modis": ee.List(
                     [
@@ -168,33 +168,28 @@ class Dataset:
             return outCls
 
     def join(self, dataset, inplace=False):
-        timeField = "system:time_start"
         key = str(dataset.__class__.__name__)
-        filter = ee.Filter.maxDifference(
-            difference=1000 * 60 * 60 * 24, leftField=timeField, rightField=timeField
+        filter = ee.Filter.And(
+            ee.Filter.maxDifference(
+                **{
+                    "difference": 1000 * 60 * 60 * 24,  # One day in milliseconds
+                    "leftField": "system:time_start",
+                    "rightField": "system:time_start",
+                }
+            ),
+            ee.Filter.intersects(**{"leftField": ".geo", "rightField": ".geo",}),
         )
         joined = ee.ImageCollection(
-            ee.Join.saveFirst(
-                matchKey=key,
-                measureKey="delta_t",
-                ordering=timeField,
-                ascending=False,  # Sort reverse chronologically
-            ).apply(
+            ee.Join.saveAll(key).apply(
                 primary=self.collection, secondary=dataset.collection, condition=filter
             )
         )
 
-        def spatial_filter(img):
-            tojoin = ee.Image(img.get(key))
-            out = ee.Algorithms.If(
-                img.geometry().intersects(tojoin.geometry(), 10),
-                img.addBands(tojoin),
-                None,
+        joined = joined.map(
+            lambda x: x.addBands(
+                ee.ImageCollection.fromImages(x.get(key)).mosaic().clip(x.geometry())
             )
-
-            return out
-
-        joined = ee.ImageCollection(joined.map(spatial_filter, True))
+        )
 
         if inplace:
             self.collection = joined
@@ -218,17 +213,19 @@ class Sentinel1(Dataset):
     @decorators.carry_metadata
     def _qa(self, img):
         angles = img.select("angle")
-        return img.updateMask(angles.lt(45).And(angles.gt(31)))
+        return img.updateMask(angles.lt(45).And(angles.gt(30)))
 
     def add_fusion_features(self):
         def _add_fusion_features(img):
-            bounds = img.geometry(10)
+            bounds = img.geometry(100)
             orbit = ee.String(img.get("orbitProperties_pass"))
             orbit_band = ee.Algorithms.If(
                 orbit.compareTo("DESCENDING"), ee.Image(1), ee.Image(0)
             )
-            ratio = img.select("VV").divide(img.select("VH")).rename("ratio")
-            ndpi = img.normalizedDifference(["VV", "VH"]).rename("ndpi")
+            vv = img.select("VV")
+            vh = img.select("VH")
+            ratio = vv.divide(vh).rename("ratio")
+            ndpi = vv.subtract(vh).divide(vv.add(vh)).rename("ndpi")
 
             extraFeatures = ee.Image.cat(
                 [ee.Image(orbit_band).rename("orbit"), ratio, ndpi]
@@ -251,14 +248,16 @@ class Atms(Dataset):
     def _qa(self, img):
         return
 
-    def extract(self, date, region, credentials, outDir="./", gridding_radius=50000):
+    @staticmethod
+    def extract(date, region, credentials, outDir="./", gridding_radius=50000):
         files = fetch.atms(
             credentials, startTime=date, endTime=None, region=region, outDir=outDir
         )
         geotiffs = list(map(lambda x: preprocess.atms(x, gridding_radius), files))
         return geotiffs
 
-    def load(self, files, gcsBucket="", eeAsset=""):
+    @staticmethod
+    def load(files, gcsBucket="", eeAsset=""):
         if gcsBucket[-1] != "/":
             gcsBucket += "/"
         if eeAsset[-1] != "/":
@@ -283,28 +282,33 @@ class Viirs(Dataset):
             self.BANDREMAP.get("viirs"), self.BANDREMAP.get("new")
         ).map(geeutils.add_indices)
 
-        self.clip_to_region(inplace=True)
+        # self.clip_to_region(inplace=True)
 
         return
 
     @decorators.carry_metadata
     def _qa(self, img):
-        cloudBit = int(math.pow(2, 2))
-        shadowBit = int(math.pow(2, 3))
-        snowBit = int(math.pow(2, 5))
+        cloudMask = geeutils.extract_bits(
+            img.select("QF1"), 2, end=3, new_name="cloud_qa"
+        ).lt(1)
+        shadowMask = geeutils.extract_bits(
+            img.select("QF2"), 3, new_name="shadow_qa"
+        ).Not()
+        snowMask = geeutils.extract_bits(img.select("QF2"), 5, new_name="snow_qa").Not()
+        sensorZenith = img.select("SensorZenith").abs().lt(6000)
 
-        viewing = img.select("SensorZenith").abs().multiply(0.01).lt(55)
-        clouds = img.select("QF1").bitwiseAnd(shadowBit).eq(0)
-        shadows = img.select("QF2").bitwiseAnd(shadowBit).eq(0)
-        snows = img.select("QF2").bitwiseAnd(snowBit).eq(0)
-
-        mask = clouds.And(shadows).And(snows)  # .And(viewing)
+        mask = cloudMask.And(shadowMask).And(sensorZenith)
         return img.updateMask(mask)
 
-    def extract(self, date, region, outdir="./", creds=None):
+    @staticmethod
+    def extract(date, region, outdir="./", creds=None):
+        files = fetch.viirs(
+            credentials, startTime=date, endTime=None, region=region, outDir=outDir
+        )
 
         return
 
+    @staticmethod
     def load(self, files, gcsBucket="", eeAsset=""):
 
         return
@@ -324,14 +328,12 @@ class Modis(Dataset):
 
     @decorators.carry_metadata
     def _qa(self, img):
-        cloudBit = int(math.pow(2, 10))
-        shadowBit = int(math.pow(2, 2))
-        snowBit = int(math.pow(2, 15))
-        viewing = img.select("SensorZenith").abs().multiply(0.01).lt(55)
-        clouds = img.select("state_1km").bitwiseAnd(cloudBit).eq(0)
-        shadows = img.select("state_1km").bitwiseAnd(shadowBit).eq(0)
-        snows = img.select("state_1km").bitwiseAnd(snowBit).eq(0)
-        mask = clouds.And(shadows).And(snows)  # .And(viewing)
+        qa = img.select("state_1km")
+        cloudMask = geeutils.extract_bits(qa, 10, end=11, new_name="cloud_qa").lt(1)
+        shadowMask = geeutils.extract_bits(qa, 2, new_name="shadow_qa").Not()
+        snowMask = geeutils.extract_bits(qa, 12, new_name="snow_qa").Not()
+        sensorZenith = img.select("SensorZenith").abs().lt(6000)
+        mask = cloudMask.And(shadowMask).And(snowMask).And(sensorZenith)
         return img.updateMask(mask)
 
     def extract(self, date, region, outdir="./", creds=None):
@@ -355,14 +357,11 @@ class Landsat8(Dataset):
 
     @decorators.carry_metadata
     def _qa(self, img):
-        cloudBit = int(math.pow(2, 5))
-        shadowBit = int(math.pow(2, 3))
-        snowBit = int(math.pow(2, 4))
-
-        qaCloud = img.select("pixel_qa").bitwiseAnd(cloudBit).eq(0)
-        qaShadow = img.select("pixel_qa").bitwiseAnd(shadowBit).eq(0)
-        qaSnow = img.select("pixel_qa").bitwiseAnd(snowBit).eq(0)
-        mask = qaCloud.And(qaShadow).And(qaSnow)
+        qa_band = img.select("pixel_qa")
+        qaCloud = geeutils.extract_bits(qa_band, start=5, new_name="cloud_mask").eq(0)
+        qaShadow = geeutils.extract_bits(qa_band, start=3, new_name="shadow_mask").eq(0)
+        qaSnow = geeutils.extract_bits(qa_band, start=4, new_name="snow_mask").eq(0)
+        mask = qaCloud.And(qaShadow)  # .And(qaSnow)
         return img.updateMask(mask)
 
 
@@ -396,14 +395,11 @@ class Landsat7(Dataset):
 
     @decorators.carry_metadata
     def _qa(self, img):
-        cloudBit = int(math.pow(2, 5))
-        shadowBit = int(math.pow(2, 3))
-        snowBit = int(math.pow(2, 4))
-
-        qaCloud = img.select("pixel_qa").bitwiseAnd(cloudBit).eq(0)
-        qaShadow = img.select("pixel_qa").bitwiseAnd(shadowBit).eq(0)
-        qaSnow = img.select("pixel_qa").bitwiseAnd(snowBit).eq(0)
-        mask = qaCloud.And(qaShadow).And(qaSnow)
+        qa_band = img.select("pixel_qa")
+        qaCloud = geeutils.extract_bits(qa_band, start=5, new_name="cloud_mask").eq(0)
+        qaShadow = geeutils.extract_bits(qa_band, start=3, new_name="shadow_mask").eq(0)
+        qaSnow = geeutils.extract_bits(qa_band, start=4, new_name="snow_mask").eq(0)
+        mask = qaCloud.And(qaShadow)  # .And(qaSnow)
         return img.updateMask(mask)
 
     @decorators.carry_metadata
@@ -412,7 +408,6 @@ class Landsat7(Dataset):
         return (
             img.multiply(self.gain)
             .add(self.bias)
-            .uint16()
             .set("system:time_start", img.get("system:time_start"))
         )
 
@@ -453,7 +448,6 @@ class Sentinel2(Dataset):
         return (
             img.multiply(self.gain)
             .add(self.bias)
-            .uint16()
             .set("system:time_start", img.get("system:time_start"))
         )
 

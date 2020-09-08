@@ -8,6 +8,7 @@ from hydrafloods import geeutils, decorators
 def bmax_otsu(
     img,
     band=None,
+    region=None,
     reduction_scale=90,
     initial_threshold=0,
     invert=False,
@@ -22,7 +23,7 @@ def bmax_otsu(
             box = ee.Feature(
                 ee.Geometry.Rectangle(j, i, j.add(grid_size), i.add(grid_size))
             )
-            out = ee.Algorithms.If(geom.contains(box.geometry(), maxError=1), box, None)
+            out = ee.Algorithms.If(region.contains(box.geometry(), maxError=1), box, None)
             return ee.Feature(out)
 
         i = ee.Number(i)
@@ -85,8 +86,10 @@ def bmax_otsu(
         histBand = ee.String(band)
         img = img.select(histBand)
 
-    geom = img.geometry()
-    bounds = geom.bounds(maxError=1)
+    if region is None:
+        region = img.geometry()
+
+    bounds = region.bounds(maxError=100)
     coords = ee.List(bounds.coordinates().get(0))
     gridRes = ee.Number(grid_size)
 
@@ -145,6 +148,7 @@ def edge_otsu(
     edge_length=50,  # minimum length of edges from canny detection
     edge_buffer=100,
     band=None,
+    region=None,
     reduction_scale=90,
     invert=False,
     seed=7,
@@ -157,6 +161,9 @@ def edge_otsu(
     else:
         histBand = ee.String(band)
         img = img.select(histBand)
+
+    if region is None:
+        region = img.geometry()
 
     binary = img.lt(initial_threshold).rename("binary")
 
@@ -176,7 +183,7 @@ def edge_otsu(
         ee.Reducer.histogram(255, 2)
         .combine("mean", None, True)
         .combine("variance", None, True),
-        img.geometry(),
+        region,
         reduction_scale,
         bestEffort=True,
         tileScale=16,

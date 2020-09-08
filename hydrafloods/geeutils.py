@@ -8,15 +8,24 @@ from hydrafloods import decorators
 
 
 # helper function to convert qa bit image to flag
-def extract_bits(image, start, end, new_name):
-    # Compute the bits we need to extract.
-    pattern = 0
-    for i in range(start, end):
-        pattern += int(math.pow(2, i))
+def extract_bits(image, start, end=None, new_name=None):
+    newame = new_name if new_name is not None else f'{start}Bits'
 
-    # Return a single band image of the extracted QA bits, giving the band
-    # a new name.
-    return image.select([0], [new_name]).bitwiseAnd(pattern).rightShift(start)
+    if (start == end) or (end is None):
+        #perform a bit shift with bitwiseAnd
+        return image.select([0],[new_name])\
+            .bitwiseAnd(1<<start)
+    else:
+        # Compute the bits we need to extract.
+        pattern = 0
+        for i in range(start, end):
+            pattern += int(math.pow(2, i))
+
+        # Return a single band image of the extracted QA bits, giving the band
+        # a new name.
+        return image.select([0], [new_name])\
+            .bitwiseAnd(pattern)\
+            .rightShift(start)
 
 
 def get_geoms(img):
@@ -130,8 +139,8 @@ def batch_export(
 
     for i in range(nIter):
         img = ee.Image(exportImages.get(i))
-        if _metadata is not None:
-            img = img.set(_metadata)
+        if metadata is not None:
+            img = img.set(metadata)
 
         t = img.get("system:time_start").getInfo()
         date = datetime.datetime.utcfromtimestamp(t / 1e3).strftime("%Y%m%d")
@@ -203,47 +212,47 @@ def db_to_power(img):
 @decorators.carry_metadata
 def add_indices(img):
     ndvi = img.normalizedDifference(["nir", "red"]).rename("ndvi")
-    mndwi = img.normalizedDifference(["green", "swir2"]).rename("mndwi")
-    nwi = img.expression(
-        "((b-(n+s+w))/(b+(n+s+w))*100)",
-        {
-            "b": img.select("blue"),
-            "n": img.select("nir"),
-            "s": img.select("swir1"),
-            "w": img.select("swir2"),
-        },
-    ).rename("nwi")
-    aewinsh = img.expression(
-        "4.0 * (g-s) - ((0.25*n) + (2.75*w))",
-        {
-            "g": img.select("green"),
-            "s": img.select("swir1"),
-            "n": img.select("nir"),
-            "w": img.select("swir2"),
-        },
-    ).rename("aewinsh")
-    aewish = img.expression(
-        "b+2.5*g-1.5*(n+s)-0.25*w",
-        {
-            "b": img.select("blue"),
-            "g": img.select("green"),
-            "n": img.select("nir"),
-            "s": img.select("swir1"),
-            "w": img.select("swir2"),
-        },
-    ).rename("aewish")
-    tcwet = img.expression(
-        "0.1509*b + 0.1973*g + 0.3279*r + 0.3406*n - 0.7112*s - 0.4572*w",
-        {
-            "b": img.select("blue"),
-            "g": img.select("green"),
-            "r": img.select("red"),
-            "n": img.select("nir"),
-            "s": img.select("swir1"),
-            "w": img.select("swir2"),
-        },
-    ).rename("tcwet")
+    mndwi = img.normalizedDifference(["green", "swir1"]).rename("mndwi")
+    # nwi = img.expression(
+    #     "((b-(n+s+w))/(b+(n+s+w))*100)",
+    #     {
+    #         "b": img.select("blue"),
+    #         "n": img.select("nir"),
+    #         "s": img.select("swir1"),
+    #         "w": img.select("swir2"),
+    #     },
+    # ).rename("nwi")
+    # aewinsh = img.expression(
+    #     "4.0 * (g-s) - ((0.25*n) + (2.75*w))",
+    #     {
+    #         "g": img.select("green"),
+    #         "s": img.select("swir1"),
+    #         "n": img.select("nir"),
+    #         "w": img.select("swir2"),
+    #     },
+    # ).rename("aewinsh")
+    # aewish = img.expression(
+    #     "b+2.5*g-1.5*(n+s)-0.25*w",
+    #     {
+    #         "b": img.select("blue"),
+    #         "g": img.select("green"),
+    #         "n": img.select("nir"),
+    #         "s": img.select("swir1"),
+    #         "w": img.select("swir2"),
+    #     },
+    # ).rename("aewish")
+    # tcwet = img.expression(
+    #     "0.1509*b + 0.1973*g + 0.3279*r + 0.3406*n - 0.7112*s - 0.4572*w",
+    #     {
+    #         "b": img.select("blue"),
+    #         "g": img.select("green"),
+    #         "r": img.select("red"),
+    #         "n": img.select("nir"),
+    #         "s": img.select("swir1"),
+    #         "w": img.select("swir2"),
+    #     },
+    # ).rename("tcwet")
 
-    indices = ee.Image.cat([ndvi, mndwi, nwi, aewinsh, aewish, tcwet])
+    out_img = ee.Image.cat([img,ndvi, mndwi])#, nwi, aewinsh, aewish, tcwet])
 
-    return img.addBands(indices)
+    return out_img
