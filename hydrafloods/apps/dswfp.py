@@ -905,7 +905,7 @@ def export_daily_surface_water(
         bucket = output_bucket_path.split("/")[2]
         fname = "/".join(output_bucket_path.split("/")[3:])
         task = ee.batch.Export.image.toCloudStorage(
-            image=out_img,
+            image=out_img.int16(),
             description=f"hydrafloods_fused_water_export_{time_id}",
             bucket=bucket,
             fileNamePrefix=fname,
