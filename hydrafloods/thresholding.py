@@ -16,6 +16,9 @@ def bmax_otsu(
     bmax_threshold=0.75,
     max_boxes=100,
     seed=7,
+    max_buckets=255,
+    min_bucket_width=0.001,
+    max_raw=1e6
 ):
     def constuctGrid(i):
         def contructXGrid(j):
@@ -120,7 +123,7 @@ def bmax_otsu(
     selection = bmaxes.filter(ee.Filter.lt("random", randomThresh))
 
     histogram = img.reduceRegion(
-        ee.Reducer.histogram(255, 1)
+        ee.Reducer.histogram(max_buckets, min_bucket_width,max_raw)
         .combine("mean", None, True)
         .combine("variance", None, True),
         selection,
@@ -152,6 +155,9 @@ def edge_otsu(
     reduction_scale=90,
     invert=False,
     seed=7,
+    max_buckets=255,
+    min_bucket_width=0.001,
+    max_raw=1e6
 ):
 
     if band is None:
@@ -180,7 +186,7 @@ def edge_otsu(
     histogram_image = img.updateMask(edgeBuffer)
 
     histogram = histogram_image.reduceRegion(
-        ee.Reducer.histogram(255, 2)
+        ee.Reducer.histogram(max_buckets, min_bucket_width,max_raw)
         .combine("mean", None, True)
         .combine("variance", None, True),
         region,
