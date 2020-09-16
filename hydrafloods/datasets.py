@@ -408,6 +408,7 @@ class Landsat7(Dataset):
         return (
             img.multiply(self.gain)
             .add(self.bias)
+            .clip(img.geometry())
             .set("system:time_start", img.get("system:time_start"))
         )
 
@@ -448,6 +449,7 @@ class Sentinel2(Dataset):
         return (
             img.multiply(self.gain)
             .add(self.bias)
+            .clip(img.geometry())
             .set("system:time_start", img.get("system:time_start"))
         )
 
