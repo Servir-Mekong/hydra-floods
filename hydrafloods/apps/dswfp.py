@@ -53,8 +53,8 @@ def export_fusion_samples(
     dsa_kwargs = {**ds_kwargs, **{"apply_band_adjustment": True}}
 
     lc8 = datasets.Landsat8(**ds_kwargs)
-    le7 = datasets.Landsat7(**ds_kwargs)
-    s2 = datasets.Sentinel2(**ds_kwargs)
+    le7 = datasets.Landsat7(**dsa_kwargs)
+    s2 = datasets.Sentinel2(**dsa_kwargs)
 
     s1 = datasets.Sentinel1(**ds_kwargs)
     s1 = s1.add_fusion_features()
@@ -689,6 +689,7 @@ def export_daily_surface_water(
     fusion_model_path=None,
     output_asset_path=None,
     output_bucket_path=None,
+    output_dims=None,
 ):
     def get_weights(i):
         i = ee.Number(i)
@@ -779,7 +780,7 @@ def export_daily_surface_water(
         scaling_dict,
         target_band=label,
         use_viirs=True,
-        use_modis=True,
+        use_modis=False,
     )
 
     dummy_target = timeseries.get_dummy_img(target_date)
@@ -804,22 +805,22 @@ def export_daily_surface_water(
 
     fused_pred = (har_pred.subtract(lin_pred)).convolve(ee.Kernel.gaussian(2.5))
 
-    water = thresholding.bmax_otsu(
-        fused_pred,
-        initial_threshold=0,
-        grid_size=0.2,
-        region=region,
-        invert=True,
-        reduction_scale=150,
-    )
-    # water = thresholding.edge_otsu(
+    # water = thresholding.bmax_otsu(
     #     fused_pred,
     #     initial_threshold=0,
-    #     edge_buffer=300,
+    #     grid_size=0.2,
     #     region=region,
     #     invert=True,
-    #     reduction_scale=250,
+    #     reduction_scale=150,
     # )
+    water = thresholding.edge_otsu(
+        fused_pred,
+        initial_threshold=0,
+        edge_buffer=300,
+        region=region,
+        invert=True,
+        reduction_scale=100,
+    )
 
     if output_confidence:
         weights_err = weights_lr.select(".*(x|y|n)$")
@@ -861,23 +862,6 @@ def export_daily_surface_water(
 
     fused_pred = fused_pred.multiply(10000).int16().rename("fused_product")
 
-    # "certainty_palette": [
-    #             "#30123B",
-    #             "#4662D7",
-    #             "#35AAF9",
-    #             "#1AE4B6",
-    #             "#72FE5E",
-    #             "#C8EF34",
-    #             "#FABA39",
-    #             "#F66B19",
-    #             "#CA2A04",
-    #             "#7A0403",
-    #         ],
-    #         "water_class_values": [0, 1],
-    #         "water_class_palette": ["black,lightblue"],
-    #         "water_class_names": ["no water", "water"],
-    #     }
-
     if output_asset_path is not None:
         # create metadata dict
         metadata = ee.Dictionary(
@@ -887,13 +871,13 @@ def export_daily_surface_water(
                 "system:time_end": target_date.advance(86399, "seconds").millis(),
                 "execution_time": time_str,
                 "lag": lag,
-                "look_back":look_back
+                "look_back": look_back,
             }
         )
         geeutils.export_image(
             out_water.set(metadata.combine({"product": "water"})),
             region,
-            output_asset_path+"_water",
+            output_asset_path + "_water",
             description=f"hydrafloods_water_ee_export_{time_id}",
             scale=10,
             crs="EPSG:4326",
@@ -901,7 +885,7 @@ def export_daily_surface_water(
         geeutils.export_image(
             fused_pred.set(metadata.combine({"product": "fusion"})),
             region,
-            output_asset_path+"_fusion",
+            output_asset_path + "_fusion",
             description=f"hydrafloods_fusion_ee_export_{time_id}",
             scale=10,
             crs="EPSG:4326",
@@ -913,10 +897,10 @@ def export_daily_surface_water(
         fcomponents = bucket_path.split("/")
         bucket = fcomponents[2]
         fpath = fcomponents[3:-1]
-        
-        f_water = "/".join(fpath+[fcomponents[-1]+'_water'+ext])
-        f_fusion = "/".join(fpath+[fcomponents[-1]+'_fusion'+ext])
-    
+
+        f_water = "/".join(fpath + [fcomponents[-1] + "_water" + ext])
+        f_fusion = "/".join(fpath + [fcomponents[-1] + "_fusion" + ext])
+
         water_task = ee.batch.Export.image.toCloudStorage(
             image=out_water,
             description=f"hydrafloods_water_gcp_export_{time_id}",
@@ -927,12 +911,13 @@ def export_daily_surface_water(
             crs="EPSG:4326",
             maxPixels=1e13,
             fileFormat="GeoTIFF",
+            fileDimensions=output_dims,
             formatOptions={"cloudOptimized": True},
         )
         water_task.start()
 
         fusion_task = ee.batch.Export.image.toCloudStorage(
-            image=fused_pred ,
+            image=fused_pred,
             description=f"hydrafloods_fusion_gcp_export_{time_id}",
             bucket=bucket,
             fileNamePrefix=f_fusion,
@@ -941,6 +926,7 @@ def export_daily_surface_water(
             crs="EPSG:4326",
             maxPixels=1e13,
             fileFormat="GeoTIFF",
+            fileDimensions=output_dims,
             formatOptions={"cloudOptimized": True},
         )
         fusion_task.start()
