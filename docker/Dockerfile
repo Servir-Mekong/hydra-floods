@@ -48,13 +48,14 @@ RUN conda install -c conda-forge -y\
             pyproj \
             netCDF4 \
             xarray \
+            scikit-learn \
             pyresample \
             pillow \
             pandas \
             pyproj \
             geopandas \
             oauth2client \
-            earthengine-api \
+            "earthengine-api<=0.1.217" \
             gcsfs \
             fire \
   && conda clean --all -f -y
