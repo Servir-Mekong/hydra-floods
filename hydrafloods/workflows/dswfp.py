@@ -55,6 +55,7 @@ def export_fusion_samples(
     lc8 = datasets.Landsat8(**ds_kwargs)
     le7 = datasets.Landsat7(**dsa_kwargs)
     s2 = datasets.Sentinel2(**dsa_kwargs)
+    viirs = datasets.Sentinel2(**ds_kwargs)
 
     s1 = datasets.Sentinel1(**ds_kwargs)
     s1 = s1.add_fusion_features()
@@ -69,13 +70,23 @@ def export_fusion_samples(
     output_features = ee.FeatureCollection([])
 
     if stratify_samples:
-        stratification_img = (
-            ee.Image("JRC/GSW1_2/GlobalSurfaceWater")
-            .select("occurrence")
-            .unmask(0)
-            .gt(60)
-            .rename("water")
-        )
+        # jrc_img = (
+        #     ee.Image("JRC/GSW1_2/GlobalSurfaceWater")
+        #     .select("occurrence")
+        #     .unmask(0)
+        #     .rename("water")
+        # )
+        # stratification_img = (
+        #     jrc_img.where(jrc_img.lt(10), 0)
+        #     .where(jrc_img.gte(10), 1)
+        #     .where(jrc_img.gte(65), 2)
+        # )
+        class_band = "landcover"
+        igbp_classes = ee.List([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17])
+        ipcc_classes = ee.List([1,1,1,1,1,2,2,2,2, 2, 6, 3, 5, 3, 4, 4, 6])
+
+        stratification_img = ee.ImageCollection("MODIS/006/MCD12Q1").mode().remap(igbp_classes,ipcc_classes).focal_mode().rename(class_band)
+        classes = ipcc_classes.distinct()
     else:
         stratification_img = None
 
@@ -83,12 +94,10 @@ def export_fusion_samples(
         try:
             sample_img = ee.Image(img_list.get(i))
 
-            sample_region = sample_img.geometry().bounds()
+            sample_region = sample_img.geometry(10).bounds(10)
 
             if stratification_img is not None:
-                class_band = "water"
-                classes = ee.List([0, 1])
-
+                
                 samples = sample_img.addBands(
                     stratification_img.select(class_band)
                 ).stratifiedSample(
@@ -98,7 +107,7 @@ def export_fusion_samples(
                     scale=sample_scale,
                     seed=i,
                     classValues=classes,
-                    classPoints=ee.List.repeat(n_samples, classes.size()),
+                    classPoints=ee.List.repeat(n_samples, classes.size().subtract(1)).add(n_samples*3),
                     tileScale=16,
                     geometries=True,
                 )
@@ -126,7 +135,6 @@ def export_fusion_samples(
             break
 
     export_info = dict(collection=output_features, assetId=output_asset_path)
-    print(export_info)
     if export_kwargs is not None:
         export_info = {**export_info, **export_kwargs}
         # if "fileNamePrefix" in export_info.keys():
@@ -146,14 +154,13 @@ def export_fusion_samples(
 
 
 def build_fusion_model(
-    sample_path,
     features,
     label,
-    export_scaler_to_ee=True,
+    sample_path=None,
+    sample_asset=None,
     ee_asset_path=None,
     output_bucket=None,
-    framework="sklearn",
-    output_training_report=True,
+    model_type="random forest",
     filter_outliers=False,
     seed=0,
 ):
@@ -397,7 +404,7 @@ def export_harmonics(
     feature_names=None,
     label=None,
     fusion_samples=None,
-    fusion_model_path=None,
+    fusion_model_asset=None,
     output_asset_path=None,
     output_bucket=None,
     tile=False,
@@ -430,7 +437,7 @@ def export_harmonics(
         fusion_model, scaling_dict = ml.random_forest_ee(
             25, fusion_samples, feature_names, label, mode="regression"
         )
-    elif model_estimator_path is not None:
+    elif fusion_model_asset is not None:
         raise NotImplementedError()
     else:
         raise ValueError(
@@ -519,162 +526,6 @@ def export_harmonics(
     return
 
 
-def export_harmonic_daily_surface_water(
-    region,
-    target_date,
-    harmonic_coefs,
-    feature_names=None,
-    label=None,
-    look_back=20,
-    decay_factor=0.25,
-    lag=1,
-    fusion_samples=None,
-    fusion_model_path=None,
-    output_asset_path=None,
-    output_bucket=None,
-):
-    def _exponential_decay_correction(t, look_back, decay_factor, lag):
-        # lambda =  decay rate for time weights, higher means weighting resent info more
-        # lookBack = how many days to use for weights
-        # lag = how many days back to start the lookBack
-
-        def _get_weight(i):
-            i = ee.Number(i)
-            tDiff = (
-                ee.Number(i).multiply(-1).subtract(lag)
-            )  # calc how many days to adjust ini date
-            new_date = t.advance(tDiff, "day")  # calculate new date
-
-            # get the imagery for the day
-            correction_imgs = ds.collection.filterDate(
-                new_date, new_date.advance(1, "day")
-            ).median()
-
-            # get dummy image to predict harmonics from
-            dummy = timeseries.get_dummy_img(new_date)
-
-            # predict harmonics for lag date
-            harmonic_est = (
-                timeseries.add_harmonic_coefs(dummy)
-                .multiply(harmonic_coefs)
-                .reduce("sum")
-                .rename("estimate")
-            )
-
-            # unmask any data to prevent no data gaps
-            # unmasked area will have correction of 0 (no adjustment)
-            correction = ee.Image(
-                ee.Algorithms.If(
-                    correction.bandNames().length().lt(1), harmonic_est, correction,
-                )
-            )
-
-            # calculate the correction factor and apply weight
-            residual = harmonic_est.subtract(correction).multiply(
-                ee.Image(decay_weights.get([i.int()]))
-            )
-
-            return residual.set("system:time_start", new_date.millis())
-
-        t = ee.Date(t)  # initial time
-
-        # calculate exponential decay weights
-        decay_weights = ee.Array(
-            ee.List.sequence(0, (look_back - 1))
-            .map(lambda x: ee.Number(decay_factor).multiply(ee.Number(x).add(1)).exp())
-            .reverse()
-        )
-        # reverse so recent data = higher
-
-        # force weights to sum to 1
-        decay_sum = decay_weights.reduce(ee.Reducer.sum(), [0]).get([0])
-        decay_weights = decay_weights.divide(decay_sum)
-
-        # calculate composite images and apply weights
-        weights = ee.ImageCollection(
-            ee.List.sequence(0, (look_back - 1)).map(_get_weight)
-        )
-
-        return weights  # image collection so will need to sum later
-
-    harmonic_coefs = ee.Image(harmonic_coefs)
-    harmonic_coefs = harmonic_coefs.multiply(
-        ee.Image(ee.Number(harmonic_coefs.get("scale_factor")))
-    )
-
-    end_time = ee.Date(target_date)
-    start_time = end_time.advance(-look_back, "day")
-
-    if fusion_samples is not None:
-        fusion_model, scaling_dict = ml.random_forest_ee(
-            25, fusion_samples, feature_names, label, mode="regression"
-        )
-    elif model_estimator_path is not None:
-        raise NotImplementedError()
-    else:
-        raise ValueError(
-            "Either 'fusion_samples' or 'fusion_model_path' needs to be defined to run fusion process"
-        )
-
-    ds, label = _fuse_dataset(
-        region,
-        start_time,
-        end_time,
-        fusion_model,
-        scaling_dict,
-        target_band=label,
-        use_viirs=False,
-    )
-
-    now = datetime.datetime.now()
-    time_id = now.strftime("%Y%m%d%H%M%s")
-    time_str = now.strftime("%Y-%m-%d %H:%M:%s")
-
-    dummy = timeseries.get_dummy_img(end_time)
-
-    harmonic_est = (
-        timeseries.add_harmonic_coefs(dummy)
-        .multiply(harmonic_coefs)
-        .reduce("sum")
-        .rename("estimate")
-    )
-    weights = _exponential_decay_correction(end_time, look_back, decay_factor, lag)
-    correction = weights.sum()
-
-    fused_index = harmonic_est.subtract(correction)
-
-    # create metadata dict
-    metadata = ee.Dictionary(
-        {
-            "hf_version": hf.__version__,
-            "system:time_start": end_time.millis(),
-            "execution_time": time_str,
-        }
-    )
-
-    # water_est = thresholding.edge_otsu(
-    #     fused_index, initialThreshold=0, smooth_edges=300, invert=True
-    # ).set(metadata)
-
-    if output_asset_path is not None:
-        geeutils.export_image(
-            fused_index.set(metadata),
-            region,
-            output_asset_path,
-            description=f"hydrafloods_fused_water_export",
-            scale=10,
-            crs="EPSG:4326",
-        )
-    elif output_bucket is not None:
-        raise NotImplementedError()
-    else:
-        raise ValueError(
-            "Either 'output_asset_path' or 'output_bucket' needs to be defined to run fusion export process"
-        )
-
-    return
-
-
 def export_daily_surface_water(
     region,
     target_date,
@@ -689,7 +540,7 @@ def export_daily_surface_water(
     fusion_model_path=None,
     output_asset_path=None,
     output_bucket_path=None,
-    output_dims=None,
+    out_dims=None
 ):
     def get_weights(i):
         i = ee.Number(i)
@@ -727,7 +578,7 @@ def export_daily_surface_water(
         sim_pred = har_sim.subtract(lin_sim)
         # random_water = thresholding.bmax_otsu(random_combination,invert=True)
         # naive estimate of water (>0)
-        return sim_pred.gt(0).uint8()
+        return sim_pred.gt(threhsold).uint8()
 
     end_time = ee.Date(target_date).advance(-(lag - 1), "day")
     start_time = end_time.advance(-look_back, "day")
@@ -736,7 +587,7 @@ def export_daily_surface_water(
         fusion_model, scaling_dict = ml.random_forest_ee(
             25, fusion_samples, feature_names, label, mode="regression"
         )
-    elif fusion_model_path is not None:
+    elif fusion_model_asset is not None:
         raise NotImplementedError()
     else:
         raise ValueError(
@@ -805,21 +656,42 @@ def export_daily_surface_water(
 
     fused_pred = (har_pred.subtract(lin_pred)).convolve(ee.Kernel.gaussian(2.5))
 
-    # water = thresholding.bmax_otsu(
+    if tile :
+        basins = ee.FeatureCollection(
+            f"WWF/HydroSHEDS/v1/Basins/hybas_{basin_level}"
+        ).filterBounds(region)
+        n = basins.size().getInfo()
+        basin_list = basin.toList(n)
+
+        for i in range(n):
+            out_region = ee.Feature(basin_list.get(i)).geometry(100).bounds(100)
+            output_asset_img = f"{output_asset_path}/img_{i}"
+            geeutils.export_image(
+                harmonic_coefs,
+                out_region,
+                output_asset_img,
+                description=f"hydrafloods_harmonic_coefficient_export_{i}_{time_id}",
+                scale=10,
+                crs="EPSG:4326",
+            )        
+
+    # water,threshold = thresholding.bmax_otsu(
     #     fused_pred,
     #     initial_threshold=0,
     #     grid_size=0.2,
     #     region=region,
     #     invert=True,
-    #     reduction_scale=150,
+    #     reduction_scale=100,
+    #     return_threshold=True
     # )
-    water = thresholding.edge_otsu(
+    water,threshold = thresholding.edge_otsu(
         fused_pred,
         initial_threshold=0,
         edge_buffer=300,
         region=region,
         invert=True,
         reduction_scale=100,
+        return_threshold=True
     )
 
     if output_confidence:
@@ -846,6 +718,8 @@ def export_daily_surface_water(
                 "t": dummy_target.select("time"),
             },
         )
+
+        ci_threshold = fused_pred.updateMask(water).reduceRegion(reducer=ee.Reducer.min(),)
 
         confidence = (
             ee.ImageCollection.fromImages(ee.List.sequence(0, 99).map(calc_confidence))
@@ -874,6 +748,7 @@ def export_daily_surface_water(
                 "look_back": look_back,
             }
         )
+        if tile:
         geeutils.export_image(
             out_water.set(metadata.combine({"product": "water"})),
             region,
@@ -910,6 +785,7 @@ def export_daily_surface_water(
             scale=10,
             crs="EPSG:4326",
             maxPixels=1e13,
+            fileDimensions=out_dims,
             fileFormat="GeoTIFF",
             fileDimensions=output_dims,
             formatOptions={"cloudOptimized": True},
@@ -926,7 +802,7 @@ def export_daily_surface_water(
             crs="EPSG:4326",
             maxPixels=1e13,
             fileFormat="GeoTIFF",
-            fileDimensions=output_dims,
+            fileDimensions=out_dims,
             formatOptions={"cloudOptimized": True},
         )
         fusion_task.start()
