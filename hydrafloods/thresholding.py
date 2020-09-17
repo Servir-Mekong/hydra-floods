@@ -18,7 +18,8 @@ def bmax_otsu(
     seed=7,
     max_buckets=255,
     min_bucket_width=0.001,
-    max_raw=1e6
+    max_raw=1e6,
+    return_threshold=False
 ):
     def constuctGrid(i):
         def contructXGrid(j):
@@ -136,7 +137,10 @@ def bmax_otsu(
 
     water = ee.Image(ee.Algorithms.If(invert, img.gt(threshold), img.lt(threshold)))
 
-    return water.rename("water").uint8()
+    if return_threshold:
+        return water.rename("water").uint8(), threshold
+    else:
+        return water.rename("water").uint8()
 
 
 @decorators.carry_metadata
@@ -157,7 +161,8 @@ def edge_otsu(
     seed=7,
     max_buckets=255,
     min_bucket_width=0.001,
-    max_raw=1e6
+    max_raw=1e6,
+    return_threshold=False
 ):
 
     if band is None:
@@ -199,7 +204,10 @@ def edge_otsu(
 
     water = ee.Image(ee.Algorithms.If(invert, img.gt(threshold), img.lt(threshold)))
 
-    return water.rename("water").uint8()
+    if return_threshold:
+        return water.rename("water").uint8(), threshold
+    else:
+        return water.rename("water").uint8()
 
 
 def otsu(histogram):
