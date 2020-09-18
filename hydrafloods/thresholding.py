@@ -19,22 +19,7 @@ def bmax_otsu(
     max_buckets=255,
     min_bucket_width=0.001,
     max_raw=1e6,
-    return_threshold=False
 ):
-    def constuctGrid(i):
-        def contructXGrid(j):
-            j = ee.Number(j)
-            box = ee.Feature(
-                ee.Geometry.Rectangle(j, i, j.add(grid_size), i.add(grid_size))
-            )
-            out = ee.Algorithms.If(region.contains(box.geometry(), maxError=1), box, None)
-            return ee.Feature(out)
-
-        i = ee.Number(i)
-        out = ee.List.sequence(west, east.subtract(grid_size), grid_size).map(
-            contructXGrid
-        )
-        return out
 
     def calcBmax(feature):
         segment = img  # .clip(feature)
@@ -93,25 +78,7 @@ def bmax_otsu(
     if region is None:
         region = img.geometry()
 
-    bounds = region.bounds(maxError=100)
-    coords = ee.List(bounds.coordinates().get(0))
-    gridRes = ee.Number(grid_size)
-
-    west = ee.Number(ee.List(coords.get(0)).get(0))
-    south = ee.Number(ee.List(coords.get(0)).get(1))
-    east = ee.Number(ee.List(coords.get(2)).get(0))
-    north = ee.Number(ee.List(coords.get(2)).get(1))
-
-    west = west.subtract(west.mod(gridRes))
-    south = south.subtract(south.mod(gridRes))
-    east = east.add(gridRes.subtract(east.mod(gridRes)))
-    north = north.add(gridRes.subtract(north.mod(gridRes)))
-
-    grid = ee.FeatureCollection(
-        ee.List.sequence(south, north.subtract(gridRes), gridRes)
-        .map(constuctGrid)
-        .flatten()
-    )
+    grid = geeutils.tile_region(region,intersect_geom=region,grid_size=0.1)
 
     bmaxes = (
         grid.map(calcBmax)
@@ -124,7 +91,7 @@ def bmax_otsu(
     selection = bmaxes.filter(ee.Filter.lt("random", randomThresh))
 
     histogram = img.reduceRegion(
-        ee.Reducer.histogram(max_buckets, min_bucket_width,max_raw)
+        ee.Reducer.histogram(max_buckets, min_bucket_width, max_raw)
         .combine("mean", None, True)
         .combine("variance", None, True),
         selection,
@@ -137,10 +104,7 @@ def bmax_otsu(
 
     water = ee.Image(ee.Algorithms.If(invert, img.gt(threshold), img.lt(threshold)))
 
-    if return_threshold:
-        return water.rename("water").uint8(), threshold
-    else:
-        return water.rename("water").uint8()
+    return water.rename("water").uint8()
 
 
 @decorators.carry_metadata
@@ -162,7 +126,6 @@ def edge_otsu(
     max_buckets=255,
     min_bucket_width=0.001,
     max_raw=1e6,
-    return_threshold=False
 ):
 
     if band is None:
@@ -191,7 +154,7 @@ def edge_otsu(
     histogram_image = img.updateMask(edgeBuffer)
 
     histogram = histogram_image.reduceRegion(
-        ee.Reducer.histogram(max_buckets, min_bucket_width,max_raw)
+        ee.Reducer.histogram(max_buckets, min_bucket_width, max_raw)
         .combine("mean", None, True)
         .combine("variance", None, True),
         region,
@@ -204,10 +167,7 @@ def edge_otsu(
 
     water = ee.Image(ee.Algorithms.If(invert, img.gt(threshold), img.lt(threshold)))
 
-    if return_threshold:
-        return water.rename("water").uint8(), threshold
-    else:
-        return water.rename("water").uint8()
+    return water.rename("water").uint8()
 
 
 def otsu(histogram):
