@@ -115,6 +115,7 @@ def export_table(
 def batch_export(
     collection,
     collection_asset,
+    bucket=None,
     region=None,
     prefix=None,
     suffix=None,
@@ -158,12 +159,12 @@ def batch_export(
         if verbose:
             print(f"running export for {description}")
 
-        if not collectionAsset.endswith("/"):
-            collectionAsset += "/"
+        if not collection_asset.endswith("/"):
+            collection_asset += "/"
 
         exportName = collection_asset + description
 
-        exportImage(
+        export_image(
             img,
             region,
             exportName,
@@ -256,3 +257,53 @@ def add_indices(img):
     out_img = ee.Image.cat([img,ndvi, mndwi])#, nwi, aewinsh, aewish, tcwet])
 
     return out_img
+
+def tile_region(region,grid_size=0.1,intersect_geom=None,contain_geom=None):
+    def constuctGrid(i):
+        def contructXGrid(j):
+            j = ee.Number(j)
+            box = ee.Feature(
+                ee.Geometry.Rectangle([j, i, j.add(grid_size), i.add(grid_size)],"epsg:4326",geodesic=False)
+            )
+            if contain_geom is not None:
+                out = ee.Algorithms.If(
+                    region.contains(contain_geom, maxError=10), box, None
+                )
+            elif intersect_geom is not None:
+                out = ee.Algorithms.If(
+                    region.intersects(intersect_geom, maxError=10), box, None
+                )
+            else:
+                out = box
+            return ee.Feature(out)
+
+        i = ee.Number(i)
+        out = ee.List.sequence(west, east.subtract(grid_size), grid_size).map(
+            contructXGrid
+        )
+        return out
+
+    if (contain_geom is not None) and (intersect_geom is not None):
+        raise ValueError("contains and intersection keywords are mutually exclusive, please define only one")
+
+    bounds = region.bounds(maxError=100)
+    coords = ee.List(bounds.coordinates().get(0))
+    grid_res = ee.Number(grid_size)
+
+    west = ee.Number(ee.List(coords.get(0)).get(0))
+    south = ee.Number(ee.List(coords.get(0)).get(1))
+    east = ee.Number(ee.List(coords.get(2)).get(0))
+    north = ee.Number(ee.List(coords.get(2)).get(1))
+
+    west = west.subtract(west.mod(grid_res))
+    south = south.subtract(south.mod(grid_res))
+    east = east.add(grid_res.subtract(east.mod(grid_res)))
+    north = north.add(grid_res.subtract(north.mod(grid_res)))
+
+    grid = ee.FeatureCollection(
+        ee.List.sequence(south, north.subtract(grid_res), grid_res)
+        .map(constuctGrid)
+        .flatten()
+    )
+
+    return grid
