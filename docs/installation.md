@@ -9,8 +9,8 @@ The easiest way to get up and started using the `hydrafloods` packages is via a 
 To start you will need to have [Docker installed](https://docs.docker.com/get-docker/) on your system and running. You will need to pull the pre-built Docker Image for `hydrafloods` and start a new Container from the Image using the following command:
 
 ```sh
-docker run -it \
-  -v ~/<PROJECT-DIR>/:/mnt/<PROJECT-DIR> \
+docker run --interactive --tty \
+  --volume ~//:/mnt/ \
   --name hydrafloods_container kmarkert/hydrafloods
 ```
 
