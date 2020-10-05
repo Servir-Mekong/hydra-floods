@@ -565,7 +565,7 @@ def export_daily_surface_water(
         sim_pred = har_sim.subtract(lin_sim)
         # random_water = thresholding.bmax_otsu(random_combination,invert=True)
         # naive estimate of water (>0)
-        return sim_pred.gt(initial_threshold).uint8()
+        return sim_pred.gt(ci_threshold).uint8()
 
     if tile:
         if tile:
@@ -582,7 +582,7 @@ def export_daily_surface_water(
 
             for i in range(n):
                 if output_asset_path is not None:
-                    output_asset_tile = output_asset_path + f"harmonics_tile{i}"
+                    output_asset_tile = output_asset_path + f"daily_tile{i}"
                 else:
                     output_asset_tile = None
                 if output_bucket_path is not None:
@@ -698,15 +698,18 @@ def export_daily_surface_water(
         #     reduction_scale=100,
         #     return_threshold=True
         # )
-        water = thresholding.edge_otsu(
+        ci_threshold = thresholding.edge_otsu(
             fused_pred,
             initial_threshold=initial_threshold,
             edge_buffer=300,
             region=region,
             invert=True,
-            reduction_scale=120,
+            reduction_scale=200,
+            return_threshold=True
         )
 
+        water = fused_pred.gt(ci_threshold).rename('water').uint8()
+ 
         if output_confidence:
             weights_err = weights_lr.select(".*(x|y|n)$")
 
@@ -736,7 +739,8 @@ def export_daily_surface_water(
             #     reducer=ee.Reducer.min(),
             #     geometry=region,
             #     scale=100,
-            #     bestEffort=True
+            #     bestEffort=True,
+            #     maxPixels=1e6
             # ).get('fused_product'))
 
             confidence = (
