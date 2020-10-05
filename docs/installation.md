@@ -10,11 +10,11 @@ To start you will need to have [Docker installed](https://docs.docker.com/get-do
 
 ```sh
 docker run --interactive --tty \
-  --volume ~//:/mnt/ \
+  --volume ~/<PROJECT-DIR>/:/mnt/ \
   --name hydrafloods_container kmarkert/hydrafloods
 ```
 
-This command should be a one-time process to download the package and start the Container. Additionally, this command will mount a local directory (i.e. `~/<PROEJCT-DIR>`) for use within the Docker Container which allows you to edit files locally and use within the container. Be sure to change `<PROJECTD-DIR>` within the command to an exisiting local directory. Now the Docker Container is running for use!
+This command should be a one-time process to download the package and start the Container. Additionally, this command will mount a local directory (i.e. `~/<PROJECT-DIR>/`) for use within the Docker Container which allows you to edit files locally and use within the container. Be sure to change `<PROJECT-DIR>` within the command to an exisiting local directory. Now the Docker Container is running for use!
 
 Within the Docker Container the `hydrafloods` package and dependencies are pre-installed so all that is left is to [authenticate the cloud APIs](https://servir-mekong.github.io/hydra-floods/installation#cloud-authentication) then we will be ready to test and start processing.
 
