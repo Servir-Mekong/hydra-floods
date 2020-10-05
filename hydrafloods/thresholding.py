@@ -19,6 +19,7 @@ def bmax_otsu(
     max_buckets=255,
     min_bucket_width=0.001,
     max_raw=1e6,
+    return_threshold=False
 ):
 
     def calcBmax(feature):
@@ -102,9 +103,11 @@ def bmax_otsu(
 
     threshold = otsu(histogram.get(histBand.cat("_histogram")))
 
-    water = ee.Image(ee.Algorithms.If(invert, img.gt(threshold), img.lt(threshold)))
-
-    return water.rename("water").uint8()
+    if return_threshold is True:
+        return ee.Image(threshold)
+    else:
+        water = ee.Image(ee.Algorithms.If(invert, img.gt(threshold), img.lt(threshold)))
+        return water.rename("water").uint8()
 
 
 @decorators.carry_metadata
@@ -126,6 +129,7 @@ def edge_otsu(
     max_buckets=255,
     min_bucket_width=0.001,
     max_raw=1e6,
+    return_threshold=False
 ):
 
     if band is None:
@@ -165,9 +169,11 @@ def edge_otsu(
 
     threshold = otsu(histogram.get(histBand.cat("_histogram")))
 
-    water = ee.Image(ee.Algorithms.If(invert, img.gt(threshold), img.lt(threshold)))
-
-    return water.rename("water").uint8()
+    if return_threshold is True:
+        return threshold
+    else:
+        water = ee.Image(ee.Algorithms.If(invert, img.gt(threshold), img.lt(threshold)))
+        return water.rename("water").uint8()
 
 
 def otsu(histogram):
