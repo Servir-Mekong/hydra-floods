@@ -4,8 +4,11 @@ from hydrafloods import geeutils, decorators
 
 
 @decorators.carry_metadata
-def lee_sigma(img, window=9, sigma=0.9, looks=4, tk=7):
-    bandNames = img.bandNames()
+def lee_sigma(img, window=9, sigma=0.9, looks=4, tk=7,keep_bands="angle"):
+    band_names = img.bandNames()
+    proc_bands = band_names.remove(keep_bands)
+    keep_img = img.select(keep_bands)
+    img = img.select(proc_bands)
 
     midPt = (window // 2) + 1 if (window % 2) != 0 else window // 2
     kernelWeights = ee.List.repeat(ee.List.repeat(1, window), window)
@@ -97,7 +100,7 @@ def lee_sigma(img, window=9, sigma=0.9, looks=4, tk=7):
     retainPixel = K.gte(tk)
     xHat = geeutils.power_to_db(img.updateMask(retainPixel).unmask(mmse))
 
-    return ee.Image(xHat).rename(bandNames)
+    return ee.Image(xHat).rename(proc_bands).addBands(keep_img)
 
 
 # The RL speckle filter
@@ -292,7 +295,7 @@ def refined_lee(image):
 @decorators.carry_metadata
 def gamma_map(img, window=7, enl=5):
 
-    bandNames = ee.Image(collection.first()).bandNames()
+    bandNames = img.bandNames()
     # Square kernel, window should be odd (typically 3, 5 or 7)
     weights = ee.List.repeat(ee.List.repeat(1, window), window)
     midPt = (window // 2) + 1 if (window % 2) != 0 else window // 2
