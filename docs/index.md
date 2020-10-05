@@ -11,6 +11,8 @@ The HYDRAFloods application is built using [Google Earth Engine](https://earthen
 To highlight a quick example of the `hydrafloods` API and simplicity to produce high-quality surface water maps we provide a quick example of mapping surface water using Sentinel-1 over the confluence of the Mekong and Tonle Sap rivers in Cambodia, which experiences frequent flooding.
 
 ```python
+# content of example.py Python file
+
 # import the hydrafloods and ee package
 import hydrafloods as hf
 import ee
