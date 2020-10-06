@@ -555,6 +555,7 @@ def export_daily_surface_water(
         return harmon_diff.set("system:time_start", new_date.millis())
 
     def calc_confidence(i):
+        i = ee.Number(i)
         # uniform sampling of std dev at 95% confidence interval
         long_term_seed = i.add(500)
         short_term_seed = i.add(1000)
