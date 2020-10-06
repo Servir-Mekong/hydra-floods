@@ -555,12 +555,18 @@ def export_daily_surface_water(
         return harmon_diff.set("system:time_start", new_date.millis())
 
     def calc_confidence(i):
-        random = (
-            ee.Image.random(i).multiply(3.92).subtract(1.96)
-        )  # uniform sampling of std dev at 95% confidence interval
+        # uniform sampling of std dev at 95% confidence interval
+        long_term_seed = i.add(500)
+        short_term_seed = i.add(1000)
+        long_term_random = (
+            ee.Image.random(long_term_random).multiply(3.92).subtract(1.96)
+        )
+        short_term_random = (
+            ee.Image.random(short_term_seed).multiply(3.92).subtract(1.96)
+        )
 
-        lin_sim = lin_pred.add(random.multiply(linCi))
-        har_sim = har_pred.add(random.multiply(harCi))
+        lin_sim = lin_pred.add(short_term_random.multiply(linCi))
+        har_sim = har_pred.add(long_term_random.multiply(harCi))
 
         sim_pred = har_sim.subtract(lin_sim)
         # random_water = thresholding.bmax_otsu(random_combination,invert=True)
@@ -687,7 +693,11 @@ def export_daily_surface_water(
             .reduce("sum")
         )
 
-        fused_pred = (har_pred.subtract(lin_pred)).convolve(ee.Kernel.gaussian(2.5)).rename("fused_product")
+        fused_pred = (
+            (har_pred.subtract(lin_pred))
+            .convolve(ee.Kernel.gaussian(2.5))
+            .rename("fused_product")
+        )
 
         # water,threshold = thresholding.bmax_otsu(
         #     fused_pred,
@@ -705,11 +715,11 @@ def export_daily_surface_water(
             region=region,
             invert=True,
             reduction_scale=200,
-            return_threshold=True
+            return_threshold=True,
         )
 
-        water = fused_pred.gt(ci_threshold).rename('water').uint8()
- 
+        water = fused_pred.gt(ci_threshold).rename("water").uint8()
+
         if output_confidence:
             weights_err = weights_lr.select(".*(x|y|n)$")
 
