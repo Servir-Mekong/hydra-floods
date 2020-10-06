@@ -560,7 +560,7 @@ def export_daily_surface_water(
         long_term_seed = i.add(500)
         short_term_seed = i.add(1000)
         long_term_random = (
-            ee.Image.random(long_term_random).multiply(3.92).subtract(1.96)
+            ee.Image.random(long_term_seed).multiply(3.92).subtract(1.96)
         )
         short_term_random = (
             ee.Image.random(short_term_seed).multiply(3.92).subtract(1.96)
