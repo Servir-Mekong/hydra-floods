@@ -2,6 +2,7 @@
 
 import os
 import ee
+import time
 from ee.ee_exception import EEException
 import gcsfs
 import logging
@@ -522,6 +523,7 @@ def export_daily_surface_water(
     look_back=30,
     lag=4,
     output_confidence=False,
+    output_flood = False,
     fusion_samples=None,
     fusion_model_asset=None,
     output_asset_path=None,
@@ -589,11 +591,11 @@ def export_daily_surface_water(
 
             for i in range(n):
                 if output_asset_path is not None:
-                    output_asset_tile = output_asset_path + f"daily_tile{i}"
+                    output_asset_tile = output_asset_path + f"daily_tile{i:4d0}"
                 else:
                     output_asset_tile = None
                 if output_bucket_path is not None:
-                    output_bucket_tile = output_bucket_path + f"_tile{i}"
+                    output_bucket_tile = output_bucket_path + f"_tile{i:4d0}"
                 else:
                     output_bucket_tile = None
 
@@ -721,6 +723,11 @@ def export_daily_surface_water(
 
         water = fused_pred.gt(ci_threshold).rename("water").uint8()
 
+        if output_flood:
+            jrc = ee.Image("JRC/GSW1_2/GlobalSurfaceWater").select("occurrence").unmask(0).lt(80)
+            flood = water.select("water").And(jrc.Not()).rename("flood")
+            water = water.addBands(water)
+
         if output_confidence:
             weights_err = weights_lr.select(".*(x|y|n)$")
 
@@ -845,8 +852,65 @@ def export_daily_surface_water(
 
     return
 
+def merge_gcp_tiled_results(bucket_path,pattern,region,retries=-1,clean_up=False,cloud_project=None,file_dims=None):
+    land_area = (
+        ee.FeatureCollection("USDOS/LSIB_SIMPLE/2017")
+        .filterBounds(region)
+        .geometry(100)
+        .buffer(2500, maxError=100)
+    )
+    grid = geeutils.tile_region(region, intersect_geom=land_area, grid_size=1.0)
+
+    expected_n = grid.size().getInfo()
+
+    fcomponents = bucket_path.split("/")
+    bucket = fcomponents[2]
+    fpath = pattern.replace("*","")
+
+    print(bucket,pattern)
+    files = utils.list_gcs_objs(bucket, pattern=pattern, project=cloud_project)
+    print(len(files),expected_n)
+
+    if len(files) == expected_n:
+        images = [ee.Image.loadGeoTIFF(file) for file in files]
+
+        merged = ee.ImageCollection.fromImages(images).mosaic()
+
+        export_region = region.bounds(maxError=100).getInfo()["coordinates"]
+        # bucket_path, ext = os.path.splitext(output_bucket_path)
+
+        now = datetime.datetime.now()
+        time_id = now.strftime("%Y%m%d%H%M%s")
+
+        task = ee.batch.Export.image.toCloudStorage(
+            image=merged,
+            description=f"hydrafloods_merge_gcp_export_{time_id}",
+            bucket=bucket,
+            fileNamePrefix=fpath,
+            region=export_region,
+            scale=10,
+            crs="EPSG:4326",
+            fileDimensions=file_dims,
+            maxPixels=1e13,
+            fileFormat="GeoTIFF",
+            formatOptions={"cloudOptimized": True},
+        )
+        task.start()
+
+        if clean_up:
+            gcsfs.GCSFileSystem.rm(files)
+        
+    elif retries > 0:
+        time.sleep(60*10)
+        
+        merge_gcp_tiled_results(bucket_path,pattern,region,retries=(retries-1))
+
+    else:
+        raise RuntimeError(f"could not find all expected tiles to merge...found {len(files)} tiles but expected {expected_n}")
+
+    return
 
 if __name__ == "__main__":
     raise NotImplementedError(
-        "Application is currently not implemented, please check back later"
+        "Worklow is currently not implemented for CLI use, please check back later"
     )
