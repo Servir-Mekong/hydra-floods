@@ -8,8 +8,8 @@ import numpy as np
 import gcsfs
 
 
-def list_gcs_objs(bucket_path, pattern=None, output_url=False):
-    fs = gcsfs.GCSFileSystem()
+def list_gcs_objs(bucket_path, pattern=None, output_url=False,project=None):
+    fs = gcsfs.GCSFileSystem(project=project)
     if pattern is not None:
         bucket_path = (
             bucket_path + "/" if not bucket_path.endswith("/") else bucket_path
@@ -104,7 +104,7 @@ def decode_date(string):
                 return dt
             except ValueError:
                 continue
-    raise argparse.ArgumentTypeError(
+    raise TypeError(
         'Invalid value for property of type "date": "%s".' % string
     )
 
