@@ -610,6 +610,7 @@ def export_daily_surface_water(
                     look_back,
                     lag,
                     output_confidence,
+                    output_flood,
                     fusion_samples,
                     fusion_model_asset,
                     output_asset_tile,
@@ -721,12 +722,12 @@ def export_daily_surface_water(
             return_threshold=True,
         )
 
-        water = fused_pred.gt(ci_threshold).rename("water").uint8()
+        permanent_water = ee.Image("JRC/GSW1_2/GlobalSurfaceWater").select("occurrence").unmask(0).gt(80)
+        water = fused_pred.gt(ci_threshold).Or(permanent_water).rename("water").uint8()
 
         if output_flood:
-            jrc = ee.Image("JRC/GSW1_2/GlobalSurfaceWater").select("occurrence").unmask(0).lt(80)
-            flood = water.select("water").And(jrc.Not()).rename("flood")
-            water = water.addBands(water)
+            flood = water.select("water").And(permanent_water.Not()).rename("flood")
+            water = water.addBands(flood)
 
         if output_confidence:
             weights_err = weights_lr.select(".*(x|y|n)$")
@@ -867,9 +868,7 @@ def merge_gcp_tiled_results(bucket_path,pattern,region,retries=-1,clean_up=False
     bucket = fcomponents[2]
     fpath = pattern.replace("*","")
 
-    print(bucket,pattern)
     files = utils.list_gcs_objs(bucket, pattern=pattern, project=cloud_project)
-    print(len(files),expected_n)
 
     if len(files) == expected_n:
         images = [ee.Image.loadGeoTIFF(file) for file in files]
