@@ -4,4 +4,4 @@ from hydrafloods import datasets
 from hydrafloods import fusion
 from hydrafloods import *
 
-__version__ = "0.1.16"
+__version__ = "0.1.17"
