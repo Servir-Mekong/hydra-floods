@@ -530,6 +530,7 @@ def export_daily_surface_water(
     output_bucket_path=None,
     initial_threshold=0.1,
     tile=False,
+    tile_buffer=100000
 ):
     def get_weights(i):
         i = ee.Number(i)
@@ -617,6 +618,7 @@ def export_daily_surface_water(
                     output_bucket_tile,
                     initial_threshold,
                     tile=False,
+                    tile_buffer=tile_buffer
                 )
 
     else:
@@ -664,7 +666,7 @@ def export_daily_surface_water(
         else:
             harmonic_coefs = harmonic_coefs.select("^(c|t|s).*")
 
-        prod_region = region.buffer(250000)
+        prod_region = region.buffer(tile_buffer,100)
 
         ds, label = _fuse_dataset(
             prod_region,
