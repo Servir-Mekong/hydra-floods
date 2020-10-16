@@ -664,8 +664,10 @@ def export_daily_surface_water(
         else:
             harmonic_coefs = harmonic_coefs.select("^(c|t|s).*")
 
+        prod_region = region.buffer(250000)
+
         ds, label = _fuse_dataset(
-            region,
+            prod_region,
             start_time,
             end_time,
             fusion_model,
@@ -716,11 +718,13 @@ def export_daily_surface_water(
             fused_pred,
             initial_threshold=initial_threshold,
             edge_buffer=300,
-            region=region,
+            region=prod_region,
             invert=True,
             reduction_scale=200,
             return_threshold=True,
         )
+
+        # ci_threshold = ee.Number(ee.Algorithms.If(ci_threshold.lt(-0.1),-0.1,ci_threshold))
 
         permanent_water = ee.Image("JRC/GSW1_2/GlobalSurfaceWater").select("occurrence").unmask(0).gt(80)
         water = fused_pred.gt(ci_threshold).Or(permanent_water).rename("water").uint8()
