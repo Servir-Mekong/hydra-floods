@@ -728,7 +728,13 @@ def export_daily_surface_water(
 
         # ci_threshold = ee.Number(ee.Algorithms.If(ci_threshold.lt(-0.1),-0.1,ci_threshold))
 
-        permanent_water = ee.Image("JRC/GSW1_2/GlobalSurfaceWater").select("occurrence").unmask(0).gt(80)
+        permanent_water = (
+            ee.ImageCollection("JRC/GSW1_2/YearlyHistory")
+            .limit(5,"system:time_start",False)
+            .map(lambda x: x.select('waterClass').eq(3))
+            .sum().unmask(0).gt(0)
+        )
+        
         water = fused_pred.gt(ci_threshold).Or(permanent_water).rename("water").uint8()
 
         if output_flood:
