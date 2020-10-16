@@ -591,11 +591,11 @@ def export_daily_surface_water(
 
             for i in range(n):
                 if output_asset_path is not None:
-                    output_asset_tile = output_asset_path + f"daily_tile{i:4d0}"
+                    output_asset_tile = output_asset_path + f"daily_tile{i:05d}"
                 else:
                     output_asset_tile = None
                 if output_bucket_path is not None:
-                    output_bucket_tile = output_bucket_path + f"_tile{i:4d0}"
+                    output_bucket_tile = output_bucket_path + f"_tile{i:05d}"
                 else:
                     output_bucket_tile = None
 
