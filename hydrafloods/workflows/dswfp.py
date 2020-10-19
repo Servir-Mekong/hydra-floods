@@ -379,7 +379,7 @@ def _fuse_dataset(
     optical = lc8.merge(le7).merge(s2)
 
     if use_viirs:
-        viirs = datasets.Viirs(**ds_kwargs)
+        viirs = datasets.Viirs(**dsa_kwargs)
         optical = optical.merge(viirs)
 
     if use_modis:
@@ -523,14 +523,14 @@ def export_daily_surface_water(
     look_back=30,
     lag=4,
     output_confidence=False,
-    output_flood = False,
+    output_flood=False,
     fusion_samples=None,
     fusion_model_asset=None,
     output_asset_path=None,
     output_bucket_path=None,
     initial_threshold=0.1,
     tile=False,
-    tile_buffer=100000
+    tile_buffer=100000,
 ):
     def get_weights(i):
         i = ee.Number(i)
@@ -562,9 +562,7 @@ def export_daily_surface_water(
         # uniform sampling of std dev at 95% confidence interval
         long_term_seed = i.add(500)
         short_term_seed = i.add(1000)
-        long_term_random = (
-            ee.Image.random(long_term_seed).multiply(3.92).subtract(1.96)
-        )
+        long_term_random = ee.Image.random(long_term_seed).multiply(3.92).subtract(1.96)
         short_term_random = (
             ee.Image.random(short_term_seed).multiply(3.92).subtract(1.96)
         )
@@ -618,7 +616,7 @@ def export_daily_surface_water(
                     output_bucket_tile,
                     initial_threshold,
                     tile=False,
-                    tile_buffer=tile_buffer
+                    tile_buffer=tile_buffer,
                 )
 
     else:
@@ -666,7 +664,7 @@ def export_daily_surface_water(
         else:
             harmonic_coefs = harmonic_coefs.select("^(c|t|s).*")
 
-        prod_region = region.buffer(tile_buffer,100)
+        prod_region = region.buffer(tile_buffer, 100)
 
         ds, label = _fuse_dataset(
             prod_region,
@@ -701,10 +699,8 @@ def export_daily_surface_water(
             .reduce("sum")
         )
 
-        fused_pred = (
-            (har_pred.subtract(lin_pred))
-            .convolve(ee.Kernel.gaussian(2.5))
-            .rename("fused_product")
+        fused_pred = hf.filtering.p_median((har_pred.subtract(lin_pred))).rename(
+            "fused_product"
         )
 
         # water,threshold = thresholding.bmax_otsu(
@@ -722,19 +718,19 @@ def export_daily_surface_water(
             edge_buffer=300,
             region=prod_region,
             invert=True,
-            reduction_scale=200,
+            reduction_scale=150,
             return_threshold=True,
         )
 
-        # ci_threshold = ee.Number(ee.Algorithms.If(ci_threshold.lt(-0.1),-0.1,ci_threshold))
-
         permanent_water = (
             ee.ImageCollection("JRC/GSW1_2/YearlyHistory")
-            .limit(5,"system:time_start",False)
-            .map(lambda x: x.select('waterClass').eq(3))
-            .sum().unmask(0).gt(0)
+            .limit(5, "system:time_start", False)
+            .map(lambda x: x.select("waterClass").eq(3))
+            .sum()
+            .unmask(0)
+            .gt(0)
         )
-        
+
         water = fused_pred.gt(ci_threshold).Or(permanent_water).rename("water").uint8()
 
         if output_flood:
@@ -766,14 +762,6 @@ def export_daily_surface_water(
                 },
             )
 
-            # ci_threshold = ee.Number(fused_pred.updateMask(water).reduceRegion(
-            #     reducer=ee.Reducer.min(),
-            #     geometry=region,
-            #     scale=100,
-            #     bestEffort=True,
-            #     maxPixels=1e6
-            # ).get('fused_product'))
-
             confidence = (
                 ee.ImageCollection.fromImages(
                     ee.List.sequence(0, 99).map(calc_confidence)
@@ -787,7 +775,6 @@ def export_daily_surface_water(
             out_water = ee.Image.cat([confidence, water,])
         else:
             out_water = water
-        # water.uint8().rename("water"),
 
         fused_pred = fused_pred.multiply(10000).int16()
 
@@ -827,6 +814,7 @@ def export_daily_surface_water(
             bucket = fcomponents[2]
             fpath = fcomponents[3:-1]
 
+            # TODO: remove extension from string formulation
             f_water = "/".join(fpath + [fcomponents[-1] + "_water" + ext])
             f_fusion = "/".join(fpath + [fcomponents[-1] + "_fusion" + ext])
 
@@ -865,7 +853,16 @@ def export_daily_surface_water(
 
     return
 
-def merge_gcp_tiled_results(bucket_path,pattern,region,retries=-1,clean_up=False,cloud_project=None,file_dims=None):
+
+def merge_gcp_tiled_results(
+    bucket_path,
+    pattern,
+    region,
+    retries=-1,
+    clean_up=False,
+    cloud_project=None,
+    file_dims=None,
+):
     land_area = (
         ee.FeatureCollection("USDOS/LSIB_SIMPLE/2017")
         .filterBounds(region)
@@ -878,7 +875,7 @@ def merge_gcp_tiled_results(bucket_path,pattern,region,retries=-1,clean_up=False
 
     fcomponents = bucket_path.split("/")
     bucket = fcomponents[2]
-    fpath = pattern.replace("*","")
+    fpath = pattern.replace("*", "")
 
     files = utils.list_gcs_objs(bucket, pattern=pattern, project=cloud_project)
 
@@ -910,16 +907,19 @@ def merge_gcp_tiled_results(bucket_path,pattern,region,retries=-1,clean_up=False
 
         if clean_up:
             gcsfs.GCSFileSystem.rm(files)
-        
+
     elif retries > 0:
-        time.sleep(60*10)
-        
-        merge_gcp_tiled_results(bucket_path,pattern,region,retries=(retries-1))
+        time.sleep(60 * 10)
+
+        merge_gcp_tiled_results(bucket_path, pattern, region, retries=(retries - 1))
 
     else:
-        raise RuntimeError(f"could not find all expected tiles to merge...found {len(files)} tiles but expected {expected_n}")
+        raise RuntimeError(
+            f"could not find all expected tiles to merge...found {len(files)} tiles but expected {expected_n}"
+        )
 
     return
+
 
 if __name__ == "__main__":
     raise NotImplementedError(
