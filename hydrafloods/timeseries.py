@@ -20,6 +20,9 @@ def prep_inputs(collection, keep_bands=None, apply_mask=False):
     first = ee.Image(collection.first())
     outCollection = copy.deepcopy(collection)
 
+    if keep_bands is None:
+        keep_bands = []
+
     tband = partial(add_time_band,apply_mask=apply_mask)
 
     if "time" not in keep_bands:
@@ -238,3 +241,14 @@ def get_dummy_collection(t1, t2):
     coll = ee.ImageCollection(ee.List.sequence(0, n).map(_gen_image))
 
     return prep_inputs(coll)
+
+def temporal_smoothing(coll,reducer,days=10):
+    @decorators.carry_metadata
+    def _smooth(img):
+        t = img.date()
+        band_names = img.bandNames()
+        t_start = t.advance(-days//2, "day")
+        t_stop = t.advance(days//2, "day")
+        return coll.filterDate(t_start,t_stop).reduce(reducer,8).rename(band_names)
+
+    return coll.map(_smooth)
