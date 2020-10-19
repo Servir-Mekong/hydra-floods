@@ -350,3 +350,25 @@ def gamma_map(img, window=7, enl=5):
 
     # Compose a 3 band image with the mean filtered "pure speckle", the "low textured" filtered and the unfiltered portions
     return result
+
+@decorators.carry_metadata
+def p_median(img,window=5):
+
+    center_idx = (window-1) // 2
+
+    hv = [[1 if i == center_idx or j == center_idx else 0 for j in range(window)] for i in range(window)]
+    diag = [[1 if i == j or i == ((window-1)-j) else 0 for j in range(window)] for i in range(window)]
+
+    # method based on ???
+    band_names = img.bandNames()
+    hv_weights =  ee.List(hv)
+    diag_weights = ee.List(diag)
+                         
+    hv_kernel = ee.Kernel.fixed(window,window,hv_weights)
+    diag_kernel = ee.Kernel.fixed(window,window,diag_weights)
+  
+    hv_median = img.reduceNeighborhood(ee.Reducer.median(),hv_kernel)
+  
+    diag_median = img.reduceNeighborhood(ee.Reducer.median(),diag_kernel) 
+
+    return ee.Image.cat([hv_median,diag_median]).reduce("mean").rename(band_names)
