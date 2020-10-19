@@ -20,6 +20,10 @@ from hydrafloods import (
 
 
 class Dataset:
+    """
+    
+    """
+
     def __init__(self, region, start_time, end_time, asset_id="", use_qa=True):
         # TODO: add exceptions to check datatypes
         self.region = region  # dtype = ee.Geometry
@@ -199,6 +203,41 @@ class Dataset:
             outCls.collection = joined
             return outCls
 
+    def aggregate_time(
+        self, dates=None, period=1, reducer=ee.Reducer.mean(), inplace=False
+    ):
+        # expects the images in this dataset to be homogenous (same band names and types)
+        def _aggregation(d):
+            t1 = ee.Date(d)
+            t2 = t1.advance(period, "day")
+            return (
+                self.collection.filterDate(t1, t2)
+                .reduce(reducer)
+                .rename(band_names)
+                .set("system:time_start", t1.millis())
+            )
+
+        if dates is None:
+            dates = (
+                self.collection.aggregate_array("system:time_start")
+                .map(lambda x: ee.Date(x).format("YYYY-MM-dd"))
+                .distinct()
+            )
+        else:
+            dates = ee.List(dates)
+
+        band_names = ee.Image(self.collection.first()).bandNames()
+
+        out_coll = ee.ImageCollection.fromImages(dates.map(_aggregation))
+
+        if inplace:
+            self.collection = out_coll
+            return
+        else:
+            outCls = self.copy()
+            outCls.collection = out_coll
+            return outCls
+
 
 class Sentinel1(Dataset):
     def __init__(self, *args, asset_id="COPERNICUS/S1_GRD", **kwargs):
@@ -275,14 +314,30 @@ class Atms(Dataset):
 
 
 class Viirs(Dataset):
-    def __init__(self, *args, asset_id="NOAA/VIIRS/001/VNP09GA", **kwargs):
+    def __init__(
+        self,
+        *args,
+        asset_id="NOAA/VIIRS/001/VNP09GA",
+        apply_band_adjustment=False,
+        **kwargs,
+    ):
         super(Viirs, self).__init__(*args, asset_id=asset_id, **kwargs)
 
-        self.collection = self.collection.select(
+        coll = self.collection.select(
             self.BANDREMAP.get("viirs"), self.BANDREMAP.get("new")
-        ).map(geeutils.add_indices)
+        )
 
-        # self.clip_to_region(inplace=True)
+        if apply_band_adjustment:
+            # band bass adjustment coefficients taken from Roy et al., 2016 http://dx.doi.org/10.1016/j.rse.2015.12.024
+            self.gain = ee.Image.constant(
+                [0.68328, 0.66604, 0.789009, 0.953243, 0.985927, 0.889414]
+            )
+            self.bias = ee.Image.constant(
+                [0.016728, 0.03081, 0.02319, 0.03657, 0.026923, 0.021615]
+            ).multiply(10000)
+            coll = coll.map(self._band_pass_adjustment)
+
+        self.collection = coll.map(geeutils.add_indices)
 
         return
 
@@ -300,10 +355,19 @@ class Viirs(Dataset):
         mask = cloudMask.And(shadowMask).And(sensorZenith)
         return img.updateMask(mask)
 
+    @decorators.carry_metadata
+    def _band_pass_adjustment(self, img):
+        # linear regression coefficients for adjustment
+        return (
+            img.multiply(self.gain)
+            .add(self.bias)
+            .set("system:time_start", img.get("system:time_start"))
+        )
+
     @staticmethod
     def extract(date, region, outdir="./", creds=None):
         files = fetch.viirs(
-            credentials, startTime=date, endTime=None, region=region, outDir=outDir
+            creds, startTime=date, endTime=None, region=region, outDir=outdir
         )
 
         return
@@ -408,7 +472,6 @@ class Landsat7(Dataset):
         return (
             img.multiply(self.gain)
             .add(self.bias)
-            .clip(img.geometry())
             .set("system:time_start", img.get("system:time_start"))
         )
 
@@ -449,7 +512,6 @@ class Sentinel2(Dataset):
         return (
             img.multiply(self.gain)
             .add(self.bias)
-            .clip(img.geometry())
             .set("system:time_start", img.get("system:time_start"))
         )
 
