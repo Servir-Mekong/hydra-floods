@@ -35,9 +35,9 @@ def push_to_gcs(file, bucketPath):
     return
 
 
-def push_to_gee(bucket_obj, asset_collection, properties=None, delete_bucket_obj=False):
-    name = os.path.basename(bucketObj).replace(".", "_")
-    asset = assetCollection + name
+def push_to_ee(bucket_obj, asset_collection, properties=None, delete_bucket_obj=False):
+    name = os.path.basename(bucket_obj).replace(".", "_")
+    asset = asset_collection + name
 
     pStr = ""
     for i in properties:
@@ -45,7 +45,7 @@ def push_to_gee(bucket_obj, asset_collection, properties=None, delete_bucket_obj
 
     binPath = os.path.dirname(sys.executable)
     cmd = "{0}/earthengine upload image --asset_id={1} {2} {3}".format(
-        binPath, asset, pStr, bucketObj
+        binPath, asset, pStr, bucket_obj
     )
     proc = subprocess.Popen(
         cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
@@ -62,13 +62,13 @@ def push_to_gee(bucket_obj, asset_collection, properties=None, delete_bucket_obj
             elif "FAILED" in str(tasks[0]):
                 print(
                     "EE upload process failed for image {}, check Earth Engine for error".format(
-                        bucketObj
+                        bucket_obj
                     )
                 )
                 sys.exit(1)
 
-    if deleteBucketObj:
-        cmd = "gsutil rm {0}".format(bucketObj)
+    if delete_bucket_obj:
+        cmd = "gsutil rm {0}".format(bucket_obj)
         proc = subprocess.Popen(
             cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
         )
