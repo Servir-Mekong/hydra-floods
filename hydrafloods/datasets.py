@@ -204,7 +204,7 @@ class Dataset:
             return outCls
 
     def aggregate_time(
-        self, dates=None, period=1, reducer=ee.Reducer.mean(), inplace=False
+        self, dates=None, period=1, reducer="mean", inplace=False
     ):
         # expects the images in this dataset to be homogenous (same band names and types)
         def _aggregation(d):
