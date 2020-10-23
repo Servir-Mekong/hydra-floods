@@ -3,6 +3,15 @@ import functools
 
 
 def carry_metadata(func):
+    """Decorator function to set the properties of an image from computations to that of the input
+        
+    Function to decorate should take an ee.Image object and return an ee.Image object
+
+    Example:
+        @decorators.carry_metadata
+        def ndvi(img):
+            return img.normalizedDifference([b1,b2])
+    """
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         # expects an element within args is img
