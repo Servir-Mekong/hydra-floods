@@ -4,6 +4,8 @@ import requests
 import simplecmr as scmr
 from pathlib import Path
 
+# requires simplecmr to be installed
+
 
 def fetching(
     conceptid,
@@ -14,24 +16,22 @@ def fetching(
     max_results=500,
     end_time=None,
 ):
-    """
-    Function to download data from NASA by specifying a datase, time and region.
+    """ Function to download data from NASA CMR by specifying a dataset, time and region.
     Uses CMR to handle spatio-temporal query and extracts data download urls
 
-    Args:
+    args:
         conceptid (str): String of dataset concept id to search for
         start_time (str): Date as string preferrably as ISO8601 format (YYYY-MM-dd)
-        region (tuple|list): Bounding box of region to search as iterable in W,S,E,N order
-        credentials (tuple|list): EarthData username and password login credentials as iterable
+        region (tuple[float] | list[float]): Bounding box of region to search as iterable in W,S,E,N order
+        credentials (tuple | list): EarthData username and password login credentials as iterable
         out_directory (str|pathlib.Path): Local directory to downaload data to
-    Kwargs:
-        max_results (int): Maximum number of items to search and download
+        max_results (int, optional): Maximum number of items to search and download.
             default = 500
-        end_time (str): Date as string preferrably as ISO8601 format (YYYY-MM-dd)
-            default = None (end_time = start_time + 1day)
+        end_time (str, optional): Date as string preferrably as ISO8601 format (YYYY-MM-dd).
+            default = start_time + 1day
 
-    Returns:
-        List of local paths that data was downloaded to
+    returns:
+        list[pathlib.Path]: List of local paths that data was downloaded to
     """
     if type(start_time) != datetime.datetime:
         start_time = scmr.utils.decode_date(start_time)
@@ -68,25 +68,22 @@ def viirs(
     region=[-180, 60, 180, 85],
     out_directory="./",
 ):
-    """
-    Function to download Suomi-NPP VIIRS surface reflectance data for specified time and region,
-    wraps fetching()
+    """Function to download Suomi-NPP VIIRS surface reflectance data for specified time and region,
+    wraps `fetching()`
 
-    Args:
-        credentials (tuple|list): EarthData username and password login credentials as iterable
-
-    Kwargs:
-        start_time (str): Date as string preferrably as ISO8601 format (YYYY-MM-dd)
+    args:
+        credentials (tuple | list): EarthData username and password login credentials as iterable
+        start_time (str, optional): Date as string preferrably as ISO8601 format (YYYY-MM-dd)
             default = 2000-01-01
-        end_time (str): Date as string preferrably as ISO8601 format (YYYY-MM-dd)
-            default = None (end_time = start_time + 1day)
-        region (tuple|list): Bounding box of region to search as iterable in W,S,E,N order
+        end_time (str, optional): Date as string preferrably as ISO8601 format (YYYY-MM-dd)
+            default = start_time + 1day
+        region (tuple | list, optional): Bounding box of region to search as iterable in W,S,E,N order
             default = [-180,60,180,85]
-        out_directory (str|pathlib.Path): Local directory to downaload data to
-            default = './' (current working directory)
+        out_directory (str | pathlib.Path, optioanl): Local directory to downaload data to
+            default = "./"
 
-    Returns:
-        List of local paths that data was downloaded to
+    returns:
+        list[pathlib.Path]: List of local paths that data was downloaded to
     """
 
     # check if date requested is within science-quality production time
@@ -117,25 +114,22 @@ def modis(
     region=[-180, 60, 180, 85],
     out_directory="./",
 ):
-    """
-    Function to download Terra MODIS surface reflectance data for specified time and region,
-    wraps fetching()
+    """Function to download MODIS surface reflectance data for specified time and region,
+    wraps `fetching()`
 
-    Args:
-        credentials (tuple|list): EarthData username and password login credentials as iterable
-
-    Kwargs:
-        start_time (str): Date as string preferrably as ISO8601 format (YYYY-MM-dd)
+    args:
+        credentials (tuple | list): EarthData username and password login credentials as iterable
+        start_time (str, optional): Date as string preferrably as ISO8601 format (YYYY-MM-dd)
             default = 2000-01-01
-        end_time (str): Date as string preferrably as ISO8601 format (YYYY-MM-dd)
-            default = None (end_time = start_time + 1day)
-        region (tuple|list): Bounding box of region to search as iterable in W,S,E,N order
+        end_time (str, optional): Date as string preferrably as ISO8601 format (YYYY-MM-dd)
+            default = start_time + 1day
+        region (tuple[float] | list[float], optional): Bounding box of region to search as iterable in W,S,E,N order
             default = [-180,60,180,85]
-        out_directory (str|pathlib.Path): Local directory to downaload data to
-            default = './' (current working directory)
+        out_directory (str | pathlib.Path, optional): Local directory to downaload data to
+            default = "./"
 
-    Returns:
-        List of local paths that data was downloaded to
+    returns:
+        list[pathlib.Path]: List of local paths that data was downloaded to
     """
 
     # check if date requested is within science-quality production time
@@ -166,25 +160,22 @@ def atms(
     region=[-180, 60, 180, 85],
     out_directory="./",
 ):
-    """
-    Function to download Suomi-NPP ATMS passive microwave data for specified time and region,
-    wraps fetching()
+    """ Function to download Suomi-NPP ATMS passive microwave data for specified time and region,
+    wraps `fetching()`
 
-    Args:
-        credentials (tuple|list): EarthData username and password login credentials as iterable
-
-    Kwargs:
-        start_time (str): Date as string preferrably as ISO8601 format (YYYY-MM-dd)
+    args:
+        credentials (tuple | list): EarthData username and password login credentials as iterable
+        start_time (str, optional): Date as string preferrably as ISO8601 format (YYYY-MM-dd)
             default = 2000-01-01
-        end_time (str): Date as string preferrably as ISO8601 format (YYYY-MM-dd)
-            default = None (end_time = start_time + 1day)
-        region (tuple|list): Bounding box of region to search as iterable in W,S,E,N order
+        end_time (str, optional): Date as string preferrably as ISO8601 format (YYYY-MM-dd)
+            default = start_time + 1day
+        region (tuple | list, optional): Bounding box of region to search as iterable in W,S,E,N order
             default = [-180,60,180,85]
-        out_directory (str|pathlib.Path): Local directory to downaload data to
-            default = './' (current working directory)
+        out_directory (str | pathlib.Path, optioanl): Local directory to downaload data to
+            default = "./"
 
-    Returns:
-        List of local paths that data was downloaded to
+    returns:
+        list[pathlib.Path]: List of local paths that data was downloaded to
     """
 
     CONCEPTID = "C1442068516-GES_DISC"
