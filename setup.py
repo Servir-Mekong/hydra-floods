@@ -22,7 +22,7 @@ setup(name='hydrafloods',
         'hydrafloods = hydrafloods.hfcli:main',
     ]},
     install_requires=[
-        'simplecmr'
+        'simplecmr',
         'earthengine-api',
     ],
 )
