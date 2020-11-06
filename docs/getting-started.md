@@ -102,7 +102,7 @@ Now that we have our time series of data, we can begin to model some temporal in
 ```python
 # fit a harmonic trend model on the VV band in time
 # use two harmonic cycles
-harmonics = timeseries.fit_harmonic_trend(
+harmonics_weights = timeseries.fit_harmonic_trend(
     s1, dependent='VV', n_cycles=2
 )
 ```
@@ -133,7 +133,7 @@ Time series functionality in `hydrafloods` is focused around modeling data in ti
 `hydrafloods` also has a specific module for machine learning workflows with Earth Engine, [`hydrafloods.ml`](/ml/). 
 
 ```python
-# import in the timeseries module
+# import in the ml module
 from hydrafloods import ml
 ```
 
