@@ -4,7 +4,22 @@ from hydrafloods import geeutils, decorators
 
 
 @decorators.carry_metadata
-def lee_sigma(img, window=9, sigma=0.9, looks=4, tk=7,keep_bands="angle"):
+def lee_sigma(img, window=9, sigma=0.9, looks=4, tk=7, keep_bands="angle"):
+    """Lee Sigma speckle filtering algorithm.
+    Implemented from interpreting https://doi.org/10.1109/TGRS.2008.2002881
+
+    args:
+        img (ee.Image): Earth engine image object. Expects that imagery is a SAR image
+        window (int, optional): moving window size to apply filter (i.e. a value of 9 == 9x9 window). default = 9
+        sigma (float, optional): sigma lookup value from table 1 in paper. default = 0.9
+        looks (int, optional): look intensity value from table 1 in paper. default = 4
+        tk (int, optional): threshold value to determine values in window as point targets. default = 7
+        keep_bands (str | list[str], optional): regex name or list of band names to drop during filtering and include in the result
+            default = "angle"
+
+    returns:
+        ee.Image: filtered SAR image using the Lee Sigma algorithm
+    """
     band_names = img.bandNames()
     proc_bands = band_names.remove(keep_bands)
     keep_img = img.select(keep_bands)
@@ -106,7 +121,19 @@ def lee_sigma(img, window=9, sigma=0.9, looks=4, tk=7,keep_bands="angle"):
 # The RL speckle filter
 @decorators.carry_metadata
 def refined_lee(image):
+    """Refined Lee speckle filtering algorithm. 
+    Algorithm adapted from https://groups.google.com/g/google-earth-engine-developers/c/ExepnAmP-hQ/m/7e5DnjXXAQAJ
+
+    args:
+        image (ee.Image): Earth engine image object. Expects that imagery is a SAR image
+
+    returns:
+        ee.Image: filtered SAR image using the Refined Lee algorithm
+    """
+    # TODO: include keep bands...maybe one-shot filtering if using keep_bands???
     def apply_filter(b):
+        """Closure function to apply the refined lee algorithm on individual bands
+        """
         img = power.select([b])
 
         # img must be in natural units, i.e. not in dB!
@@ -293,7 +320,20 @@ def refined_lee(image):
 
 
 @decorators.carry_metadata
-def gamma_map(img, window=7, enl=5):
+def gamma_map(img, window=7, enl=4.9):
+    """Gamma Map speckle filtering algorithm. 
+    Algorithm adapted from https://groups.google.com/g/google-earth-engine-developers/c/a9W0Nlrhoq0/m/tnGMC45jAgAJ.
+
+    args:
+        img (ee.Image): Earth engine image object. Expects that imagery is a SAR image
+        window (int, optional): moving window size to apply filter (i.e. a value of 7 == 7x7 window). default = 7
+        enl (float, optional): equivalent number of looks (enl) per pixel from a SAR scan.
+            See https://sentinel.esa.int/web/sentinel/user-guides/sentinel-1-sar/resolutions/level-1-ground-range-detected.
+            default = 4.9
+
+    returns:
+        ee.Image: filtered SAR image using the Gamma Map algorithm
+    """
 
     bandNames = img.bandNames()
     # Square kernel, window should be odd (typically 3, 5 or 7)
@@ -351,24 +391,45 @@ def gamma_map(img, window=7, enl=5):
     # Compose a 3 band image with the mean filtered "pure speckle", the "low textured" filtered and the unfiltered portions
     return result
 
+
 @decorators.carry_metadata
-def p_median(img,window=5):
+def p_median(img, window=5):
+    """P-Median filter for smoothing imagery.
+    Calculates the average from the median along cross and diagnal pixels of a window
 
-    center_idx = (window-1) // 2
+    args:
+        img (ee.Image): Earth engine image object to filter
+        window (int, optional): moving window size to apply filter (i.e. a value of 5 == 5x5 window). default = 5
 
-    hv = [[1 if i == center_idx or j == center_idx else 0 for j in range(window)] for i in range(window)]
-    diag = [[1 if i == j or i == ((window-1)-j) else 0 for j in range(window)] for i in range(window)]
+    returns:
+        ee.Image: filtered image
+    """
+
+    if window % 2 == 0:
+        window += 1
+
+    center_idx = (window - 1) // 2
+
+    hv = [
+        [1 if i == center_idx or j == center_idx else 0 for j in range(window)]
+        for i in range(window)
+    ]
+    diag = [
+        [1 if i == j or i == ((window - 1) - j) else 0 for j in range(window)]
+        for i in range(window)
+    ]
 
     # method based on ???
     band_names = img.bandNames()
-    hv_weights =  ee.List(hv)
+    hv_weights = ee.List(hv)
     diag_weights = ee.List(diag)
-                         
-    hv_kernel = ee.Kernel.fixed(window,window,hv_weights)
-    diag_kernel = ee.Kernel.fixed(window,window,diag_weights)
-  
-    hv_median = img.reduceNeighborhood(ee.Reducer.median(),hv_kernel)
-  
-    diag_median = img.reduceNeighborhood(ee.Reducer.median(),diag_kernel) 
 
-    return ee.Image.cat([hv_median,diag_median]).reduce("mean").rename(band_names)
+    hv_kernel = ee.Kernel.fixed(window, window, hv_weights)
+    diag_kernel = ee.Kernel.fixed(window, window, diag_weights)
+
+    hv_median = img.reduceNeighborhood(ee.Reducer.median(), hv_kernel)
+
+    diag_median = img.reduceNeighborhood(ee.Reducer.median(), diag_kernel)
+
+    return ee.Image.cat([hv_median, diag_median]).reduce("mean").rename(band_names)
+
