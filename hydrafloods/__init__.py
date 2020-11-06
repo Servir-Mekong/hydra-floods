@@ -1,7 +1,7 @@
-from hydrafloods import fetch
-from hydrafloods import geeutils
-from hydrafloods import datasets
-from hydrafloods import fusion
-from hydrafloods import *
+from hydrafloods.datasets import *
+from hydrafloods.geeutils import *
+from hydrafloods.thresholding import *
+from hydrafloods.filtering import *
+# from hydrafloods import *
 
-__version__ = "0.1.19"
+__version__ = "0.2.0"
