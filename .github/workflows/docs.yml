@@ -13,5 +13,5 @@ jobs:
           python-version: 3.6
       - run: pip install mkdocs-material
       - run: pip install mkdocstrings
-      - run: pip install hydrafloods >= 0.2
+      - run: pip install hydrafloods
       - run: mkdocs gh-deploy --force
