@@ -3,11 +3,20 @@ nav:
     - Overview: index.md
     - Installation: installation.md
     - Getting Started: getting-started.md
-    - Datasets: datasets.md
+    - Using the Dataset class: using-datasets.md
     - Algorithms: algorithms.md
-    - Applications: applications.md
+    - Workflow Example: workflow-example.md
     - Command Line Interface: cli.md
-    - API Reference: api.md
+    - API Reference: 
+        - datasets module: datasets.md
+        - decorators module: decorators.md
+        - geeutils module: geeutils.md
+        - fetch module: fetch.md
+        - filtering module: filtering.md
+        - ml module: ml.md
+        - thresholding module: thresholding.md
+        - timeseries module: timeseries.md
+        - utils module: utils.md
 theme: 
     name: material
     logo: 'img/hydrafloods_logo.png'
@@ -17,3 +26,6 @@ extra_css:
 markdown_extensions:
     - markdown.extensions.codehilite:
         guess_lang: false
+plugins:
+    - search
+    - mkdocstrings

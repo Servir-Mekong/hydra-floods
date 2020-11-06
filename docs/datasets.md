@@ -1,7 +1,37 @@
-# Datasets
 
-## Dataset structure
+<!-- # datasets module -->
 
-## Working with Datasets
+::: hydrafloods.datasets.Dataset
+    rendering:
+      show_root_heading: true
+      show_source: true
 
-## Writing your own dataset class
+::: hydrafloods.datasets.Sentinel1
+    rendering:
+      show_root_heading: true
+      show_source: true
+
+::: hydrafloods.datasets.Sentinel2
+    rendering:
+      show_root_heading: true
+      show_source: true
+
+::: hydrafloods.datasets.Landsat8
+    rendering:
+      show_root_heading: true
+      show_source: true
+
+::: hydrafloods.datasets.Landsat7
+    rendering:
+      show_root_heading: true
+      show_source: true     
+
+::: hydrafloods.datasets.Viirs
+    rendering:
+      show_root_heading: true
+      show_source: true      
+
+::: hydrafloods.datasets.Modis
+    rendering:
+      show_root_heading: true
+      show_source: true                  
