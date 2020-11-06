@@ -9,12 +9,23 @@ from hydrafloods import decorators
 
 # helper function to convert qa bit image to flag
 def extract_bits(image, start, end=None, new_name=None):
-    newame = new_name if new_name is not None else f'{start}Bits'
+    """Function to conver qa bits to binary flag image
+
+    args:
+        image (ee.Image): qa image to extract bit from
+        start (int): starting bit for flag
+        end (int | None, optional): ending bit for flag, if None then will only use start bit. default = None
+        new_name (str | None, optional): output name of resulting image, if None name will be {start}Bits. default = None
+
+    returns:
+        ee.Image: image with extract bits
+    """
+
+    newname = new_name if new_name is not None else f"{start}Bits"
 
     if (start == end) or (end is None):
-        #perform a bit shift with bitwiseAnd
-        return image.select([0],[new_name])\
-            .bitwiseAnd(1<<start)
+        # perform a bit shift with bitwiseAnd
+        return image.select([0], [newname]).bitwiseAnd(1 << start)
     else:
         # Compute the bits we need to extract.
         pattern = 0
@@ -23,21 +34,19 @@ def extract_bits(image, start, end=None, new_name=None):
 
         # Return a single band image of the extracted QA bits, giving the band
         # a new name.
-        return image.select([0], [new_name])\
-            .bitwiseAnd(pattern)\
-            .rightShift(start)
+        return image.select([0], [newname]).bitwiseAnd(pattern).rightShift(start)
 
 
 def get_geoms(img):
+    """Helper function to get geometry from image
+
+    args:
+        img (ee.Image): image to get geometry from
+    
+    returns:
+        ee.Geometry: geometry of image
+    """
     return img.geometry()
-
-
-def get_tile_layer_url(ee_image_object):
-    map_id = ee.Image(ee_image_object).getMapId()
-    tile_url_template = (
-        "https://earthengine.googleapis.com/map/{mapid}/{{z}}/{{x}}/{{y}}?token={token}"
-    )
-    return tile_url_template.format(**map_id)
 
 
 def export_image(
@@ -49,12 +58,26 @@ def export_image(
     crs="EPSG:4326",
     pyramiding=None,
 ):
+    """Function to wrap image export with EE Python API
+
+    args:
+        image (ee.Image): image to export
+        region (ee.Geometry): region to export image
+        asset_id (str): asset ID to export image to
+        description (str | None, optional): description to identify image export/
+            if None then description will be random string. default = None
+        scale (int, optional): resolution in meters to export image to. default = 1000
+        crs (str, optional): epsg code to export image to. default = "EPSG:4326"
+        pyramiding (dict | None, optional): dictionary defining band pyramiding scheme.
+            if None then "mean" will be used as default for all bands. default = None
+
+    """
     if (description == None) or (type(description) != str):
         description = "".join(
             random.SystemRandom().choice(string.ascii_letters) for _ in range(8)
         ).lower()
     # get serializable geometry for export
-    export_region = region.bounds(maxError=1).getInfo()["coordinates"]
+    export_region = region.bounds(maxError=10).getInfo()["coordinates"]
 
     if pyramiding is None:
         pyramiding = {".default": "mean"}
@@ -76,55 +99,35 @@ def export_image(
     return
 
 
-def export_table(
-    table,
-    region,
-    assetId,
-    description=None,
-    scale=1000,
-    crs="EPSG:4326",
-    pyramiding=None,
-):
-    if (description == None) or (type(description) != str):
-        description = "".join(
-            random.SystemRandom().choice(string.ascii_letters) for _ in range(8)
-        ).lower()
-    # get serializable geometry for export
-    exportRegion = region.bounds(maxError=1).getInfo()["coordinates"]
-
-    if pyramiding is None:
-        pyramiding = {".default": "mean"}
-
-    # set export process
-    export = ee.batch.Export.image.toAsset(
-        image,
-        description=description,
-        assetId=assetId,
-        scale=scale,
-        region=exportRegion,
-        maxPixels=1e13,
-        crs=crs,
-        pyramidingPolicy=pyramiding,
-    )
-    # start export process
-    export.start()
-
-    return
-
-
 def batch_export(
     collection,
     collection_asset,
-    bucket=None,
     region=None,
     prefix=None,
     suffix=None,
     scale=1000,
     crs="EPSG:4326",
-    metadata=None,
     pyramiding=None,
+    metadata=None,
     verbose=False,
 ):
+    """Function to export each image in a collection
+    Wraps `export_image` will set YYYYMMdd formatted time in file name
+
+    args:
+        collection (ee.ImageCollection): image collection to export
+        collection_asset (str): image collection asset ID to export to
+        region (ee.Geometry): region to export image
+        prefix (str): prefix string to add before time info in name
+        suffix (str): suffix string to add after time info in name
+        scale (int, optional): resolution in meters to export image to. default = 1000
+        crs (str, optional): epsg code to export image to. default = "EPSG:4326"
+        pyramiding (dict | None, optional): dictionary defining band pyramiding scheme.
+            if None then "mean" will be used as default for all bands. default = None
+        metadata (dict | None, optional):
+        verbose (bool, optional):
+
+    """
     if type(collection) is not ee.imagecollection.ImageCollection:
         try:
             collection = getattr(collection, "collection")
@@ -178,92 +181,238 @@ def batch_export(
 
 
 @decorators.carry_metadata
-def rescale_bands(img):
-    def _individual_band(b):
-        b = ee.String(b)
-        minKey = b.cat("_min")
-        maxKey = b.cat("_max")
-        return img.select(b).unitScale(
-            ee.Number(minMax.get(minKey)), ee.Number(minMax.get(maxKey))
-        )
-
-    bandNames = img.bandNames()
-    geom = img.geometry()
-
-    minMax = img.reduceRegion(
-        reducer=ee.Reducer.minMax(), geometry=geom, scale=90, bestEffort=True
-    )
-
-    rescaled = bandNames.map(_individual_band)
-    bandSequence = ee.List.sequence(0, bandNames.length().subtract(1))
-
-    return ee.ImageCollection(rescaled).toBands().select(bandSequence, bandNames)
-
-
-@decorators.carry_metadata
 def power_to_db(img):
+    """Function to convert SAR units from power to dB
+
+    args:
+        img (ee.Image): SAR power image to convert to dB
+
+    returns:
+        ee.Image: dB SAR image
+    """
     return ee.Image(10).multiply(img.log10())
 
 
 @decorators.carry_metadata
 def db_to_power(img):
+    """Function to convert SAR units from dB to power
+
+    args:
+        img (ee.Image): SAR dB image to convert to power
+
+    returns:
+        ee.Image: power SAR image
+    """
     return ee.Image(10).pow(img.divide(10))
 
 
 @decorators.carry_metadata
-def add_indices(img):
-    ndvi = img.normalizedDifference(["nir", "red"]).rename("ndvi")
-    mndwi = img.normalizedDifference(["green", "swir1"]).rename("mndwi")
-    # nwi = img.expression(
-    #     "((b-(n+s+w))/(b+(n+s+w))*100)",
-    #     {
-    #         "b": img.select("blue"),
-    #         "n": img.select("nir"),
-    #         "s": img.select("swir1"),
-    #         "w": img.select("swir2"),
-    #     },
-    # ).rename("nwi")
-    # aewinsh = img.expression(
-    #     "4.0 * (g-s) - ((0.25*n) + (2.75*w))",
-    #     {
-    #         "g": img.select("green"),
-    #         "s": img.select("swir1"),
-    #         "n": img.select("nir"),
-    #         "w": img.select("swir2"),
-    #     },
-    # ).rename("aewinsh")
-    # aewish = img.expression(
-    #     "b+2.5*g-1.5*(n+s)-0.25*w",
-    #     {
-    #         "b": img.select("blue"),
-    #         "g": img.select("green"),
-    #         "n": img.select("nir"),
-    #         "s": img.select("swir1"),
-    #         "w": img.select("swir2"),
-    #     },
-    # ).rename("aewish")
-    # tcwet = img.expression(
-    #     "0.1509*b + 0.1973*g + 0.3279*r + 0.3406*n - 0.7112*s - 0.4572*w",
-    #     {
-    #         "b": img.select("blue"),
-    #         "g": img.select("green"),
-    #         "r": img.select("red"),
-    #         "n": img.select("nir"),
-    #         "s": img.select("swir1"),
-    #         "w": img.select("swir2"),
-    #     },
-    # ).rename("tcwet")
+def ndvi(img):
+    """Function to calculate Normalized Difference Vegetation Index (NDVI).
+    Expects image has "nir" and "red" bands.
 
-    out_img = ee.Image.cat([img,ndvi, mndwi])#, nwi, aewinsh, aewish, tcwet])
+    args:
+        img (ee.Image): image to calculate NDVI
 
-    return out_img
+    returns:
+        ee.Image: NDVI image
+    """
+    return img.normalizedDifference(["nir", "red"]).rename("ndvi")
 
-def tile_region(region,grid_size=0.1,intersect_geom=None,contain_geom=None):
+
+@decorators.carry_metadata
+def evi(img):
+    """Function to calculate Enhanced Vegetation Index (EVI).
+    Expects image has "blue", "red", and "nir" bands.
+
+    args:
+        img (ee.Image): image to calculate EVI
+
+    returns:
+        ee.Image: EVI image
+    """
+    return img.expression(
+        "2.5*(nir-red)/(nir+6.0*red-7.5*blue+1)",
+        {
+            "blue": img.select("blue"),
+            "red": img.select("red"),
+            "nir": img.select("nir"),
+        },
+    ).rename("evi")
+
+
+@decorators.carry_metadata
+def mndwi(img):
+    """Function to calculate modified Difference Water Index (MNDWI).
+    Expects image has "green" and "swir1" bands.
+
+    args:
+        img (ee.Image): image to calculate MNDWI
+
+    returns:
+        ee.Image: MNDWI image
+    """
+    return img.normalizedDifference(["green", "swir1"]).rename("mndwi")
+
+
+@decorators.carry_metadata
+def nwi(img):
+    """Function to calculate new water index (NWI).
+    Expects image has "blue", "nir", "swir1" and "swir2" bands.
+
+    args:
+        img (ee.Image): image to calculate NWI
+
+    returns:
+        ee.Image: NWI image
+    """
+    return img.expression(
+        "((b-(n+s+w))/(b+(n+s+w))*100)",
+        {
+            "b": img.select("blue"),
+            "n": img.select("nir"),
+            "s": img.select("swir1"),
+            "w": img.select("swir2"),
+        },
+    ).rename("nwi")
+
+
+@decorators.carry_metadata
+def gwi(img):
+    """Function to calculate general water index (GWI)
+    Expects image has "green", "red", "nir", and "swir1" bands.
+
+    args:
+        img (ee.Image): image to calculate GWI
+
+    returns:
+        ee.Image: GWI image
+    """
+    return img.expression(
+        "(g+r)-(n+s)",
+        {
+            "g": img.select("green"),
+            "r": img.select("red"),
+            "n": img.select("nir"),
+            "s": img.select("swir1"),
+        },
+    ).rename("gwi")
+
+
+@decorators.carry_metadata
+def aewinsh(img):
+    """Function to calculate automated water extraction index (AEWI) no shadow
+    Expects image has "green", "nir", "swir1" and "swir2" bands.
+
+    args:
+        img (ee.Image): image to calculate AEWInsh
+
+    returns:
+        ee.Image:  AEWInsh image
+    """
+    return img.expression(
+        "4.0 * (g-s) - ((0.25*n) + (2.75*w))",
+        {
+            "g": img.select("green"),
+            "s": img.select("swir1"),
+            "n": img.select("nir"),
+            "w": img.select("swir2"),
+        },
+    ).rename("aewinsh")
+
+
+@decorators.carry_metadata
+def aewish(img):
+    """Function to calculate automated water extraction index (AEWI) shadow
+    Expects image has "blue", "green", "nir", "swir1" and "swir2" bands.
+
+    args:
+        img (ee.Image): image to calculate AEWIsh
+
+    returns:
+        ee.Image:  AEWIsh image
+    """
+    return img.expression(
+        "b+2.5*g-1.5*(n+s)-0.25*w",
+        {
+            "b": img.select("blue"),
+            "g": img.select("green"),
+            "n": img.select("nir"),
+            "s": img.select("swir1"),
+            "w": img.select("swir2"),
+        },
+    ).rename("aewish")
+
+
+@decorators.carry_metadata
+def lswi(img):
+    """Function to calculate land surface water index (LSWI).
+    Expects image has "nir" and "swir1" bands.
+
+    args:
+        img (ee.Image): image to calculate LSWI
+
+    returns:
+        ee.Image: LSWI image
+    """
+    return img.expression(
+        "(nir-swir)/(nir+swir)", {"nir": img.select("nir"), "swir": img.select("swir1")}
+    ).rename("lswi")
+
+
+@decorators.carry_metadata
+def add_indices(img, indices=["mndwi"]):
+    """Function to calculate multiple band indices and add to image as bands
+
+    args:
+        img (ee.Image): image to calculate indices from
+        indices (list[str], optional): list of strings of index names to calculate. 
+            can use any named index function in geeutils. default = ["ndvi"]
+
+    returns:
+        ee.Image: image object with added indices
+    """
+    # create a dict to look up index functions
+
+    local_funcs = globals()
+
+    # loop through each index and append to images list
+    cat_bands = [img]
+    for index in indices:
+
+        cat_bands.append(local_funcs[index](img))
+
+    # return images as concatenated bands
+    return ee.Image.cat(cat_bands)
+
+
+def tile_region(region, grid_size=0.1, intersect_geom=None, contain_geom=None):
+    """Function to create a feature collection of tiles covering a region
+
+    args:
+        region (ee.Geometry): region to create tile grid over
+        grid_size (float, optional): resolution in decimal degrees to create tiles. default = 0.1
+        intersect_geom (ee.Geometry | None, optional): geometry object to filter tiles that intesect with 
+            geometry useful for filtering tiles that are created over oceans with no data. default = None
+        contain_geom (ee.Geometry | None, optional): geometry object to filter tiles that are contained within 
+            geometry useful for filtering tiles that are only in an area. default = None
+
+    returns:
+        ee.FeatureCollection: collection of feature tiles at a given grid_size over a region
+    """
+    # nesting grid construction along y and then x coordinates
     def constuctGrid(i):
+        """Closure function to contruct grid
+        """
+
         def contructXGrid(j):
             j = ee.Number(j)
             box = ee.Feature(
-                ee.Geometry.Rectangle([j, i, j.add(grid_size), i.add(grid_size)],"epsg:4326",geodesic=False)
+                ee.Geometry.Rectangle(
+                    [j, i, j.add(grid_size), i.add(grid_size)],
+                    "epsg:4326",
+                    geodesic=False,
+                )
             )
             if contain_geom is not None:
                 out = ee.Algorithms.If(
@@ -284,7 +433,9 @@ def tile_region(region,grid_size=0.1,intersect_geom=None,contain_geom=None):
         return out
 
     if (contain_geom is not None) and (intersect_geom is not None):
-        raise ValueError("contains and intersection keywords are mutually exclusive, please define only one")
+        raise ValueError(
+            "contains and intersection keywords are mutually exclusive, please define only one"
+        )
 
     bounds = region.bounds(maxError=100)
     coords = ee.List(bounds.coordinates().get(0))
@@ -307,3 +458,23 @@ def tile_region(region,grid_size=0.1,intersect_geom=None,contain_geom=None):
     )
 
     return grid
+
+
+def country_bbox(country_name, max_error=100):
+    """Function to get a bounding box geometry of a country
+
+    args:
+        country_name (str): US-recognized country name
+        max_error (float,optional): The maximum amount of error tolerated when 
+            performing any necessary reprojection. default = 100
+
+    returns:
+        ee.Geometry: geometry of country bounding box    
+    """
+
+    all_countries = ee.FeatureCollection("USDOS/LSIB_SIMPLE/2017")
+    return (
+        all_countries.filter(ee.Filter.eq("country_na", country_name))
+        .geometry(max_error)
+        .bounds(max_error)
+    )
