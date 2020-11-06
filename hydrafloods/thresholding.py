@@ -9,7 +9,7 @@ def bmax_otsu(
     img,
     band=None,
     region=None,
-    reduction_scale=90,
+    scale=90,
     initial_threshold=0,
     invert=False,
     grid_size=0.1,
@@ -19,18 +19,42 @@ def bmax_otsu(
     max_buckets=255,
     min_bucket_width=0.001,
     max_raw=1e6,
-    return_threshold=False
+    return_threshold=False,
 ):
+    """Implementation of the B-Max Otsu thresholding algorithm.
+    Detailed explanation of algorithm can be found at https://doi.org/10.3390/rs12152469
+
+    args:
+        img (ee.Image): input image to thresholding algorithm
+        band (str | None,optional): band name to use for thresholding, if set to `None` will use first band in image. default = None
+        region (ee.Geometry | None, optional): region to determine threshold, if set to `None` will use img.geometry(). default = None
+        scale (int, optional): scale at which to perform reduction operations, setting higher will prevent OOM errors. default = 90
+        initial_threshold (float, optional): initial estimate of water/no-water for estimating the probabilities of classes in segment. default = 0
+        invert (bool, optional): boolean switch to determine if to threshold greater than (True) or less than (False). default = False
+        grid_size (float, optional): size in decimal degrees to tile image/region to check for bimodality. default = 0.1
+        bmax_threshold (float, optional): value 0-1 to determine if a value of bmax is bimodal or not. default = 0.75
+        max_boxes (int, optional): maximum number of tiles/boxes to use when determining threshold. default = 100
+        seed (int, optional): random number generator seed for randomly selected max_boxes. default = 7
+        max_buckets (int, optional): The maximum number of buckets to use when building a histogram; will be rounded up to a power of 2. default = 255
+        min_bucket_width (float, optional): The minimum histogram bucket width to allow any power of 2. default = 0.001
+        max_raw (int, optional): The number of values to accumulate before building the initial histogram. default = 1e6
+        return_threshold (bool, optional): boolean switch, if set to true then function will return threshold number, else thresholded image. default = False
+
+    returns:
+        ee.Image: thresholded image based (if return_threshold==False) or threshold value (if return_threshold==True) based on the threshold determined by the algorithm
+    """
 
     def calcBmax(feature):
-        segment = img  # .clip(feature)
+        """Closure function to calculate Bmax for each feature covering image
+        """
+        segment = img 
         initial = segment.lt(initial_threshold)
         p1 = ee.Number(
             initial.reduceRegion(
                 reducer=ee.Reducer.mean(),
                 geometry=feature.geometry(),
                 bestEffort=True,
-                scale=reduction_scale,
+                scale=scale,
             ).get(histBand)
         )
         p1 = ee.Number(ee.Algorithms.If(p1, p1, 0.99))
@@ -46,7 +70,7 @@ def bmax_otsu(
             reducer=ee.Reducer.mean(),
             geometry=feature.geometry(),
             bestEffort=True,
-            scale=reduction_scale,
+            scale=scale,
         )
 
         m1 = ee.Number(mReduced.get("m1"))
@@ -61,7 +85,7 @@ def bmax_otsu(
                 reducer=ee.Reducer.variance(),
                 geometry=feature.geometry(),
                 bestEffort=True,
-                scale=reduction_scale,
+                scale=scale,
             ).get(histBand)
         )
         sigmat = ee.Number(ee.Algorithms.If(sigmat, sigmat, 2))
@@ -79,7 +103,7 @@ def bmax_otsu(
     if region is None:
         region = img.geometry()
 
-    grid = geeutils.tile_region(region,intersect_geom=region,grid_size=0.1)
+    grid = geeutils.tile_region(region, intersect_geom=region, grid_size=0.1)
 
     bmaxes = (
         grid.map(calcBmax)
@@ -96,7 +120,7 @@ def bmax_otsu(
         .combine("mean", None, True)
         .combine("variance", None, True),
         selection,
-        reduction_scale,
+        scale,
         bestEffort=True,
         tileScale=16,
     )
@@ -113,24 +137,46 @@ def bmax_otsu(
 @decorators.carry_metadata
 def edge_otsu(
     img,
-    initial_threshold=0,
-    canny_threshold=0.05,  # threshold for canny edge detection
-    canny_sigma=0,  # sigma value for gaussian filter
-    canny_lt=0.05,  # lower threshold for canny detection
-    smoothing=100,  # amount of smoothing in meters
-    connected_pixels=200,  # maximum size of the neighborhood in pixels
-    edge_length=50,  # minimum length of edges from canny detection
-    edge_buffer=100,
     band=None,
     region=None,
-    reduction_scale=90,
+    scale=90,
+    initial_threshold=0,
     invert=False,
-    seed=7,
+    canny_threshold=0.05, 
+    canny_sigma=0, 
+    canny_lt=0.05,  
+    connected_pixels=200,  
+    edge_length=50, 
+    edge_buffer=100,
     max_buckets=255,
     min_bucket_width=0.001,
     max_raw=1e6,
-    return_threshold=False
+    return_threshold=False,
 ):
+    """Implementation of the Edge Otsu thresholding algorithm.
+    Detailed explanation of algorithm can be found at https://doi.org/10.3390/rs12152469
+
+    args:
+        img (ee.Image): input image to thresholding algorithm
+        band (str | None,optional): band name to use for thresholding, if set to `None` will use first band in image. default = None
+        region (ee.Geometry | None, optional): region to determine threshold, if set to `None` will use img.geometry(). default = None
+        scale (int, optional): scale at which to perform reduction operations, setting higher will prevent OOM errors. default = 90
+        initial_threshold (float, optional): initial estimate of water/no-water for estimating the edges. default = 0
+        invert (bool, optional): boolean switch to determine if to threshold greater than (True) or less than (False). default = False
+        canny_threshold (float, optional): threshold for canny edge detection. default = 0.05
+        canny_sigma (float, optional): sigma value for gaussian filter in canny edge detection. default = 0
+        canny_lt (float, optional): lower threshold for canny detection. default = 0.05
+        connected_pixels (int, optional): maximum size of the neighborhood in pixels to determine if connected. default = 200
+        edge_length (int, optional): minimum length of edges from canny detection to be considered edge. default = 50
+        edge_buffer (int, optional): number of pixels to buffer edges on a side for histogram sampling. default = 100
+        max_buckets (int, optional): The maximum number of buckets to use when building a histogram; will be rounded up to a power of 2. default = 255
+        min_bucket_width (float, optional): The minimum histogram bucket width to allow any power of 2. default = 0.001
+        max_raw (int, optional): The number of values to accumulate before building the initial histogram. default = 1e6
+        return_threshold (bool, optional): boolean switch, if set to true then function will return threshold number, else thresholded image. default = False
+
+    returns:
+        ee.Image: thresholded image based (if return_threshold==False) or threshold value (if return_threshold==True) based on the threshold determined by the algorithm
+    """
 
     if band is None:
         img = img.select([0])
@@ -162,7 +208,7 @@ def edge_otsu(
         .combine("mean", None, True)
         .combine("variance", None, True),
         region,
-        reduction_scale,
+        scale,
         bestEffort=True,
         tileScale=16,
     )
@@ -177,6 +223,15 @@ def edge_otsu(
 
 
 def otsu(histogram):
+    """Otsu's method threhsolding algorithm.
+    Computes single intensity threshold that separate histogram into two classes, foreground and background
+
+    args:
+        histogram (ee.Dictionary): computed object from ee.Reducer.histogram with keys "histogram" and "bucketMeans"
+
+    returns:
+        ee.Number: value of maximum inter-class intensity variance based on histogram
+    """
     counts = ee.Array(ee.Dictionary(histogram).get("histogram"))
     means = ee.Array(ee.Dictionary(histogram).get("bucketMeans"))
     size = means.length().get([0])
@@ -204,4 +259,53 @@ def otsu(histogram):
 
     bss = indices.map(bss_function)
     output = means.sort(bss).get([-1])
-    return output
+    return ee.Number(output)
+
+
+def kmeans_extent(img, hand, initial_threshold=0, region=None, band=None, scale=90):
+    """Water thresholding methodology using image values and HAND.
+    Method taken from https://doi.org/10.1016/j.rse.2020.111732
+
+    args:
+        img (ee.Image): input image to thresholding algorithm
+        hand (ee.Image): Height Above Nearest Drainage image used as axis in clustering
+        initial_threshold (float, optional): initial estimate of water/no-water for stratified sampling. default = 0
+        region (ee.Geometry | None, optional): region to sample values for KMeans clustering, if set to `None` will use img.geometry(). default = None
+        band (str | None,optional): band name to use for thresholding, if set to `None` will use first band in image. default = None
+        scale (int, optional): scale at which to perform reduction operations, setting higher will prevent OOM errors. default = 90
+
+    returns:
+        ee.Image: clustered image from KMeans clusterer. Classes assumed to be water/no-water
+
+    """
+    if region is None:
+        region = img.geometry()
+
+    if band is None:
+        img = img.select([0])
+        band = ee.String(img.bandNames().get(0))
+
+    else:
+        img = img.select(band)
+
+    hand_band = ee.String(hand.bandNames().get(0))
+
+    strata = img.gt(initial_threshold).rename("strata")
+
+    samples = ee.Image.cat([img, hand, strata]).stratifiedSample(
+        numPoints=50,
+        classBand="strata",
+        region=region,
+        scale=scale,
+        classValues=[0, 1],
+        classPoints=[500, 500],
+        tileScale=16,
+        seed=7,
+    )
+
+    clusterer = ee.Clusterer.wekaKMeans(2, 2).train(samples, [band, hand_band])
+
+    water = ee.Image.cat([img, hand.unmask(0)]).cluster(clusterer)
+
+    return water.rename("water").uint8()
+
