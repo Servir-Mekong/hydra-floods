@@ -94,9 +94,10 @@ class Dataset:
             try:
                 imgcollection = imgcollection.map(self.qa)
             except AttributeError:
-                raise AttributeError("qa() method is not defined...please define one or set `use_qa` to False")
-        
-        
+                raise AttributeError(
+                    "qa() method is not defined...please define one or set `use_qa` to False"
+                )
+
         self.collection = imgcollection
 
     def __repr__(self):
@@ -383,7 +384,9 @@ class Sentinel1(Dataset):
             use_qa (bool, optional): boolean to determine to use a private `self.qa()` function. default=True
             **kwargs (optional): addtional arbitrary keywords to pass to `Dataset`
         """
-        super(Sentinel1, self).__init__(*args, asset_id=asset_id, use_qa=use_qa, **kwargs)
+        super(Sentinel1, self).__init__(
+            *args, asset_id=asset_id, use_qa=use_qa, **kwargs
+        )
 
         self.collection = self.collection.filter(
             ee.Filter.listContains("transmitterReceiverPolarisation", "VH")
@@ -434,8 +437,9 @@ class Viirs(Dataset):
         self,
         *args,
         asset_id="NOAA/VIIRS/001/VNP09GA",
-        apply_band_adjustment=False,
         use_qa=True,
+        apply_band_adjustment=False,
+        rescale=False,
         **kwargs,
     ):
         """Initialize VIIRS Dataset class
@@ -443,8 +447,9 @@ class Viirs(Dataset):
         args:
             *args: positional arguments to pass to `Dataset` (i.e. `region`, `start_time`, `end_time`)
             asset_id (str): asset id of the VIIRS earth engine collection. default="NOAA/VIIRS/001/VNP09GA"
-            apply_band_adjustment (bool, optional): boolean switch to apply linear band pass equation to convert values to Landsat8. default=False
             use_qa (bool, optional): boolean to determine to use a private `self.qa()` function. default=True
+            apply_band_adjustment (bool, optional): boolean switch to apply linear band pass equation to convert values to Landsat8. default=False
+            rescale (bool, optional): boolean switch to convert units from scaled int (0-10000) to float (0-1). If false values will be scaled int. default = False
             **kwargs (optional): addtional arbitrary keywords to pass to `Dataset`
         """
         super(Viirs, self).__init__(*args, asset_id=asset_id, use_qa=use_qa, **kwargs)
@@ -465,6 +470,9 @@ class Viirs(Dataset):
                 [0.016728, 0.030814, 0.023199, 0.036571, 0.026923, 0.021615]
             ).multiply(10000)
             coll = coll.map(self.band_pass_adjustment)
+
+        if rescale:
+            coll = coll.map(geeutils.rescale)
 
         self.collection = coll
 
@@ -488,7 +496,9 @@ class Viirs(Dataset):
 
 
 class Modis(Dataset):
-    def __init__(self, *args, asset_id="MODIS/006/MOD09GA", use_qa=True, **kwargs):
+    def __init__(
+        self, *args, asset_id="MODIS/006/MOD09GA", use_qa=True, rescale=False, **kwargs
+    ):
         """Initialize MODIS Dataset class
         Can be used with MOD09GA and MYD09GA
 
@@ -496,6 +506,7 @@ class Modis(Dataset):
             *args: positional arguments to pass to `Dataset` (i.e. `region`, `start_time`, `end_time`)
             asset_id (str): asset id of the MODIS earth engine collection. default="MODIS/006/MOD09GA"
             use_qa (bool, optional): boolean to determine to use a private `self.qa()` function. default=True
+            rescale (bool, optional): boolean switch to convert units from scaled int (0-10000) to float (0-1). If false values will be scaled int. default = False
             **kwargs (optional): addtional arbitrary keywords to pass to `Dataset`
         """
         super(Modis, self).__init__(*args, asset_id=asset_id, use_qa=use_qa, **kwargs)
@@ -503,6 +514,9 @@ class Modis(Dataset):
         self.collection = self.collection.select(
             self.BANDREMAP.get("modis"), self.BANDREMAP.get("new")
         )
+
+        if rescale:
+            self.collection = self.collection.map(geeutils.rescale)
 
         self.clip_to_region(inplace=True)
 
@@ -522,7 +536,14 @@ class Modis(Dataset):
 
 
 class Landsat8(Dataset):
-    def __init__(self, *args, asset_id="LANDSAT/LC08/C01/T1_SR", use_qa=True, **kwargs):
+    def __init__(
+        self,
+        *args,
+        asset_id="LANDSAT/LC08/C01/T1_SR",
+        use_qa=True,
+        rescale=False,
+        **kwargs,
+    ):
         """Initialize Landsat8 Dataset class
         Can theoretically be useds with any Landsat surface reflectance collection (e.g. LANDSAT/LT05/C01/T1_SR)
 
@@ -530,13 +551,19 @@ class Landsat8(Dataset):
             *args: positional arguments to pass to `Dataset` (i.e. `region`, `start_time`, `end_time`)
             asset_id (str): asset id of the Landsat earth engine collection. default="LANDSAT/LC08/C01/T1_SR"
             use_qa (bool, optional): boolean to determine to use a private `self.qa()` function. default=True
+            rescale (bool, optional): boolean switch to convert units from scaled int (0-10000) to float (0-1). If false values will be scaled int. default = False
             **kwargs (optional): addtional arbitrary keywords to pass to `Dataset`
         """
-        super(Landsat8, self).__init__(*args, asset_id=asset_id, use_qa=use_qa, **kwargs)
+        super(Landsat8, self).__init__(
+            *args, asset_id=asset_id, use_qa=use_qa, **kwargs
+        )
 
         self.collection = self.collection.select(
             self.BANDREMAP.get("landsat8"), self.BANDREMAP.get("new")
         )
+
+        if rescale:
+            self.collection = self.collection.map(geeutils.rescale)
 
         return
 
@@ -557,8 +584,9 @@ class Landsat7(Dataset):
         self,
         *args,
         asset_id="LANDSAT/LE07/C01/T1_SR",
-        apply_band_adjustment=False,
         use_qa=True,
+        apply_band_adjustment=False,
+        rescale=False,
         **kwargs,
     ):
         """Initialize Landsat7 Dataset class
@@ -567,11 +595,14 @@ class Landsat7(Dataset):
         args:
             *args: positional arguments to pass to `Dataset` (i.e. `region`, `start_time`, `end_time`)
             asset_id (str): asset id of the Landsat7 earth engine collection. default="LANDSAT/LE07/C01/T1_SR"
-            apply_band_adjustment (bool, optional): boolean switch to apply linear band pass equation to convert values to Landsat8. default=False
             use_qa (bool, optional): boolean to determine to use a private `self.qa()` function. default=True
+            apply_band_adjustment (bool, optional): boolean switch to apply linear band pass equation to convert values to Landsat8. default=False
+            rescale (bool, optional): boolean switch to convert units from scaled int (0-10000) to float (0-1). If false values will be scaled int. default = False
             **kwargs (optional): addtional arbitrary keywords to pass to `Dataset`
         """
-        super(Landsat7, self).__init__(*args, asset_id=asset_id, use_qa=use_qa, **kwargs)
+        super(Landsat7, self).__init__(
+            *args, asset_id=asset_id, use_qa=use_qa, **kwargs
+        )
 
         coll = self.collection.select(
             self.BANDREMAP.get("landsat7"), self.BANDREMAP.get("new")
@@ -588,6 +619,9 @@ class Landsat7(Dataset):
                 [0.0003, 0.0088, 0.0061, 0.0412, 0.0254, 0.0172]
             ).multiply(10000)
             coll = coll.map(self.band_pass_adjustment)
+
+        if rescale:
+            coll = coll.map(geeutils.rescale)
 
         self.collection = coll
 
@@ -610,8 +644,9 @@ class Sentinel2(Dataset):
         self,
         *args,
         asset_id="COPERNICUS/S2_SR",
-        apply_band_adjustment=False,
         use_qa=True,
+        apply_band_adjustment=False,
+        rescale=False,
         **kwargs,
     ):
         """Initialize Sentinel2 Dataset class
@@ -619,11 +654,14 @@ class Sentinel2(Dataset):
         args:
             *args: positional arguments to pass to `Dataset` (i.e. `region`, `start_time`, `end_time`)
             asset_id (str): asset id of the Sentinel2 earth engine collection. default="COPERNICUS/S2_SR"
-            apply_band_adjustment (bool, optional): boolean switch to apply linear band pass equation to convert values to Landsat8. default=False
             use_qa (bool, optional): boolean to determine to use a private `self.qa()` function. default=True
+            apply_band_adjustment (bool, optional): boolean switch to apply linear band pass equation to convert values to Landsat8. default=False
+            rescale (bool, optional): boolean switch to convert units from scaled int (0-10000) to float (0-1). If false values will be scaled int. default = False
             **kwargs (optional): addtional arbitrary keywords to pass to `Dataset`
         """
-        super(Sentinel2, self).__init__(*args, asset_id=asset_id, use_qa=use_qa, **kwargs)
+        super(Sentinel2, self).__init__(
+            *args, asset_id=asset_id, use_qa=use_qa, **kwargs
+        )
 
         coll = self.collection.select(
             self.BANDREMAP.get("sen2"), self.BANDREMAP.get("new")
@@ -640,6 +678,9 @@ class Sentinel2(Dataset):
                 [-0.00411, -0.00093, 0.00094, -0.0001, -0.0015, -0.0012]
             ).multiply(10000)
             coll = coll.map(self.band_pass_adjustment)
+
+        if rescale:
+            coll = coll.map(geeutils.rescale)
 
         self.collection = coll
 

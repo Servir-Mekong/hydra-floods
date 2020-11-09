@@ -179,6 +179,9 @@ def batch_export(
 
     return
 
+@decorators.carry_metadata
+def rescale(img,scale=0.0001,offset=0):
+    return img.multiply(scale).add(offset)
 
 @decorators.carry_metadata
 def power_to_db(img):
