@@ -377,14 +377,14 @@ def lswi(img):
 
 @decorators.carry_metadata
 def rfi(img):
-    """Function to calculate land surface water index (LSWI).
-    Expects image has "nir" and "swir1" bands.
+    """Function to calculate SAR RFI index.
+    Expects image has "VV" and "VH" bands.
 
     args:
-        img (ee.Image): image to calculate LSWI
+        img (ee.Image): image to calculate RFI
 
     returns:
-        ee.Image: LSWI image
+        ee.Image: RFI image
     """
     return img.expression(
         "(4*VH)/(VV+VH)", {"VV": img.select("VV"), "VH": img.select("VH")}
@@ -393,16 +393,43 @@ def rfi(img):
 
 @decorators.carry_metadata
 def vv_vh_ratio(img):
+    """Function to calculate ratio between VV and VH bands.
+    Expects image has "VV" and "VH" bands.
+
+    args:
+        img (ee.Image): image to calculate ration
+
+    returns:
+        ee.Image: ratio image name 'ratio'
+    """
     return img.expression(
         "(VV/VH)", {"VV": img.select("VV"), "VH": img.select("VH")}
     ).rename("ratio")
 
 @decorators.carry_metadata
 def vv_vh_abs_sum(img):
+    """Function to calculate the absolute value of the sum of VV and VH bands.
+    Expects image has "VV" and "VH" bands.
+
+    args:
+        img (ee.Image): image to apply calculation
+
+    returns:
+        ee.Image: image name 'vv_vh_abs_sum'
+    """
     return img.select("VV").add(img.select("VH")).abs().rename("vv_vh_abs_sum")
 
 @decorators.carry_metadata
 def ndpi(img):
+    """Function to calculate nomalized difference polarization index (NDPI).
+    Expects image has "VV" and "VH" bands.
+
+    args:
+        img (ee.Image): image to calculate NDPI
+
+    returns:
+        ee.Image: NPDI image
+    """
     return img.expression(
         "(VV-VH)/(VV+VH)", {"VV": img.select("VV"), "VH": img.select("VH")}
     ).rename("ndpi") 

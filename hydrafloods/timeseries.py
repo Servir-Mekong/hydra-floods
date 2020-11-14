@@ -365,6 +365,14 @@ def temporal_smoothing(collection,reducer,days=10):
     return collection.map(_smooth)
 
 def temporal_iqr_filter(collection):
+    """Function to filter values outside of IQR in time on image collection
+    
+    args:
+        collection (ee.ImageCollection): image collection to apply filter in time on
+
+    returns:
+        ee.ImageCollection: image collection with values filtered 
+    """
     @decorators.carry_metadata
     def _filter(img):
         """Closure function to apply smoothing in between window

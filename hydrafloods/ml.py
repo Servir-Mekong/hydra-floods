@@ -281,7 +281,7 @@ def calc_image_pca(image, region=None, scale=90, max_pixels=1e9):
         max_pixels (int, optional): maximum number of pixels to use in reduction operations. default = 1e9
 
     returns:
-        ee.Image: principal components scaled by 
+        ee.Image: principal components scaled by eigen values
     """
 
     bandNames = image.bandNames()
@@ -345,6 +345,19 @@ def calc_image_pca(image, region=None, scale=90, max_pixels=1e9):
 
 
 def calc_feature_pca(fc,names,is_centered=False):
+    """Principal component decomposition of features
+
+    args:
+        fc (ee.FeatureCollection): feature collection to caluculate PCA from
+        names (list[str]): property names to uses as features in PCA
+        is_centered (bool, optional): boolean to identify if features need to be centered before PCA. 
+            False means apply centering. default = False
+
+    returns:
+        ee.Array: eigen vectors of PCA
+        ee.Array: eigen values of PCA
+        ee.Array: mean values of each feature
+    """
     array_ = ee.Array(ee.List(fc.makeArray(names).aggregate_array("array").map(lambda x: ee.Array(x).toList())))
     center = array_.reduce(ee.Reducer.mean(),[0]).repeat(0,array_.length().get([0]))
     if not is_centered:
@@ -366,6 +379,18 @@ def calc_feature_pca(fc,names,is_centered=False):
 
 
 def apply_feature_pca(fc, eigen_vecs, names, center=None):
+    """Applies Principal component decomposition on features
+
+    args:
+        fc (ee.FeatureCollection): feature collection to caluculate pricipal components from
+        eigen_vecs (ee.Array): eigen vectors of PCA to transform features
+        names (list[str]): property names to uses as features in PCA
+        center (ee.Array | None, optional): Array of mean values to center features. If None then no
+            centering is applies. default = None
+
+    returns:
+        ee.FeatureCollection: feacture collection with new properties within each feature being the principal components
+    """
     array_ = ee.Array(ee.List(fc.makeArray(names).aggregate_array("array").map(lambda x: ee.Array(x).toList())))
     if center is not None:
         centered = array_.subtract(ee.Array.cat([center],1).transpose().repeat(0,array_.length().get([0])))
@@ -390,6 +415,18 @@ def apply_feature_pca(fc, eigen_vecs, names, center=None):
     return fc_pca
     
 def apply_image_pca(img, eigen_vecs, names, center=None):
+    """Applies Principal component decomposition on image
+
+    args:
+        img (ee.Image): image to caluculate pricipal components from
+        eigen_vecs (ee.Array): eigen vectors of PCA to transform features
+        names (list[str]): band names to uses as features in PCA
+        center (ee.Array | None, optional): Array of mean values to center features. If None then no
+            centering is applies. default = None
+
+    returns:
+        ee.Image: principal components calculated from image
+    """
     if center is not None:
         arrayImage = img.select(names).subtract(
             ee.Image.constant(center.toList())
