@@ -728,7 +728,7 @@ class Sentinel2(Dataset):
         # Remove small cloud-shadow patches and dilate remaining pixels by BUFFER input.
         # 20 m scale is for speed, and assumes clouds don't require 10 m precision.
         is_cld_shdw = (is_cld_shdw.focal_min(2).focal_max(BUFFER*2/20)
-            .reproject(**{'crs': CRS, 'scale': 40})
+            .reproject(**{'crs': CRS, 'scale': 60})
             .rename('cloudmask'))
 
         # Subset reflectance bands and update their masks, return the result.
