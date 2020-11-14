@@ -400,17 +400,20 @@ class Sentinel1(Dataset):
         """
         angles = img.select("angle")
         return img.updateMask(angles.lt(45).And(angles.gt(30)))
+        
 
-    def add_fusion_features(self, inplace=False):
-        """Method to add additional features to SAR imagery for data fusion.
-        Will calculate Normalized Difference Polorization Index (VV-VH)/(VV+VH),
-        VV/VH ratio, and categorical orbit bands
+    def add_orbit_band(self, inplace=False):
+        """Method to add orbit band from S1 image metadata
+        Useful for determining if pixels are from ascending or descending orbits
+
+        args:
+            inplace (bool, optional): define whether to return another dataset object or update inplace. default = False
 
         returns:
             Dataset | None: returns dataset.collection where imagery has the added bands
         """
 
-        def _add_fusion_features(img):
+        def _add_features(img):
             """Closure function to add features as bands to the images
             """
             bounds = img.geometry(100)
@@ -418,18 +421,12 @@ class Sentinel1(Dataset):
             orbit_band = ee.Algorithms.If(
                 orbit.compareTo("DESCENDING"), ee.Image(1), ee.Image(0)
             )
-            vv = img.select("VV")
-            vh = img.select("VH")
-            ratio = vv.divide(vh).rename("ratio")
-            ndpi = vv.subtract(vh).divide(vv.add(vh)).rename("ndpi")
-
-            extraFeatures = ee.Image.cat(
-                [ee.Image(orbit_band).rename("orbit"), ratio, ndpi]
-            )
+        
+            extraFeatures = ee.Image(orbit_band).rename("orbit")
 
             return img.addBands(extraFeatures.clip(bounds))
 
-        return self.apply_func(_add_fusion_features, inplace=inplace)
+        return self.apply_func(_add_features, inplace=inplace)
 
 
 class Viirs(Dataset):
@@ -690,6 +687,49 @@ class Sentinel2(Dataset):
     def qa(self, img):
         """Custom QA masking method for Sentinel2 surface reflectance dataset
         """
-        sclImg = img.select("SCL")  # Scene Classification Map
-        mask = sclImg.gte(4).And(sclImg.lte(6))
-        return img.updateMask(mask)
+        CLD_PRB_THRESH = 40
+        NIR_DRK_THRESH = 0.175 * 1e4
+        CLD_PRJ_DIST = 3
+        BUFFER = 100
+        CRS = img.select(0).projection()
+
+        # Get s2cloudless image, subset the probability band.
+        cld_prb = ee.Image(
+            ee.ImageCollection('COPERNICUS/S2_CLOUD_PROBABILITY')
+            .filter(ee.Filter.eq('system:index',img.get('system:index')))
+            .first()
+        ).select('probability')
+
+        # Condition s2cloudless by the probability threshold value.
+        is_cloud = cld_prb.gt(CLD_PRB_THRESH)
+
+        # Identify water pixels from the SCL band, invert.
+        not_water = img.select('SCL').neq(6)
+
+        # Identify dark NIR pixels that are not water (potential cloud shadow pixels).
+        dark_pixels = img.select('B8').lt(NIR_DRK_THRESH).multiply(not_water)
+
+        # Determine the direction to project cloud shadow from clouds (assumes UTM projection).
+        shadow_azimuth = ee.Number(90).subtract(ee.Number(img.get('MEAN_SOLAR_AZIMUTH_ANGLE')));
+
+        # Project shadows from clouds for the distance specified by the CLD_PRJ_DIST input.
+        cld_proj = (is_cloud.directionalDistanceTransform(shadow_azimuth, CLD_PRJ_DIST*10)
+            .reproject(**{'crs': CRS, 'scale': 120})
+            .select('distance')
+            .mask()
+        )
+
+        # Identify the intersection of dark pixels with cloud shadow projection.
+        is_shadow = cld_proj.multiply(dark_pixels)
+
+        # Combine cloud and shadow mask, set cloud and shadow as value 1, else 0.
+        is_cld_shdw = is_cloud.add(is_shadow).gt(0)
+
+        # Remove small cloud-shadow patches and dilate remaining pixels by BUFFER input.
+        # 20 m scale is for speed, and assumes clouds don't require 10 m precision.
+        is_cld_shdw = (is_cld_shdw.focal_min(2).focal_max(BUFFER*2/20)
+            .reproject(**{'crs': CRS, 'scale': 40})
+            .rename('cloudmask'))
+
+        # Subset reflectance bands and update their masks, return the result.
+        return img.select('B.*').updateMask(is_cld_shdw.Not())
