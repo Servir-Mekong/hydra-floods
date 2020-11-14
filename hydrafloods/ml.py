@@ -270,7 +270,7 @@ def random_forest_ee(
     return classifier, scaling_dict
 
 
-def pca(image, region=None, scale=90, max_pixels=1e9):
+def calc_image_pca(image, region=None, scale=90, max_pixels=1e9):
     """Principal component analysis decomposition of image bands
 
     args:
@@ -342,3 +342,70 @@ def pca(image, region=None, scale=90, max_pixels=1e9):
         # Normalize the PCs by their SDs.
         .divide(sdImage)
     )
+
+
+def calc_feature_pca(fc,names,is_centered=False):
+    array_ = ee.Array(ee.List(fc.makeArray(names).aggregate_array("array").map(lambda x: ee.Array(x).toList())))
+    center = array_.reduce(ee.Reducer.mean(),[0]).repeat(0,array_.length().get([0]))
+    if not is_centered:
+        centered = array_.subtract(center)
+    else:
+        centered = array_
+    
+    # Compute the covariance of the bands within the region.
+    covar = centered.transpose().matrixMultiply(centered)
+    # Perform an eigen analysis and slice apart the values and vectors.
+    eigens = covar.eigen()
+    
+    out_band_names = [f"pc_{i}" for i in range(len(names))]
+    
+    eigen_vecs = eigens.slice(1, 1)
+    eigen_vals = eigens.slice(1, 0, 1)
+    
+    return eigen_vecs, eigen_vals, center.slice(0,0,1).project([1])
+
+
+def apply_feature_pca(fc, eigen_vecs, names, center=None):
+    array_ = ee.Array(ee.List(fc.makeArray(names).aggregate_array("array").map(lambda x: ee.Array(x).toList())))
+    if center is not None:
+        centered = array_.subtract(ee.Array.cat([center],1).transpose().repeat(0,array_.length().get([0])))
+    else:
+        centered = array_
+    
+    pca_arr = eigen_vecs.matrixMultiply(centered.transpose()).transpose()
+    
+    out_band_names = [f"pc_{i}" for i in range(len(names))]
+    
+    fc_size = fc.size()
+    fc_list = fc.toList(fc_size)
+    fc_pca = ee.FeatureCollection(
+        ee.List.sequence(0,fc_size.subtract(1)).map(
+            lambda x: ee.Feature(fc_list.get(x)).set(ee.Dictionary.fromLists(
+                out_band_names, pca_arr.slice(0,x,ee.Number(x).add(1),1).project([1]).toList()
+                )
+            )
+        )
+    )
+    
+    return fc_pca
+    
+def apply_image_pca(img, eigen_vecs, names, center=None):
+    if center is not None:
+        arrayImage = img.select(names).subtract(
+            ee.Image.constant(center.toList())
+        ).toArray().toArray(1)
+    else:
+        arrayImage = img.select(names).toArray().toArray(1)
+    
+    principalComponents = ee.Image(eigen_vecs).matrixMultiply(arrayImage)
+    
+    out_band_names = [f"pc_{i}" for i in range(len(names))]
+    
+    pcaImage = (principalComponents
+        # Throw out an an unneeded dimension, [[]] -> [].
+        .arrayProject([0])
+        # Make the one band array image a multi-band image, [] -> image.
+        .arrayFlatten([out_band_names])
+    )
+    
+    return pcaImage
