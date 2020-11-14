@@ -262,9 +262,9 @@ def otsu(histogram):
     return ee.Number(output)
 
 
-def kmeans_extent(img, hand, initial_threshold=0, region=None, band=None, scale=90):
+def kmeans_extent(img, hand, initial_threshold=0, region=None, band=None, samples=500, seed=7, invert=False, scale=90):
     """Water thresholding methodology using image values and HAND.
-    Method taken from https://doi.org/10.1016/j.rse.2020.111732
+    Method from https://doi.org/10.1016/j.rse.2020.111732
 
     args:
         img (ee.Image): input image to thresholding algorithm
@@ -272,6 +272,10 @@ def kmeans_extent(img, hand, initial_threshold=0, region=None, band=None, scale=
         initial_threshold (float, optional): initial estimate of water/no-water for stratified sampling. default = 0
         region (ee.Geometry | None, optional): region to sample values for KMeans clustering, if set to `None` will use img.geometry(). default = None
         band (str | None,optional): band name to use for thresholding, if set to `None` will use first band in image. default = None
+        samples (int, optional): number of stratified samples to gather for clustering from the initial water/no-water map. default=500
+        seed (int, optional): random number generator seed for sampling. default = 7
+        invert (bool, optional): boolean switch to determine if class 1 is greater than initial_threshold then water (True),
+             or less than initial_water then water (False). default = False
         scale (int, optional): scale at which to perform reduction operations, setting higher will prevent OOM errors. default = 90
 
     returns:
@@ -290,22 +294,35 @@ def kmeans_extent(img, hand, initial_threshold=0, region=None, band=None, scale=
 
     hand_band = ee.String(hand.bandNames().get(0))
 
+    # convert invert to a number 0 or 1 for ee server-side 
+    invert = 1 if invert else 0
+
     strata = img.gt(initial_threshold).rename("strata")
 
     samples = ee.Image.cat([img, hand, strata]).stratifiedSample(
-        numPoints=50,
+        numPoints=samples,
         classBand="strata",
         region=region,
         scale=scale,
         classValues=[0, 1],
-        classPoints=[500, 500],
+        classPoints=[samples, samples],
         tileScale=16,
-        seed=7,
+        seed=seed,
     )
 
     clusterer = ee.Clusterer.wekaKMeans(2, 2).train(samples, [band, hand_band])
 
+    test = samples.cluster(clusterer,"classes")
+    classes = ee.Array(test.aggregate_array("classes"))
+    vals = ee.Array(test.aggregate_array(band)).mask(classes)
+
+    class_mean = ee.Number(vals.reduce(ee.Reducer.mean(),[0]).get([0]))
+
     water = ee.Image.cat([img, hand.unmask(0)]).cluster(clusterer)
+
+    do_inversion = class_mean.gt(initial_threshold).And(ee.Number(invert))
+
+    water = ee.Image(ee.Algorithms.If(do_inversion, water.Not(), water))
 
     return water.rename("water").uint8()
 
