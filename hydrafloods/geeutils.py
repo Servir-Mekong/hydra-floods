@@ -179,9 +179,21 @@ def batch_export(
 
     return
 
+
 @decorators.carry_metadata
-def rescale(img,scale=0.0001,offset=0):
+def rescale(img, scale=0.0001, offset=0):
+    """Function to linearly rescale units using user defined scale and offset
+
+    args:
+        img (ee.Image): image to rescale
+        scale (float,optional): scale value (i.e. slope of linear equation). default = 0.0001
+        offset (float, optional): offset value (i.e. y-intercept). default = 0
+
+    returns:
+        ee.Image: rescaled image
+    """
     return img.multiply(scale).add(offset)
+
 
 @decorators.carry_metadata
 def power_to_db(img):
@@ -270,7 +282,7 @@ def nwi(img):
         ee.Image: NWI image
     """
     return img.expression(
-        "((b-(n+s+w))/(b+(n+s+w))*100)",
+        "((b-(n+s+w))/(b+(n+s+w)))",
         {
             "b": img.select("blue"),
             "n": img.select("nir"),
@@ -364,25 +376,58 @@ def lswi(img):
 
 
 @decorators.carry_metadata
+def rfi(img):
+    """Function to calculate land surface water index (LSWI).
+    Expects image has "nir" and "swir1" bands.
+
+    args:
+        img (ee.Image): image to calculate LSWI
+
+    returns:
+        ee.Image: LSWI image
+    """
+    return img.expression(
+        "(4*VH)/(VV+VH)", {"VV": img.select("VV"), "VH": img.select("VH")}
+    ).rename("rfi")
+
+
+@decorators.carry_metadata
+def vv_vh_ratio(img):
+    return img.expression(
+        "(VV/VH)", {"VV": img.select("VV"), "VH": img.select("VH")}
+    ).rename("ratio")
+
+@decorators.carry_metadata
+def vv_vh_abs_sum(img):
+    return img.select("VV").add(img.select("VH")).abs().rename("vv_vh_abs_sum")
+
+@decorators.carry_metadata
+def ndpi(img):
+    return img.expression(
+        "(VV-VH)/(VV+VH)", {"VV": img.select("VV"), "VH": img.select("VH")}
+    ).rename("ndpi") 
+
+
+@decorators.carry_metadata
 def add_indices(img, indices=["mndwi"]):
     """Function to calculate multiple band indices and add to image as bands
 
     args:
         img (ee.Image): image to calculate indices from
         indices (list[str], optional): list of strings of index names to calculate. 
-            can use any named index function in geeutils. default = ["ndvi"]
+            can use any named index function in geeutils. default = ["mndwi"]
 
     returns:
         ee.Image: image object with added indices
     """
     # create a dict to look up index functions
-
+    # need to watch out for namespacing...
+    # does globals grab variable names too???
     local_funcs = globals()
 
     # loop through each index and append to images list
     cat_bands = [img]
     for index in indices:
-
         cat_bands.append(local_funcs[index](img))
 
     # return images as concatenated bands
@@ -412,26 +457,26 @@ def tile_region(region, grid_size=0.1, intersect_geom=None, contain_geom=None):
             j = ee.Number(j)
             box = ee.Feature(
                 ee.Geometry.Rectangle(
-                    [j, i, j.add(grid_size), i.add(grid_size)],
+                    [j, i, j.add(grid_res), i.add(grid_res)],
                     "epsg:4326",
                     geodesic=False,
                 )
             )
             if contain_geom is not None:
                 out = ee.Algorithms.If(
-                    region.contains(contain_geom, maxError=10), box, None
+                    box.contains(contain_geom, maxError=10), box, None
                 )
             elif intersect_geom is not None:
                 out = ee.Algorithms.If(
-                    region.intersects(intersect_geom, maxError=10), box, None
+                    box.intersects(intersect_geom, maxError=10), box, None
                 )
             else:
                 out = box
             return ee.Feature(out)
 
         i = ee.Number(i)
-        out = ee.List.sequence(west, east.subtract(grid_size), grid_size).map(
-            contructXGrid
+        out = ee.List.sequence(west, east.subtract(grid_res), grid_res).map(
+            contructXGrid,True
         )
         return out
 
@@ -440,7 +485,7 @@ def tile_region(region, grid_size=0.1, intersect_geom=None, contain_geom=None):
             "contains and intersection keywords are mutually exclusive, please define only one"
         )
 
-    bounds = region.bounds(maxError=100)
+    bounds = region.bounds(maxError=10)
     coords = ee.List(bounds.coordinates().get(0))
     grid_res = ee.Number(grid_size)
 
@@ -449,8 +494,16 @@ def tile_region(region, grid_size=0.1, intersect_geom=None, contain_geom=None):
     east = ee.Number(ee.List(coords.get(2)).get(0))
     north = ee.Number(ee.List(coords.get(2)).get(1))
 
-    west = west.subtract(west.mod(grid_res))
-    south = south.subtract(south.mod(grid_res))
+    west = ee.Algorithms.If(
+        west.lt(0),
+        west.subtract(west.mod(grid_res).add(grid_res)),
+        west.subtract(west.mod(grid_res))
+    )
+    south = ee.Algorithms.If(
+        south.lt(0),
+        south.subtract(south.mod(grid_res).add(grid_res)),
+        south.subtract(south.mod(grid_res))
+    )
     east = east.add(grid_res.subtract(east.mod(grid_res)))
     north = north.add(grid_res.subtract(north.mod(grid_res)))
 
