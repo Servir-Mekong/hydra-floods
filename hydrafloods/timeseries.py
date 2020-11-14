@@ -363,3 +363,18 @@ def temporal_smoothing(collection,reducer,days=10):
         return collection.filterDate(t_start,t_stop).reduce(reducer,8).rename(band_names)
 
     return collection.map(_smooth)
+
+def temporal_iqr_filter(collection):
+    @decorators.carry_metadata
+    def _filter(img):
+        """Closure function to apply smoothing in between window
+        """
+        mask = img.gt(low_bounds).And(img.lt(upper_bounds))
+        return img.updateMask(mask)
+
+    percentiles = collection.reduce(ee.Reducer.percentile([25,75]))
+    iqr = percentiles.select(1).subtract(percentiles.select(0))
+    low_bounds = percentiles.select(0).subtract(iqr.multiply(1.5))
+    upper_bounds = percentiles.select(1).add(iqr.multiply(1.5))
+
+    return collection.map(_filter)
