@@ -8,6 +8,7 @@ nav:
     - Workflow Example: workflow-example.md
     - Command Line Interface: cli.md
     - API Reference: 
+        - corrections module: corrections.md
         - datasets module: datasets.md
         - decorators module: decorators.md
         - geeutils module: geeutils.md
