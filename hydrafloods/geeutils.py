@@ -376,6 +376,28 @@ def lswi(img):
 
 
 @decorators.carry_metadata
+def wri(img):
+    """Function to calculate water ratio index (WRI).
+    Expects image has "green", "red", "nir" and "swir1" bands.
+
+    args:
+        img (ee.Image): image to calculate WRI
+
+    returns:
+        ee.Image: WRI image
+    """
+    return img.expression(
+        "(green+red)/(nir+swir)",
+        {
+            "green": img.select("green"),
+            "red": img.select("red"),
+            "nir": img.select("nir"),
+            "swir": img.select("swir1"),
+        },
+    ).rename("wri")
+
+
+@decorators.carry_metadata
 def rfi(img):
     """Function to calculate SAR RFI index.
     Expects image has "VV" and "VH" bands.
@@ -406,6 +428,7 @@ def vv_vh_ratio(img):
         "(VV/VH)", {"VV": img.select("VV"), "VH": img.select("VH")}
     ).rename("ratio")
 
+
 @decorators.carry_metadata
 def vv_vh_abs_sum(img):
     """Function to calculate the absolute value of the sum of VV and VH bands.
@@ -418,6 +441,7 @@ def vv_vh_abs_sum(img):
         ee.Image: image name 'vv_vh_abs_sum'
     """
     return img.select("VV").add(img.select("VH")).abs().rename("vv_vh_abs_sum")
+
 
 @decorators.carry_metadata
 def ndpi(img):
@@ -432,7 +456,7 @@ def ndpi(img):
     """
     return img.expression(
         "(VV-VH)/(VV+VH)", {"VV": img.select("VV"), "VH": img.select("VH")}
-    ).rename("ndpi") 
+    ).rename("ndpi")
 
 
 @decorators.carry_metadata
@@ -503,7 +527,7 @@ def tile_region(region, grid_size=0.1, intersect_geom=None, contain_geom=None):
 
         i = ee.Number(i)
         out = ee.List.sequence(west, east.subtract(grid_res), grid_res).map(
-            contructXGrid,True
+            contructXGrid, True
         )
         return out
 
@@ -524,12 +548,12 @@ def tile_region(region, grid_size=0.1, intersect_geom=None, contain_geom=None):
     west = ee.Algorithms.If(
         west.lt(0),
         west.subtract(west.mod(grid_res).add(grid_res)),
-        west.subtract(west.mod(grid_res))
+        west.subtract(west.mod(grid_res)),
     )
     south = ee.Algorithms.If(
         south.lt(0),
         south.subtract(south.mod(grid_res).add(grid_res)),
-        south.subtract(south.mod(grid_res))
+        south.subtract(south.mod(grid_res)),
     )
     east = east.add(grid_res.subtract(east.mod(grid_res)))
     north = north.add(grid_res.subtract(north.mod(grid_res)))
