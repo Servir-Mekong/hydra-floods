@@ -369,7 +369,7 @@ def gamma_map(img, window=7, enl=4.9):
     )
     f = b.multiply(mean).add(d.sqrt()).divide(alpha.multiply(2.0))
 
-    caster = ee.Dictionary.fromLists(bandNames, ee.List.repeat("float", 3))
+    caster = ee.Dictionary.fromLists(bandNames, ee.List.repeat("float", bandNames.length()))
     img1 = (
         geeutils.power_to_db(mean.updateMask(ci.lte(cu))).rename(bandNames).cast(caster)
     )
