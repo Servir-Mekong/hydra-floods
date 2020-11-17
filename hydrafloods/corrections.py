@@ -4,8 +4,8 @@ from hydrafloods import geeutils
 
 
 def slope_correction(image, elevation, model="volume", buffer=0, scale=1000):
-    """This function applies the slope correction on a Sentinel-1 image
-    Function based on https://doi.org/10.3390/rs12111867
+    """This function applies the slope correction on a Sentinel-1 image.
+    Function based on https://doi.org/10.3390/rs12111867.
     Adapted from https://github.com/ESA-PhiLab/radiometric-slope-correction/blob/master/notebooks/1%20-%20Generate%20Data.ipynb
        
     args:
@@ -13,9 +13,9 @@ def slope_correction(image, elevation, model="volume", buffer=0, scale=1000):
         elevation (ee.Image): Input DEM to calculate slope corrections from
         model (str, optional): physical reference model to be applied. Options are 'volume' or 'surface'.
             default = 'volume'
-        buffer (int): buffer in meters for layover/shadow mask
-        scale (int): reduction scale to process satellite heading compared to ground. Increasing will reduce
-            chance of OOM errors but reduce local scale accuracy. Default = 1000
+        buffer (int, optional): buffer in meters for layover/shadow mask. If zero then no buffer will be applied. default = 0
+        scale (int, optional): reduction scale to process satellite heading compared to ground. Increasing will reduce
+            chance of OOM errors but reduce local scale correction accuracy. default = 1000
         
     returns:
         ee.Image: flattened SAR imagery with look and local incidence angle bands
