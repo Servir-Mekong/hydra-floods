@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name='hydrafloods',
-    version='0.2.8',
+    version='0.2.9',
     description='HYDrologic Remote sensing Analysis for Floods',
     long_description=long_description,
     long_description_content_type="text/markdown",
