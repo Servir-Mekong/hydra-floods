@@ -162,8 +162,8 @@ vis_params =  {
 # get an image from original collection and flattened for visualization
 # note here we are getting a mosaic (i.e. first valid pixel) to prevent
 # visualization artifacts from ascending vs descending paths in dataset
-original_img = s1.collection.mosaic().select("VV")
-corrected_img = s1_flat.collection.mosaic().select(["VV_flat"],["VV"])
+original_img = s1.collection.mosaic()
+corrected_img = s1_flat.collection.mosaic()
 
 print(original_img.getThumbURL(vis_params))
 print(corrected_img.getThumbURL(vis_params))
