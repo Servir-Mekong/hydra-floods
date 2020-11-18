@@ -187,7 +187,7 @@ def slope_correction(image, elevation, model="volume", buffer=0, scale=1000):
     # apply model for Gamm0_f
     gamma0_flat = gamma0.divide(scf)
     gamma0_flatDB = geeutils.power_to_db(gamma0_flat).select(
-        ["VV", "VH"], ["VV_flat", "VH_flat"]
+        ["VV", "VH"]
     )
 
     # calculate layover and shadow mask
