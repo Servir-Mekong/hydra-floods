@@ -208,6 +208,10 @@ def illumination_correction(img, elevation, model="rotation", scale=90, sensor="
         
     returns:
         ee.Image: illumination corrected optical imagery
+
+    raises:
+        NotImplementedError: when keyword sensor is not of 'LC8' or 'S2'
+        NotImplementedError: when keyword model is not of 'cosine', 'c', 'scsc', or 'rotation'
     """
     def _get_band_coeffs(band_name):
         """Closure function to find illumination correction fit across the different bands
@@ -235,9 +239,6 @@ def illumination_correction(img, elevation, model="rotation", scale=90, sensor="
         slope = ee.Array(fit.get("coefficients")).get([0, 0])
         intercept = ee.Array(fit.get("coefficients")).get([1, 0])
 
-        # Calculate C parameter C= a/b
-        # C = int.divide(slo)
-
         return ee.List([slope,intercept])
 
     if sensor.lower() == "lc8":
@@ -247,7 +248,7 @@ def illumination_correction(img, elevation, model="rotation", scale=90, sensor="
         sz_property = "MEAN_SOLAR_ZENITH_ANGLE"
         sa_property = "MEAN_SOLAR_AZIMUTH_ANGLE"
     else:
-        raise NotImplementedError()
+        raise NotImplementedError(f"Selected sensor, {sensor}, is not available. Options are 'LC8' or 'S2' (lower case also accepted)")
 
     # value convert angle to radians
     to_radians = ee.Number((math.pi / 180))
@@ -316,7 +317,7 @@ def illumination_correction(img, elevation, model="rotation", scale=90, sensor="
 
     else:
         raise NotImplementedError(
-            f"defined model: {model}, has not been implemented. Options are 'cosine', 'c', 'scs+c', or 'rotation'"
+            f"Defined model, {model}, has not been implemented. Options are 'cosine', 'c', 'scsc', or 'rotation'"
         )
 
     return newimg
