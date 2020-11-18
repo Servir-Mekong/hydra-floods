@@ -20,6 +20,9 @@ def slope_correction(image, elevation, model="volume", buffer=0, scale=1000):
         
     returns:
         ee.Image: slope corrected SAR imagery with look and local incidence angle bands
+
+    raises:
+        NotImplementedError: when keyword model is not of 'volume' or 'surface'
     """
 
     def _volumetric_model_SCF(theta_iRad, alpha_rRad):
@@ -173,8 +176,13 @@ def slope_correction(image, elevation, model="volume", buffer=0, scale=1000):
     if model == "volume":
         scf = _volumetric_model_SCF(theta_iRad, alpha_rRad)
 
-    if model == "surface":
+    elif model == "surface":
         scf = _surface_model_SCF(theta_iRad, alpha_rRad, alpha_azRad)
+
+    else:
+        raise NotImplementedError(
+            f"Defined model, {model}, has not been implemented. Options are 'volume' or 'surface'"
+        )
 
     # apply model for Gamm0_f
     gamma0_flat = gamma0.divide(scf)
