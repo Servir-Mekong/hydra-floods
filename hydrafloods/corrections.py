@@ -10,16 +10,16 @@ def slope_correction(image, elevation, model="volume", buffer=0, scale=1000):
     Adapted from https:# github.com/ESA-PhiLab/radiometric-slope-correction/blob/master/notebooks/1%20-%20Generate%20Data.ipynb
        
     args:
-        image (ee.Image): Sentinel-1 to perform terrain flattening
+        image (ee.Image): Sentinel-1 to perform correction on
         elevation (ee.Image): Input DEM to calculate slope corrections from
         model (str, optional): physical reference model to be applied. Options are 'volume' or 'surface'.
-            default = 'volume'
+            default = volume
         buffer (int, optional): buffer in meters for layover/shadow mask. If zero then no buffer will be applied. default = 0
         scale (int, optional): reduction scale to process satellite heading compared to ground. Increasing will reduce
             chance of OOM errors but reduce local scale correction accuracy. default = 1000
         
     returns:
-        ee.Image: flattened SAR imagery with look and local incidence angle bands
+        ee.Image: slope corrected SAR imagery with look and local incidence angle bands
     """
 
     def _volumetric_model_SCF(theta_iRad, alpha_rRad):
@@ -197,16 +197,17 @@ def illumination_correction(img, elevation, model="rotation", scale=90, sensor="
     """This function applies a terrain correction to optical imagery based on solar and viewing geometry
      
     args:
-        image (ee.Image): Optical image to perform terrain flattening
-        elevation (ee.Image): Input DEM to calculate slope corrections from
-        model (str, optional): correction model to be applied. Options are 'rotation' or 'scs+c'.
-            default = 'scs+c'
+        image (ee.Image): Optical image to perform correction on
+        elevation (ee.Image): Input DEM to calculate illumination corrections from
+        model (str, optional): correction model to be applied. Options are 'cosine', 'c', 'scsc', or 'rotation'
+            default = rotation
         scale (int, optional): reduction scale to process satellite heading compared to ground. Increasing will reduce
             chance of OOM errors but reduce local scale correction accuracy. default = 90
-        sensor (str, optional): name of sensor to correct. 
+        sensor (str, optional): name of sensor to correct. options are 'LC8' or 'S2' (lower case also accepted).
+            default = LC8
         
     returns:
-        ee.Image: terrain flattened optical imagery
+        ee.Image: illumination corrected optical imagery
     """
     def _get_band_coeffs(band_name):
         """Closure function to find illumination correction fit across the different bands
@@ -300,7 +301,7 @@ def illumination_correction(img, elevation, model="rotation", scale=90, sensor="
             {"img": img, "cosz": z.cos(), "cosi": cosi, "C": C},
         )
 
-    elif model == "scs+c":
+    elif model == "scsc":
         newimg = img.expression(
             "((img * ((cosp * cosz) + C))/(cosi + C))",
             {"img": img, "cosp": p.cos(), "cosz": z.cos(), "cosi": cosi, "C": C},
