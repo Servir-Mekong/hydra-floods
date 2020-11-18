@@ -60,14 +60,14 @@ pip install simplecmr hydrafloods
 
 You will now also need to install the [Google Cloud SDK](https://cloud.google.com/sdk/docs/downloads-versioned-archives) to interface to with the Google cloud. Follow the directions provided by the website.
 
-Once all of the source code and dependencies has been installed successfully, you will need to [authenticate the cloud APIs](https://servir-mekong.github.io/hydra-floods/installation#cloud-authentication)
+Once all of the source code and dependencies have been installed successfully, you will need to [authenticate the cloud APIs](https://servir-mekong.github.io/hydra-floods/installation#cloud-authentication)
 
 ## Cloud authentication
 
 After successful installation of the package and dependencies we will need to authenticate our local installation (or within the Docker Container) to interface with Google Cloud and Earth Engine. Running these command will prompt you through the authentication process using a web browser.
 
 <span style="color:red">
-**Warning:** *Make sure you initialize the `earthengine` and `gcloud` APIs with Google accounts that have permissions to read and write to Google Cloud Storage and Google Earth Engine assets.*
+**Warning:** *Make sure you initialize the `earthengine` and `gcloud` APIs with Google accounts that have permissions to read and write to Google Cloud Storage and Google Earth Engine assets.* These do not have to be the same account (although this helps) they simply need to be authenticated to read and write Earth Engine and Cloud Storage assets.
 </span>
 
 To intialize the Google Cloud environment and authenticate using your credentials, run the following command:

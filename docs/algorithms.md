@@ -30,7 +30,7 @@ end_time = "2019-09-20"
 s1 = hf.Sentinel1(region,start_time,end_time)
 ```
 
-After we have our SAR collection, we can apply the functions on the image using the `apply_func()` method. Since these algorithms take an image as input and ouput and image we can easily apply on all imagery. Watch out though...some of these algorithms (specfically `refined_lee()`) are extremely memory intensive and you will likely get a "User memory limit exceeded" error when applying over many (25+) images. In this case, it will work since we are only applying over a few images.
+After we have our SAR collection, we can apply the functions on the image using the `apply_func()` method. Since these algorithms take an image as input and output and image we can easily apply on all imagery. Watch out though...some of these algorithms (specifically `refined_lee()`) are extremely memory intensive and you will likely get a "User memory limit exceeded" error when applying over many (25+) images. In this case, it will work since we are only applying over a few images.
 
 ```python
 
@@ -73,11 +73,11 @@ print(refined_lee_filtered.getThumbURL(viz_params))
 
  Original                        | Lee Sigma filter
 :-------------------------------:|:-------------------------------:
-![](img/algos_sar_original.jpeg) | ![](img/algos_sar_leesigma.jpeg) 
+![](img/algos_sar_original.png) | ![](img/algos_sar_leesigma.png) 
 
  Gamma Map filter                | Refined Lee filter
 :-------------------------------:|:-------------------------------:
-![](img/algos_sar_gammamap.jpeg) | ![](img/algos_sar_refinedlee.png) 
+![](img/algos_sar_gammamap.png) | ![](img/algos_sar_refinedlee.png) 
 
 For more information on the filtering algorithms and the specific arguments, please see the [filtering module](/filtering/) API reference
 
@@ -86,8 +86,94 @@ For more information on the filtering algorithms and the specific arguments, ple
 
 Another common workflow when working with satelitte imagery is to correct for atmospheric and terrain effects. Most of the data collection on Earth Engine have atmospherically corrected data so `hydrafloods` has focused on correction algorithms for terrain (both SAR and optical) correction and a bidirectional reflectance distribution function (BRDF) correction for optical imagery.
 
-🚧 Under construction 🚧
+To begin, let's import the corrections module. For demonstrational purposes, we will focus on terrain flattening in Nepal, one of the most mountainous regions in the world!
 
+```python
+from hydrafloods import corrections
+
+region = hf.country_bbox("Nepal")
+start_time = "2020-10-29"
+end_time = "2020-11-08"
+```
+
+### Applying illumination correction on optical imagery
+
+```python
+# get landsat 8 dataset
+ls = hf.Landsat8(region,start_time,end_time)
+
+# define the elevation dataset we want to calculate corrections from
+elv = ee.Image("JAXA/ALOS/AW3D30/V2_2").select("AVE_DSM")
+
+# apply the illumination correction on every image in dataset
+ls_flat = ls.apply_func(corrections.illumination_correction,elevation=elv)
+
+# region to visualize
+view_box = ee.Geometry.Rectangle([86.1177,27.1325,86.8716, 27.5984])
+
+vis_params =  {
+    "bands":"swir2,nir,green",
+    "min":50,
+    "max":5500,
+    "gamma":1.5,
+    "region":view_box,
+    "dimensions":1500
+}
+
+# reduce the datasets to an image for visualization
+original_img = ls.collection.median()
+corrected_img = ls_flat.collection.median()
+
+print(original_img.getThumbURL(vis_params))
+print(corrected_img.getThumbURL(vis_params))
+
+```
+
+Original Landsat 8 Image                    | Corrected Landsat 8 Image 
+:------------------------------------------:|:---------------------------------------:
+![](img/algos_optical_terrain_original.png) | ![](img/algos_optical_terrain_flat.png)
+
+We can see that the algorithm corrected the poorly illuminated areas. This function is valid for both the Landsat8 and Sentinel2 imagery. More information on the illumination correction algorithm and the input arguments can be found at the [corrections module](/corrections/#hydrafloods.corrections.illumination_correction) page
+
+
+### Applying slope correction on SAR imagery
+
+SAR imagery is fairly sensitive to terrain effects due to the signal being geometric in nature. Here we apply a slope correction algorithm developed by [Vollrath et al., 2020](https://doi.org/10.3390/rs12111867) to reduce the 
+
+```python
+# get a Sentinel 1 dataset
+s1 = hf.Sentinel1(region,start_time,end_time)
+
+# apply slope correction on every image in collection
+s1_flat = s1.apply_func(corrections.slope_correction,elevation=elv,buffer=30)
+
+# inspect the resulting bands VV and VH will have '_flat' appended
+print(s1_flat.collection.first().bandNames().getInfo())
+# should equal ['VV_flat', 'VH_flat', 'angle', 'local_inc_angle']
+
+vis_params =  {
+    "bands":"VV",
+    "min":-25,
+    "max":0,
+    "region":view_box,
+    "dimensions":1500
+}
+
+# get an image from original collection and flattened for visualization
+# note here we are getting a mosaic (i.e. first valid pixel) to prevent
+# visualization artifacts from ascending vs descending paths in dataset
+original_img = s1.collection.mosaic().select("VV")
+corrected_img = s1_flat.collection.mosaic().select(["VV_flat"],["VV"])
+
+print(original_img.getThumbURL(vis_params))
+print(corrected_img.getThumbURL(vis_params))
+```
+
+Original Sentinel 1 Image               | Corrected Sentinel 1 Image 
+:--------------------------------------:|:-----------------------------------:
+![](img/algos_sar_terrain_original.png) | ![](img/algos_sar_terrain_flat.png)
+
+We can see that the effects of terrain are mostly removed. Note: the slope correction algorithm calculates area of terrain shadow and layover (i.e. areas that cannot be corrected) and mask those area, hince some transparent areas.  More documentation regarding the slope correction algorithm and the input arguments can be found at the [corrections module](/corrections/#hydrafloods.corrections.slope_correction) page
 
 ## Generic Water Mapping Algorithms
 

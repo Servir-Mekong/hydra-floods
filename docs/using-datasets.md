@@ -52,7 +52,7 @@ print(isinstance(lc8.collection, ee.ImageCollection))
 
 ### Specialized Datasets
 
-`hydrafloods` has specialized datasets classes that extend a `hydrafloods.Dataset` class and are common image collections used in surface water mapping. These specialized datasets include a custom `qa()` method that gets called on initialization to mask poor quality pixels and custom methods that make harmonization easy. Furthermore, the optical sensor bands are automatically renamed to a common scheme so that they can be used together easily. Here is a list of the specialized datasets with links to information on methods:
+`hydrafloods` has specialized datasets classes that extend a `hydrafloods.Dataset` class and are common image collections used in surface water mapping. These specialized datasets include a custom `qa()` method based on quality assessment bands that gets called on initialization to mask poor quality pixels and custom methods that make harmonization easy. Furthermore, the optical sensor bands are automatically renamed to a common scheme so that they can be used together easily. Here is a list of the specialized datasets with links to information on methods:
 
 Really, one can think of the custom `qa()` method as a preprocessing step that you would like to happen on *all* images in the dataset so it is not just restricted to specific sensors as seen in a later section.
 
@@ -103,7 +103,7 @@ We can clearly see the image on the left has clouds and cloud shadows masked and
 
 ## Merging Datasets
 
-One of the simpilist ways to combine datasets is to merge. This takes the imagery in one collection and concatenates it with the original collection. We can use the [`merge()`](/datasets/#hydrafloods.datasets.Dataset.merge) method to accomplish this. Additioanlly, the `merge()` method automatically sorts the image collections in time so we can start using dense time series right away. Here is an example of merging Landat8 and Sentinel2 datasets together:
+One of the simpilest ways to combine datasets is to merge. This takes the imagery in one collection and concatenates it with the original collection. We can use the [`merge()`](/datasets/#hydrafloods.datasets.Dataset.merge) method to accomplish this. Additionally, the `merge()` method automatically sorts the image collections by date so we can start using dense time series right away. Here is an example of merging Landat8 and Sentinel2 datasets together:
 
 ```python
 lc8 = hf.Landsat8(region,start_time,end_time)
@@ -168,7 +168,7 @@ print(sar_thumb)
 
 ## Temporal aggregation
 
-A common workflow is merging data and make composites for individual dates that data is available. A good example of this is the MODIS sensor that is onboard the Terra and Aqua satellite. We can create daily composites of the imagery by merging the datasets then looping over each day to mosaic the data. `hydrafloods` has a method [`aggregate_time()`](/datasets/#hydrafloods.datasets.Dataset.aggregate_time) to do the mosiacing sequentially in time. Here we create a combined MODIS Terra and Aqua dataset.
+A common workflow is merging data and make composites for individual dates that data is available. A good example of this is the MODIS sensor that is onboard the Terra and Aqua satellite. We can create daily composites of the imagery by merging the datasets then looping over each day to mosaic the data. `hydrafloods` has a method [`aggregate_time()`](/datasets/#hydrafloods.datasets.Dataset.aggregate_time) to do the mosaicing sequentially in time. Here we create a combined MODIS Terra and Aqua dataset.
 
 ```python
 # define new time range

@@ -107,7 +107,7 @@ harmonics_weights = timeseries.fit_harmonic_trend(
 )
 ```
 
-The result from [`fit_harmonic_trend()`](/timeseries/#hydrafloods.timeseries.fit_harmonic_trend) will be an image with many bands. Some bands are the coefficeint weights for prediction, others can be awareness information (like number of valid observations used). So we will filter out the bands we need which start with either "c", "t", or "s". Then get a dummy image with time information and apply the prediction.
+The result from [`fit_harmonic_trend()`](/timeseries/#hydrafloods.timeseries.fit_harmonic_trend) will be an image with many bands. Some bands are the coefficeint weights for prediction (i.e. cos_1, sin_1, or time), others can be awareness information such as number of valid observations used (i.e. n). So we will filter out the coefficient weight bands we need which are cos_n, sin_n and time which start with either "c", "t", or "s". Then get a dummy image with time information and apply the prediction.
 
 ```python
 # extract bands needed for prediction
