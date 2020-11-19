@@ -7,6 +7,7 @@ import random
 import datetime
 from hydrafloods import decorators
 
+
 @decorators.carry_metadata
 def ndvi(img):
     """Function to calculate Normalized Difference Vegetation Index (NDVI).
@@ -243,3 +244,35 @@ def ndpi(img):
     return img.expression(
         "(VV-VH)/(VV+VH)", {"VV": img.select("VV"), "VH": img.select("VH")}
     ).rename("ndpi")
+
+
+@decorators.carry_metadata
+def nvvi(img):
+    """Function to calculate nomalized VV index (NVVI).
+    Expects image has "VV" and "VH" bands.
+
+    args:
+        img (ee.Image): image to calculate NVVI
+
+    returns:
+        ee.Image: NVVI image
+    """
+    return img.expression(
+        "(VV)/(VV+VH)", {"VV": img.select("VV"), "VH": img.select("VH")}
+    ).rename("nvvi")
+
+
+@decorators.carry_metadata
+def nvhi(img):
+    """Function to calculate nomalized VH index (NVHI).
+    Expects image has "VV" and "VH" bands.
+
+    args:
+        img (ee.Image): image to calculate NVHI
+
+    returns:
+        ee.Image: NVHI image
+    """
+    return img.expression(
+        "(VH)/(VV+VH)", {"VV": img.select("VV"), "VH": img.select("VH")}
+    ).rename("nvhi")
