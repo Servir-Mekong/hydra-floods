@@ -168,7 +168,7 @@ def edge_otsu(
         canny_lt (float, optional): lower threshold for canny detection. default = 0.05
         connected_pixels (int, optional): maximum size of the neighborhood in pixels to determine if connected. default = 200
         edge_length (int, optional): minimum length of edges from canny detection to be considered edge. default = 50
-        edge_buffer (int, optional): number of pixels to buffer edges on a side for histogram sampling. default = 100
+        edge_buffer (int, optional): distance in meters to buffer edges on a side for histogram sampling. default = 100
         max_buckets (int, optional): The maximum number of buckets to use when building a histogram; will be rounded up to a power of 2. default = 255
         min_bucket_width (float, optional): The minimum histogram bucket width to allow any power of 2. default = 0.001
         max_raw (int, optional): The number of values to accumulate before building the initial histogram. default = 1e6
