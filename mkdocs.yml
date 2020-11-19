@@ -11,9 +11,10 @@ nav:
         - corrections module: corrections.md
         - datasets module: datasets.md
         - decorators module: decorators.md
-        - geeutils module: geeutils.md
         - fetch module: fetch.md
         - filtering module: filtering.md
+        - geeutils module: geeutils.md
+        - indices module: indices.md
         - ml module: ml.md
         - thresholding module: thresholding.md
         - timeseries module: timeseries.md
