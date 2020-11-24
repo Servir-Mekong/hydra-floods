@@ -500,6 +500,7 @@ def export_daily_surface_water(
             region=prod_region,
             invert=True,
             scale=150,
+            thresh_no_data=-0.1,
             return_threshold=True,
         )
 

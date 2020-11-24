@@ -19,6 +19,7 @@ def bmax_otsu(
     max_buckets=255,
     min_bucket_width=0.001,
     max_raw=1e6,
+    thresh_no_data = -0.2,
     return_threshold=False,
 ):
     """Implementation of the B-Max Otsu thresholding algorithm.
@@ -125,7 +126,7 @@ def bmax_otsu(
         tileScale=16,
     )
 
-    threshold = otsu(histogram.get(histBand.cat("_histogram")))
+    threshold = ee.Number(ee.Algorithms.If(histogram.get(histBand.cat("_histogram")).contains('bucketMeans'), otsu(histogram.get(histBand.cat("_histogram"))), thresh_no_data))
 
     if return_threshold is True:
         return ee.Image(threshold)
