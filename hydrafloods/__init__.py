@@ -7,4 +7,4 @@ from hydrafloods.indices import *
 from hydrafloods import fetch, utils
 # from hydrafloods import *
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
