@@ -138,7 +138,7 @@ We can see that the algorithm corrected the poorly illuminated areas. This funct
 
 ### Applying slope correction on SAR imagery
 
-SAR imagery is fairly sensitive to terrain effects due to the signal being geometric in nature. Here we apply a slope correction algorithm developed by [Vollrath et al., 2020](https://doi.org/10.3390/rs12111867) to reduce the 
+SAR imagery is fairly sensitive to terrain effects due to the signal being geometric in nature. Here we apply a slope correction algorithm developed by [Vollrath et al., 2020](https://doi.org/10.3390/rs12111867) to reduce the effects of terrain on the data. This method however does not fully compensate for the radiometric distortions as compared to more advanced methods but still provides some correction.
 
 ```python
 # get a Sentinel 1 dataset
