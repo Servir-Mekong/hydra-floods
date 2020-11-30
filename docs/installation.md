@@ -1,10 +1,31 @@
 # Installation
 
-`hydrafloods` itself is a pure Python package, but its dependencies are not. Furthermore, the package relies on Google Cloud and Google Earth Engine to stage and process data relying on specific software and even more importantly account authentication. There are two ways to install for use, one through a Docker Image and another via a manual installation.
+`hydrafloods` itself is a pure Python package, but some of its dependencies are not. Furthermore, the package relies on Google Cloud and Google Earth Engine to stage and process data relying on specific software and even more importantly account authentication. There are two ways to install for use, one via a manual installation and another through using a Docker Image.
+
+## Manual installation
+
+The most convient way to install the package and its dependencies by creating a virtual environment using [anaconda](https://www.anaconda.com/).  To create a new environment and activate the environment:
+
+```sh
+conda create -n hydra -c conda-forge python=3.7 -y
+conda activate hydra
+```
+
+Finally, we need to install the `hydrafloods` package and one last dependency via `pip`:
+
+```sh
+pip install hydrafloods
+```
+
+`pip` should handle some of the basic dependencies such as the Earth Engine Python API that we need for the majority of the functionality.
+
+You will now also need to install the [Google Cloud SDK](https://cloud.google.com/sdk/docs/downloads-versioned-archives) to interface to with the Google cloud. Follow the directions provided by the website.
+
+Once all of the source code and dependencies have been installed successfully, you will need to [authenticate the cloud APIs](https://servir-mekong.github.io/hydra-floods/installation#cloud-authentication)
 
 ## Using the Docker Image
 
-The easiest way to get up and started using the `hydrafloods` packages is via a Docker Image. The Docker Image comes with pre-installed software and dependencies so you do not have to deal with mis-matching dependencies or sometimes difficult installations, such as GDAL.
+A convient way to get up and started using the `hydrafloods` packages is via a Docker Image. **Caution: This is installation method is recommended for advanced users that plan to deploy workflows on servers**. The Docker Image comes with pre-installed software and dependencies so you do not have to deal with mis-matching dependencies or sometimes difficult installations.
 
 To start you will need to have [Docker installed](https://docs.docker.com/get-docker/) on your system and running. You will need to pull the pre-built Docker Image for `hydrafloods` and start a new Container from the Image using the following command:
 
@@ -26,41 +47,6 @@ docker start -ia hydrafloods_container
 
 _This command to restart an existing Container is important especially after authenticating the cloud environment so that you do not have to go through the authentication process everytime you run the Docker container._ For more information on working with Docker Images/Containers using the CLI see the [Docker command line documentation](https://docs.docker.com/engine/reference/commandline/cli/).
 
-## Manual installation
-
-Another convient way to install the package and its dependencies is using [anaconda](https://www.anaconda.com/). It is recommend using the community maintained [conda-forge](https://conda-forge.github.io/) channel to handle dependencies. Furthermore, it is good practice to use a virtual environment within conda. To create a new environment, install dependencies, and activate the environment:
-
-```sh
-conda create -n hydra -c conda-forge python=3.7 \
-  numpy \
-  scipy \
-  pandas \
-  requests \
-  yaml \
-  xmltodict \
-  gdal \
-  shapely \
-  pyproj \
-  netCDF4 \
-  xarray \
-  scikit-learn \
-  pyresample \
-  geopandas \
-  earthengine-api \
-  gcsfs \
-  fire -y
-conda activate hydra
-```
-
-Finally, we need to install the `hydrafloods` package and one last dependency via `pip`:
-
-```sh
-pip install simplecmr hydrafloods
-```
-
-You will now also need to install the [Google Cloud SDK](https://cloud.google.com/sdk/docs/downloads-versioned-archives) to interface to with the Google cloud. Follow the directions provided by the website.
-
-Once all of the source code and dependencies have been installed successfully, you will need to [authenticate the cloud APIs](https://servir-mekong.github.io/hydra-floods/installation#cloud-authentication)
 
 ## Cloud authentication
 
