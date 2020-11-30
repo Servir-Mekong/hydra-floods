@@ -24,6 +24,7 @@ setup(name='hydrafloods',
     install_requires=[
         'simplecmr',
         'earthengine-api',
-        'gcsfs'
+        'gcsfs',
+        'fire'
     ],
 )
