@@ -12,15 +12,13 @@ The Hydrologic Remote Sensing Analysis for Floods (or HYDRAFloods) is an open so
 
 ### Installation
 
-The recommended way to get up and started using the `hydrafloods` packages is via a Docker Image. Using the Docker image will prevent any issues because of any dependencies for differing operating systems. To pull the pre-built image and start a new container, use the following command:
+The recommended way to get up and started using the `hydrafloods` packages is to install using `pip`:
 
 ```
-docker run -it \
-  -v ~/<PROJECT-DIR>/:/mnt/<PROJECT-DIR> \
-  --name hydrafloods_container kmarkert/hydrafloods
+pip install hydrafloods
 ```
 
-This command should be a one-time process to download the package and start the container. Additionally, this command will mount a local directory (i.e. `~/<PROEJCT-DIR>`) for use within the Docker Container which allows you to edit files locally and use within the container. Be sure to change `<PROJECTD-DIR>` within the command to an exisiting local directory.
+`pip` should handle some of the basic dependencies such as the Earth Engine Python API that we need for the majority of the functionality. It is planned to add hydrafloods to the conda-forge channel but that is currently not completed.
 
 To use the `hydrafloods` package successfully, Google Cloud and Earth Engine authentication is necessary. Tointialize the Google Cloud environment and authenticate using your credentials, run the following command:
 
@@ -34,7 +32,7 @@ To authenticate the Earth Engine Python API with your credentials, run the follo
 earthengine authenticate
 ```
 
-For more information on setup and installation of the `hydrafloods` package or how to install it using `conda`, please see the [Installation Docs](https://servir-mekong.github.io/hydra-floods/installation/).
+For more information on setup and installation of the `hydrafloods` package, please see the [Installation Docs](https://servir-mekong.github.io/hydra-floods/installation/).
 
 ## Example
 
