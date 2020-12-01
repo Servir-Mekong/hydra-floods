@@ -61,6 +61,7 @@ The previous example is synonymous with using `s1.collection = s1.collection.map
 # we apply this on the speckle filtered SAR data
 water_maps = filtered.apply_func(hf.edge_otsu, 
     initial_threshold=-16,
+    thresh_no_data=-20,
     edge_buffer=300,
     scale=250
 )

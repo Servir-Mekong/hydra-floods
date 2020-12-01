@@ -242,6 +242,7 @@ optical_water = hf.edge_otsu(
     region=region,
     band="mndwi",
     initial_threshold=0,
+    thresh_no_data=-0.2,
     edge_buffer=300,
     invert=True
 )
@@ -251,6 +252,7 @@ sar_water = hf.edge_otsu(
     region=region,
     band="VV",
     initial_threshold=-16,
+    thresh_no_data=-20,
     edge_buffer=300
 )
 

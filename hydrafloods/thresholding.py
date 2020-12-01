@@ -11,6 +11,7 @@ def bmax_otsu(
     region=None,
     scale=90,
     initial_threshold=0,
+    thresh_no_data=-0.2,
     invert=False,
     grid_size=0.1,
     bmax_threshold=0.75,
@@ -19,7 +20,6 @@ def bmax_otsu(
     max_buckets=255,
     min_bucket_width=0.001,
     max_raw=1e6,
-    thresh_no_data = -0.2,
     return_threshold=False,
 ):
     """Implementation of the B-Max Otsu thresholding algorithm.
@@ -142,6 +142,7 @@ def edge_otsu(
     region=None,
     scale=90,
     initial_threshold=0,
+    thresh_no_data=-0.2,
     invert=False,
     canny_threshold=0.05, 
     canny_sigma=0, 
@@ -152,7 +153,6 @@ def edge_otsu(
     max_buckets=255,
     min_bucket_width=0.001,
     max_raw=1e6,
-    thresh_no_data = -0.2,
     return_threshold=False,
 ):
     """Implementation of the Edge Otsu thresholding algorithm.
