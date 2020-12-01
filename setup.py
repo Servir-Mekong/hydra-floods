@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name='hydrafloods',
-    version='0.2.11',
+    version='0.3.1',
     description='HYDrologic Remote sensing Analysis for Floods',
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -24,6 +24,7 @@ setup(name='hydrafloods',
     install_requires=[
         'simplecmr',
         'earthengine-api',
-        'gcsfs'
+        'gcsfs',
+        'fire'
     ],
 )

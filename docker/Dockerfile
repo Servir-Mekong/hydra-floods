@@ -34,36 +34,16 @@ RUN rm /tmp/google-cloud-sdk.tar.gz
 # Adding the package path to local
 ENV PATH $PATH:/usr/local/gcloud/google-cloud-sdk/bin
 
-
 # install Python dependencies
 RUN conda install -c conda-forge -y\
-            numpy \
-            scipy \
-            pandas \
-            requests \
-            yaml \
-            xmltodict \
-            gdal \
-            shapely \
-            pyproj \
-            netCDF4 \
-            xarray \
-            scikit-learn \
-            pyresample \
-            pillow \
-            pandas \
-            pyproj \
-            geopandas \
             oauth2client \
-            "earthengine-api<=0.1.217" \
+            "earthengine-api<=0.1.232" \
             gcsfs \
             fire \
   && conda clean --all -f -y
 
 # install the additional packages through pip/github
-RUN pip install --no-cache-dir git+git://github.com/kmarkert/simple-cmr.git
-
 # install the hydrafloods package
-RUN pip install --no-cache-dir git+git://github.com/servir-mekong/hydra-floods.git
+RUN pip install --no-cache-dir hydrafloods
 
 USER $NB_UID

@@ -258,7 +258,7 @@ def random_forest_ee(
 
     else:
         raise ValueError(
-            "Could not determine scaling option. Options are ['minmax', 'standar', or None]"
+            "Could not determine scaling option. Options are ['minmax', 'standard', or None]"
         )
 
     classifier = (
