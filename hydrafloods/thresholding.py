@@ -126,7 +126,7 @@ def bmax_otsu(
         tileScale=16,
     )
 
-    threshold = ee.Number(ee.Algorithms.If(histogram.get(histBand.cat("_histogram")).contains('bucketMeans'), otsu(histogram.get(histBand.cat("_histogram"))), thresh_no_data))
+    threshold = ee.Number(ee.Algorithms.If(ee.Dictionary(histogram.get(histBand.cat("_histogram"))).contains('bucketMeans'), otsu(histogram.get(histBand.cat("_histogram"))), thresh_no_data))
 
     if return_threshold is True:
         return ee.Image(threshold)
@@ -215,7 +215,7 @@ def edge_otsu(
         tileScale=16,
     )
 
-    threshold = ee.Number(ee.Algorithms.If(histogram.get(histBand.cat("_histogram")).contains('bucketMeans'), otsu(histogram.get(histBand.cat("_histogram"))), thresh_no_data))
+    threshold = ee.Number(ee.Algorithms.If(ee.Dictionary(histogram.get(histBand.cat("_histogram"))).contains('bucketMeans'), otsu(histogram.get(histBand.cat("_histogram"))), thresh_no_data))
 
     if return_threshold is True:
         return threshold
