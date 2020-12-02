@@ -199,7 +199,7 @@ def slope_correction(image, elevation, model="volume", buffer=0, scale=1000):
 
 
 @decorators.carry_metadata
-def illumination_correction(img, elevation, model="rotation", scale=90, sensor="LC8"):
+def illumination_correction(image, elevation, model="rotation", scale=90, sensor="LC8"):
     """This function applies a terrain correction to optical imagery based on solar and viewing geometry
      
     args:
@@ -231,14 +231,14 @@ def illumination_correction(img, elevation, model="rotation", scale=90, sensor="
         # is the cosi and the second band is the response variable, the reflectance (the bands).
         # L (y) = a + b*cosi(x); a = intercept, b = slope
         #  Dependent: Reflectance
-        y = img.select([band_name])
+        y = image.select([band_name])
         #  create an image with the three variables by concatenating them
-        reg_img = ee.Image.cat([cosi, one, y])
+        reg_image = ee.Image.cat([cosi, one, y])
         #  specify the linear regression reducer
         lr_reducer = ee.Reducer.linearRegression(numX=2, numY=1)
         #  fit the model
-        fit = reg_img.reduceRegion(
-            reducer=lr_reducer, geometry=img.geometry(), scale=scale, maxPixels=1e10
+        fit = reg_image.reduceRegion(
+            reducer=lr_reducer, geometry=image.geometry(), scale=scale, maxPixels=1e10
         )
 
         #  Get the coefficients as a nested list, cast it to an array, and get
@@ -271,14 +271,14 @@ def illumination_correction(img, elevation, model="rotation", scale=90, sensor="
     # Extract aspect in radians for each pixel in the image
     o = terrain.select(["aspect"]).multiply(to_radians)
     # Extract solar zenith angle from the image
-    z = ee.Image.constant(ee.Number(img.get(sz_property)).multiply(to_radians))
+    z = ee.Image.constant(ee.Number(image.get(sz_property)).multiply(to_radians))
     # Extract solar azimuth from the image
-    az = ee.Image.constant(ee.Number(img.get(sa_property)).multiply(to_radians))
+    az = ee.Image.constant(ee.Number(image.get(sa_property)).multiply(to_radians))
 
     cosao = (o.subtract(az)).cos()
     # cos(ϕa−ϕo)
     # Calculate the cosine of the local solar incidence for every pixel in the image in radians (cosi=cosp*cosz+sinp*sinz*cos(ϕa−ϕo)
-    cosi = img.expression(
+    cosi = image.expression(
         "((cosp * cosz) + (sinp * sinz * cosao))",
         {
             "cosp": p.cos(),
@@ -291,11 +291,11 @@ def illumination_correction(img, elevation, model="rotation", scale=90, sensor="
 
     if model == "cosine":
         # if cosine model correction, return early as we don't need to do extra processing
-        return img.expression(
-            "((img * cosz) / cosi) ", {"img": img, "cosz": z.cos(), "cosi": cosi}
+        return image.expression(
+            "((image * cosz) / cosi) ", {"image": image, "cosz": z.cos(), "cosi": cosi}
         )
 
-    bnames = img.bandNames()
+    bnames = image.bandNames()
     ab = ee.Array(bnames.map(_get_band_coeffs))
 
     # get the coefficients as images
@@ -304,22 +304,22 @@ def illumination_correction(img, elevation, model="rotation", scale=90, sensor="
     C = b.divide(a)
 
     if model == "c":
-        newimg = img.expression(
-            "((img * (cosz + C)) / (cosi + C))",
-            {"img": img, "cosz": z.cos(), "cosi": cosi, "C": C},
+        newimage = image.expression(
+            "((image * (cosz + C)) / (cosi + C))",
+            {"image": image, "cosz": z.cos(), "cosi": cosi, "C": C},
         )
 
     elif model == "scsc":
-        newimg = img.expression(
-            "((img * ((cosp * cosz) + C))/(cosi + C))",
-            {"img": img, "cosp": p.cos(), "cosz": z.cos(), "cosi": cosi, "C": C},
+        newimage = image.expression(
+            "((image * ((cosp * cosz) + C))/(cosi + C))",
+            {"image": image, "cosp": p.cos(), "cosz": z.cos(), "cosi": cosi, "C": C},
         )
 
     elif model == "rotation":
         # Apply the empirical rotation model
-        newimg = img.expression(
-            "img - a * (cosi - cosz)",
-            {"img": img, "cosz": z.cos(), "cosi": cosi, "a": a},
+        newimage = image.expression(
+            "image - a * (cosi - cosz)",
+            {"image": image, "cosz": z.cos(), "cosi": cosi, "a": a},
         )
 
     else:
@@ -327,4 +327,4 @@ def illumination_correction(img, elevation, model="rotation", scale=90, sensor="
             f"Defined model, {model}, has not been implemented. Options are 'cosine', 'c', 'scsc', or 'rotation'"
         )
 
-    return newimg
+    return newimage
