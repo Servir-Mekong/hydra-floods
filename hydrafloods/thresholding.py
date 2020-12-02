@@ -31,6 +31,7 @@ def bmax_otsu(
         region (ee.Geometry | None, optional): region to determine threshold, if set to `None` will use img.geometry(). default = None
         scale (int, optional): scale at which to perform reduction operations, setting higher will prevent OOM errors. default = 90
         initial_threshold (float, optional): initial estimate of water/no-water for estimating the probabilities of classes in segment. default = 0
+        thresh_no_data (float, optional): threshold to be used when histogram is empty (likely little to no water present in image). default = -0.2
         invert (bool, optional): boolean switch to determine if to threshold greater than (True) or less than (False). default = False
         grid_size (float, optional): size in decimal degrees to tile image/region to check for bimodality. default = 0.1
         bmax_threshold (float, optional): value 0-1 to determine if a value of bmax is bimodal or not. default = 0.75
@@ -164,6 +165,7 @@ def edge_otsu(
         region (ee.Geometry | None, optional): region to determine threshold, if set to `None` will use img.geometry(). default = None
         scale (int, optional): scale at which to perform reduction operations, setting higher will prevent OOM errors. default = 90
         initial_threshold (float, optional): initial estimate of water/no-water for estimating the edges. default = 0
+        thresh_no_data (float, optional): threshold to be used when histogram is empty (likely little to no water present in image). default = -0.2
         invert (bool, optional): boolean switch to determine if to threshold greater than (True) or less than (False). default = False
         canny_threshold (float, optional): threshold for canny edge detection. default = 0.05
         canny_sigma (float, optional): sigma value for gaussian filter in canny edge detection. default = 0
