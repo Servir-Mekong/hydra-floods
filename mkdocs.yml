@@ -19,6 +19,7 @@ nav:
         - thresholding module: thresholding.md
         - timeseries module: timeseries.md
         - utils module: utils.md
+        - workflows.dswfp module: dswfp.md
 theme: 
     name: material
     logo: 'img/hydrafloods_logo.png'
