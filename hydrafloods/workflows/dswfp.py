@@ -28,7 +28,7 @@ def export_fusion_samples(
     end_time,
     stratify_samples=False,
     sample_scale=30,
-    n_samples=100,
+    n_samples=25,
     output_asset_path=None,
     seed=0,
 ):
@@ -77,16 +77,14 @@ def export_fusion_samples(
 
         stratification_img = (
             ee.ImageCollection("MODIS/006/MCD12Q1")
-            .limit(5, "system:time_start", True)
-            .reduce(ee.Reducer.mode(), 16)
+            .limit(1, "system:time_start", True)
+            .first()
             .remap(igbp_classes, ipcc_classes)
             .rename(class_band)
         )
         classes = ipcc_classes.distinct()
     else:
         stratification_img = None
-
-    elv_img = ee.Image("MERIT/Hydro/v1_0_1").select(["hnd"], ["HAND"])
 
     for i in range(n):
         try:
@@ -98,7 +96,6 @@ def export_fusion_samples(
 
                 samples = (
                     sample_img.addBands(stratification_img.select(class_band))
-                    .addBands(elv_img)
                     .stratifiedSample(
                         region=sample_region,
                         numPoints=n_samples,
@@ -125,7 +122,7 @@ def export_fusion_samples(
                 )
 
             output_features = (
-                output_features.merge(samples)
+                output_features.merge(samples.randomColumn())
                 if samples.size().getInfo() > 0
                 else output_features
             )
