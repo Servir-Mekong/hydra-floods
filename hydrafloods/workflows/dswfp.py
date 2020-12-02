@@ -26,13 +26,33 @@ def export_fusion_samples(
     region,
     start_time,
     end_time,
+    output_asset_path,
     stratify_samples=False,
     sample_scale=30,
     n_samples=25,
-    output_asset_path=None,
+    max_samples=10000,
     seed=0,
 ):
-    """
+    """First step of the daily surface water fusion process.
+    This procedure samples values from coincident optical and SAR data
+    so that we can use ML for data fusion. This will calculate MNDWI, NWI,
+    AEWInsh, and AEWIsh optical water indices and a few indices from SAR imagery
+    (VV/VH, NDPI, NVVI, NVHI) to predict a water index.
+
+    args:
+        region (ee.Geometry): geographic region to look for coincident data and sample from
+        start_time (str | datetime.datetime): start time used to look for coincident data
+        end_time (str | datetime.datetime): end time used to look for coincident data
+        output_asset_path (str): Earth Engine asset id to save sampled values too
+        stratify_samples (bool, optional): boolean keyword to specify for sampling data stratified
+            by MODIS land cover. If False, then a random sampling wil be used. default = False
+        sample_scale (float, optional): resolution in meters to sample data at
+        n_samples (int, optional): number of samples to collect per coincident image pair. If 
+            stratified_samples == True, this value be be samples per class. default = 25
+        max_samples (int,optional): maximum number of samples to collect for the sampling process. Once
+            max_samples are collected, then the sampling process will stop and export to asset. default = 10000
+        seed (int,optional): random number generator seed, used for setting random sampling. default = 0
+
     """
 
     optical_water_indices = ["mndwi", "nwi", "aewish", "aewinsh"]
@@ -51,7 +71,7 @@ def export_fusion_samples(
     s1 = datasets.Sentinel1(**ds_kwargs)
     # s1.collection = timeseries.temporal_iqr_filter(s1.collection)
     s1 = s1.apply_func(
-        geeutils.add_indices, indices=["vv_vh_ratio", "ndpi", "vv_vh_abs_sum","nvvi","nvhi"]
+        geeutils.add_indices, indices=["vv_vh_ratio", "ndpi","nvvi","nvhi"]
     )
 
     optical = lc8.merge(s2).merge(le7)
@@ -67,6 +87,7 @@ def export_fusion_samples(
     img_list = ds.collection.toList(n)
 
     output_features = ee.FeatureCollection([])
+    aggregate_samples = 0
 
     if stratify_samples:
         class_band = "landcover"
@@ -121,11 +142,19 @@ def export_fusion_samples(
                     geometries=True,
                 )
 
+            these_samples = samples.size().getInfo()
+
             output_features = (
                 output_features.merge(samples.randomColumn())
-                if samples.size().getInfo() > 0
+                if  these_samples > 0
                 else output_features
             )
+
+            aggregate_samples += these_samples
+
+            if aggregate_samples > max_samples:
+                logging.info(f"max samples reached, beginning export!")
+                break
 
         except EEException as e:
             warnings.warn(f"Sampling process ran into an error: {str(e)}")
@@ -151,6 +180,7 @@ def _fuse_dataset(
     use_viirs=False,
     use_modis=False,
 ):
+
     @decorators.carry_metadata
     def _apply_fusion(img):
         img_norm = ml.standard_image_scaling(img, scaling_dict, feature_names)
@@ -197,16 +227,42 @@ def export_surface_water_harmonics(
     region,
     start_time,
     end_time,
+    output_asset_path,
     n_cycles=2,
     feature_names=None,
     label=None,
     fusion_samples=None,
-    output_asset_path=None,
-    output_bucket=None,
     tile=False,
     tile_size=1.0,
     output_scale=30,
 ):
+    """Second step of the daily surface water fusion process.
+    This procedure uses samples from `export_fusion_samples` to build a
+    random forest model to predict a water index from SAR imagery. This a 
+    time series of optical-SAR fused data is used to calculate a harmonic
+    model for long-term surface water trend and is exported to an Earth Engine
+    asset.
+
+    args:
+        region (ee.Geometry): geographic region to look for coincident data and sample from
+        start_time (str | datetime.datetime): start time used to look for coincident data
+        end_time (str | datetime.datetime): end time used to look for coincident data
+        output_asset_path (str): Earth Engine asset id to save harmonic model weights to as image.
+            If tile==True, then output_asset_path much be a precreated ImageCollection asset
+        n_cycles (int, optional): number of interannual cycles to model. default = 2
+        feature_names (list[str],):  names of feature columns used to calculate `label` from
+        label (str): name of feature column to predict using `feature_names`
+        fusion_samples (str): Earth Engine FeatureCollection asset id of samples to get a data
+            fusion model from. Should be the asset output from `export_fusion_samples`
+        tile (bool, optional): boolean keyword to tile exports. If false will try to calculate 
+            harmonic weights as image. If true, it will tile area and recusively call to export
+            smaller areas. If true then expects that `output_asset_path` is an ImageCollection. 
+            default = False
+        tile_size (float, optional): resolution in decimal degrees to create tiles over region 
+            for smaller exports. Only used if tile==True. default = 1.0
+        output_scale (float, optional): output resolution of harmonic weight image. default = 30
+    """
+
 
     if tile:
         land_area = (
@@ -297,11 +353,9 @@ def export_surface_water_harmonics(
                 scale=output_scale,
                 crs="EPSG:4326",
             )
-        elif output_bucket is not None:
-            raise NotImplementedError()
         else:
             raise ValueError(
-                "Either 'output_asset_path' or 'output_bucket' needs to be defined to run fusion export process"
+                "'output_asset_path' needs to be defined to run fusion export process"
             )
 
     return
@@ -329,7 +383,64 @@ def export_daily_surface_water(
     tile_buffer=100000,
     output_scale=30,
 ):
-    def get_weights(i):
+    """Last and repeated step of the daily surface water fusion process.
+    This procedure uses the results from `export_fusion_samples` and 
+    `export_surface_water_harmonics` to build a random forest model to predict 
+    a water index from SAR imagery and predict water using the harmonic model.
+    This process will correct the harmonic estimate using observed data and export
+    the resulting imagery.
+
+    args:
+        region (ee.Geometry): geographic region to look for coincident data and sample from
+        target_date (str | datetime.datetime): date to estimate surface water extent for
+        harmonic_image (str, optional): Earth Engine Image asset id of the harmonic model weights
+            exported by `export_surface_water_harmonics`. If left as None then `harmonic_collection` 
+            must be defined. default = None
+        harmonic_collection (str, optional): Earth Engine ImageCollection asset id of the harmonic 
+            model weights from tile `export_surface_water_harmonics`. If left as None then 
+            `harmonic_image` must be defined. default = None
+        feature_names (list[str],):  names of feature columns used to calculate `label` from
+        label (str): name of feature column to predict using `feature_names`
+        look_back (int,optional): number of days used to estimate short-term trend in water. default = 30
+        lag (int, optional): number of days after `target_date` to begin `look_back`. default=4
+        n_cycles (int, optional): number of interannual cycles to model. default = 2
+        include_confidence (bool, optional): boolean keyword to specify if a confidence band will
+            be exported with surface water image. If True then confidence will be calculated. default = False
+        include_flood (bool, optional): boolean keyword to specify if a flood band will
+            be exported with surface water image. If True then flood will be calculated based on JRC
+             permanent water data. default = False
+        export_fusion (bool, optional): boolean keyword to specify if the fusion image used to calculate
+            water should be exported as a seperated task. If True then run fusion export task. default = False
+        fusion_samples (str): Earth Engine FeatureCollection asset id of samples to get a data
+            fusion model from. Should be the asset output from `export_fusion_samples`
+        output_asset_path (str): Earth Engine asset id to save estimate water and fusion results to as image.
+            If tile==True, then output_asset_path much be a precreated ImageCollection asset. If left
+            as None then `output_bucket_path` must be specified. default = None
+        output_bucket_path (str): GCP cloud bucket path to save estimate water and fusion results to 
+            cloud optimized geotiffs. If tile==True, then multiple file will be created. If left
+            as None then `output_asset_path` must be specified. default = None
+        initial_threshold (float, optional): initial threshold value used in `edge_otsu` thresholding
+            algorithm to segment water from fusion image. default = 0.1
+        tile (bool, optional): boolean keyword to tile exports. If false will try to calculate 
+            harmonic weights as image. If true, it will tile area and recusively call to export
+            smaller areas. If true then expects that `output_asset_path` is an ImageCollection. 
+            default = False
+        tile_size (float, optional): resolution in decimal degrees to create tiles over region 
+            for smaller exports. Only used if tile==True. default = 1.0
+        tile_buffer (float,optional): buffer size in meters to buffer tiles to calculate threshold. This
+            is used to ensure running tiled exports produces consistent results at tile seams. default = 100000
+        output_scale (float, optional): output resolution of harmonic weight image. default = 30
+
+    raises:
+        ValueError: if `fusion_samples` is None
+        ValueError: if both`harmonic_image` and `harmonic_collection` is None
+        ValueError: if both 'output_asset_path' and 'output_bucket_path' is None
+    """
+
+    def get_residuals(i):
+        """Closure function to calculate residuals of harmonic water estimate
+        compared to observed data.
+        """
         i = ee.Number(i)
         t_diff = (
             ee.Number(i).multiply(-1).subtract(lag)
@@ -355,6 +466,10 @@ def export_daily_surface_water(
         return harmon_diff.set("system:time_start", new_date.millis())
 
     def calc_confidence(i):
+        """Closure function to calculate confidence in water estimate using
+        monte carlo methods and simulating errors in long- and short-term water
+        dynamics
+        """
         i = ee.Number(i)
         # uniform sampling of std dev at 95% confidence interval
         long_term_seed = i.add(500)
@@ -483,7 +598,7 @@ def export_daily_surface_water(
         dummy_target = timeseries.get_dummy_img(target_date)
 
         weights = ee.ImageCollection.fromImages(
-            ee.List.sequence(0, look_back - 1).map(get_weights)
+            ee.List.sequence(0, look_back - 1).map(get_residuals)
         ).sort("system:time_start")
 
         weights_lr = timeseries.fit_linear_trend(
@@ -659,7 +774,32 @@ def merge_gcp_tiled_results(
     clean_up=False,
     cloud_project=None,
     file_dims=None,
+    output_scale=30,
 ):
+    """Helper function to merge tiled surface water estimates from `export_daily_surface_water`
+    into on cloud optimized geotiff on Google Cloud Platform
+
+    args:
+        bucket_path (str): GCP cloud bucket path to read tiled cloud optimized geotiffs. Will
+            also export merged file to this path.
+        pattern (str): regex string to search for specific files. Useful for selecting files from
+            a specific bucket subdirectory or date in filename
+        region (ee.Geometry): geographic region to export merged data over. region must align with
+            region from the tiled export
+        retries (int, optional): number of retries to search for tiled data. Useful is runtime is unknown
+            and the merge function is run at a set time each day. If less than or equal to zero, no retries
+            will be used. default =  -1
+        clean_up (bool, optional): boolean keyword to delete tile geotiffs after merge is complete. Only use
+            if you are sure the merging is/will be successful. default = False
+        cloud_project (str, optional): name of GCP cloud project name that the cloud storage bucket is part
+            of. If nothing is provided, it will try to use default system GCP credentials. default = None
+        file_dims (int | list[int], optional): the dimensions in pixels of each image file, if the image 
+            is too large to fit in a single file. May specify a single number to indicate a square shape, 
+            or a list of two dimensions to indicate (width,height). Note that the image will still be 
+            clipped to the overall image dimensions. Must be a multiple of shardSize (256). If none, then 
+            Earth Engine will automatically estimate dimensions. default = None
+        output_scale (float, optional): output resolution of harmonic weight image. default = 30
+    """
     land_area = (
         ee.FeatureCollection("USDOS/LSIB_SIMPLE/2017")
         .filterBounds(region)
@@ -693,7 +833,7 @@ def merge_gcp_tiled_results(
             bucket=bucket,
             fileNamePrefix=fpath,
             region=export_region,
-            scale=10,
+            scale=output_scale,
             crs="EPSG:4326",
             fileDimensions=file_dims,
             maxPixels=1e13,
