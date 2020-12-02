@@ -35,7 +35,7 @@ def export_fusion_samples(
     """
     """
 
-    optical_water_indices = ["mndwi", "nwi", "lswi", "aewish", "aewinsh"]
+    optical_water_indices = ["mndwi", "nwi", "aewish", "aewinsh"]
 
     ds_kwargs = dict(
         region=region, start_time=start_time, end_time=end_time, rescale=True
@@ -51,7 +51,7 @@ def export_fusion_samples(
     s1 = datasets.Sentinel1(**ds_kwargs)
     # s1.collection = timeseries.temporal_iqr_filter(s1.collection)
     s1 = s1.apply_func(
-        geeutils.add_indices, indices=["vv_vh_ratio", "ndpi", "vv_vh_abs_sum"]
+        geeutils.add_indices, indices=["vv_vh_ratio", "ndpi", "vv_vh_abs_sum","nvvi","nvhi"]
     )
 
     optical = lc8.merge(s2).merge(le7)
