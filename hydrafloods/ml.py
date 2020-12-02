@@ -287,7 +287,7 @@ def calc_image_pca(image, region=None, scale=90, max_pixels=1e9):
     bandNames = image.bandNames()
 
     out_band_names = ee.List.sequence(1, bandNames.length()).map(
-        lambda x: ee.String("pc_").cat(ee.Number(b).int())
+        lambda x: ee.String("pc_").cat(ee.Number(x).int())
     )
 
     # Mean center the data to enable a faster covariance reducer
