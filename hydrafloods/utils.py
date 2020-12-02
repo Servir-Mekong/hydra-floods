@@ -47,7 +47,7 @@ def push_to_gcs(file, bucket_path):
 
     """
     if os.path.exists(file):
-        cmd = "gsutil cp {0} {1}".format(file, bucketPath)
+        cmd = "gsutil cp {0} {1}".format(file, bucket_path)
         proc = subprocess.Popen(
             cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
         )
