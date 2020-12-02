@@ -212,8 +212,8 @@ def export_surface_water_harmonics(
         land_area = (
             ee.FeatureCollection("USDOS/LSIB_SIMPLE/2017")
             .filterBounds(region)
-            .geometry(100)
-            .buffer(2500, maxError=100)
+            .geometry(1000)
+            .buffer(2500, maxError=1000)
         )
         grid = geeutils.tile_region(
             region, intersect_geom=land_area, grid_size=tile_size
@@ -235,7 +235,6 @@ def export_surface_water_harmonics(
                 feature_names=feature_names,
                 label=label,
                 fusion_samples=fusion_samples,
-                fusion_model_asset=fusion_model_asset,
                 output_asset_path=output_tile_path,
                 tile=False,
                 tile_size=tile_size,
@@ -252,8 +251,6 @@ def export_surface_water_harmonics(
                 scaling="standard",
                 mode="regression",
             )
-        elif fusion_model_asset is not None:
-            raise NotImplementedError()
         else:
             raise ValueError(
                 "Either 'fusion_samples' or 'fusion_model_path' needs to be defined to run fusion process"
@@ -415,7 +412,6 @@ def export_daily_surface_water(
                     include_flood=include_flood,
                     export_fusion=export_fusion,
                     fusion_samples=fusion_samples,
-                    fusion_model_asset=fusion_model_asset,
                     output_asset_path=output_asset_tile,
                     output_bucket_path=output_bucket_tile,
                     initial_threshold=initial_threshold,
