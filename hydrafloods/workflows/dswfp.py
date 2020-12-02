@@ -544,7 +544,7 @@ def export_daily_surface_water(
             weights_err = weights_lr.select(".*(x|y|n)$")
 
             linCi = weights_err.expression(
-                "mse * ((1/n) + ((t-xmean)**2/xr))**(1/2)",
+                "mse * (1 + (1/n) + ((t-xmean)**2/xr))**(1/2)",
                 {
                     "mse": weights_err.select("residual_y"),
                     "n": weights_err.select("n"),
@@ -555,7 +555,7 @@ def export_daily_surface_water(
             )
 
             harCi = harmonic_err.expression(
-                "mse * ((1/n) + ((t-xmean)**2/xr))**(1/2)",
+                "mse * (1 + (1/n) + ((t-xmean)**2/xr))**(1/2)",
                 {
                     "mse": harmonic_err.select("residual_y"),
                     "n": harmonic_err.select("n"),
