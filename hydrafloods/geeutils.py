@@ -275,11 +275,11 @@ def tile_region(region, grid_size=0.1, intersect_geom=None, contain_geom=None):
             )
             if contain_geom is not None:
                 out = ee.Algorithms.If(
-                    box.contains(contain_geom, maxError=10), box, None
+                    box.contains(contain_geom, maxError=1000), box, None
                 )
             elif intersect_geom is not None:
                 out = ee.Algorithms.If(
-                    box.intersects(intersect_geom, maxError=10), box, None
+                    box.intersects(intersect_geom, maxError=1000), box, None
                 )
             else:
                 out = box
@@ -296,7 +296,7 @@ def tile_region(region, grid_size=0.1, intersect_geom=None, contain_geom=None):
             "contains and intersection keywords are mutually exclusive, please define only one"
         )
 
-    bounds = region.bounds(maxError=10)
+    bounds = region.bounds(maxError=1000)
     coords = ee.List(bounds.coordinates().get(0))
     grid_res = ee.Number(grid_size)
 
@@ -327,7 +327,7 @@ def tile_region(region, grid_size=0.1, intersect_geom=None, contain_geom=None):
     return grid
 
 
-def country_bbox(country_name, max_error=100):
+def country_bbox(country_name, max_error=1000):
     """Function to get a bounding box geometry of a country
 
     args:
