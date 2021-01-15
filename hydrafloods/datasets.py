@@ -4,6 +4,7 @@ import ee
 import math
 import copy
 import datetime
+from pipetools import pipe
 from pprint import pformat
 from functools import partial
 from ee.ee_exception import EEException
@@ -154,7 +155,7 @@ class Dataset:
         return eeDates.getInfo()
 
     def copy(self):
-        """Returns a deep copy of the hydrafloods dataset class
+        """returns a deep copy of the hydrafloods dataset class
         """
         return copy.deepcopy(self)
 
@@ -163,12 +164,12 @@ class Dataset:
         Makes a copy of the collection and reassigns the image collection propety.
         Function must accept an ee.ImageCollection and return an ee.ImageCollection
 
-        Args:
+        args:
             func (object): Function to map across image collection. Function must accept ee.Image as first argument
             inplace (bool, optional): define whether to return another dataset object or update inplace. default = False
             **kwargs: arbitrary keyword to pass to `func`
 
-        Returns:
+        returns:
             Dataset | None: copy of class with results from `func` as image within collection property
         """
 
@@ -369,6 +370,74 @@ class Dataset:
             .add(self.bias)
             .set("system:time_start", img.get("system:time_start"))
         )
+
+    def pipe(self,steps,inplace=False):
+        """Method to pipe imagery within dataset through multiple functions at once.
+        Assumes the first argument into piped functions are and ee.Image
+
+        args:
+            steps (list | tuple): iterable of functions/steps to apply to imagery.
+                list must be in the form of (func,func) or with a tuple of function/keyword ((func,kwargs),func)
+            inplace (bool, optional): define whether to return another dataset object or update inplace. default = False
+
+        returns:
+            Dataset | None: returns dataset.collection with piped functions applied
+
+        Example:
+            ```python
+            s1 = hf.Sentinel1(ee.Geometry.Point(105.03,11.72),"2019-10-03","2019-10-05")
+            water = s1.pipe(
+                (
+                    hf.gamma_map, #apply speckle filter
+                    (hf.egde_ostu,{'initial_threshold:-16}) # apply water mapping
+                )
+            )
+            ```
+        """
+        def _piper(funcs):
+            """Closure function to nest list of functions
+            """
+            if len(funcs) > 1:
+                one_shotter = funcs[0]
+                for func in funcs[1:]:
+                    one_shotter = pipe | one_shotter | func
+
+            else:
+                one_shotter = funcs[0]
+
+            return one_shotter
+
+        fs = []
+        # loop through the steps and create partial funcs is kwargs are provided
+        for step in steps:
+            try:
+                func, kwargs = step
+            
+            except TypeError:
+                func = step
+                kwargs = None
+
+            if kwargs is not None:
+                pfunc = partial(func, **kwargs)
+            else:
+                pfunc = func
+
+            fs.append(pfunc)
+
+        # get the piped function
+        one_shot = _piper(fs)
+
+        # apply pipe to each image
+        out_coll = self.collection.map(lambda img: one_shot(img))
+
+        if inplace:
+            self.collection = out_coll
+            return
+        else:
+            outCls = self.copy()
+            outCls.collection = out_coll
+            return outCls
+
 
 
 class Sentinel1(Dataset):
