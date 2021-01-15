@@ -101,6 +101,47 @@ We can clearly see the image on the left has clouds and cloud shadows masked and
 
 ## Applying a function
 
+As we saw in the [Getting Stated](/getting-started/#image-processing) page, we can apply image processing functions using [`apply_func()`](/datasets/#hydrafloods.datasets.Dataset.apply_func) by passing a function object or any keyword parameters. This method wraps a function that accepts an image as the first argument (which most `hydrafloods` image processing algorithms do) and maps it over the collection. For example, if want to create a water map using Landsat 8, we will calculate a water index and then apply a thresholding algorithm: 
+
+```python
+region = hf.country_bbox("Cambodia")
+start_time = "2019-01-01"
+end_time = "2019-03-01"
+
+# get a Landsat 8 collection
+lc8 = hf.Landsat8(region,start_time,end_time)
+
+water_index = lc8.apply_func(hf.mndwi)
+
+water_ds = water_index.apply_func(hf.edge_otsu,
+        initial_threshold=0,
+        edge_buffer=300,
+        scale=150,
+        invert=True
+)
+
+index_img = water_index.collection.median()
+water_img = water_ds.collection.mode()
+
+water_img.getThumbURL({
+    "min":-1,"max":1,
+    "palette":"beige,white,lightblue,blue,darkblue",
+    "dimensions":1500,
+    "region":region
+})
+
+water_img.getThumbURL({
+    "min":0,"max":1,
+    "palette":"silver,navy",
+    "dimensions":1500,
+    "region":region
+})
+```
+
+ Landsat 8 Water Index            | Landsat 8 Water Map
+:-------------------------------:|:-------------------------------:
+![](img/datasets_lc8_func_index.png) | ![](img/datasets_lc8_pipe.png) 
+
 ## Merging Datasets
 
 One of the simpilest ways to combine datasets is to merge. This takes the imagery in one collection and concatenates it with the original collection. We can use the [`merge()`](/datasets/#hydrafloods.datasets.Dataset.merge) method to accomplish this. Additionally, the `merge()` method automatically sorts the image collections by date so we can start using dense time series right away. Here is an example of merging Landat8 and Sentinel2 datasets together:
@@ -218,6 +259,47 @@ print(yearly.dates)
 ```
 
 As seen, this method allows for customization of when to start aggregations and how long/which dates to include in aggregation which can be helpful for unique timings like dekads.
+
+## Piping multiple functions
+
+As seen in the ["Applying a function"](#applying-a-function) section, we can easily process imagery by passing individual functions into  `.apply_func()`. While this method of writing the computation is easy to read syntaxually, it is however inefficient for for Earth Engien to apply the computations. This is because each function passed through `.apply_func()` applies the function to all imagery in the Dataset. For example, if there are three functions you want to apply, then it will loop through all of the imagery three times. This can cause computation timeout or memory errors on Earth Engine's side if there is a lot to compute using multiple mapped functions.
+
+The [`.pipe()`](/datasets/#hydrafloods.datasets.Dataset.pipe) method allows for users to apply multiple functions to a Dataset with only one pass through the imagery. This is the preferred method to chain together multiple functions. For example, if we want to create water maps from Landsat 8 we would calculate a water index (e.g. MNDWI) then apply the water mapping algorithm. Here we can tell `.pipe()` the order of functions to apply and the arguments (if any) and it will nest the functions into one to map over.
+
+```python
+
+region = hf.country_bbox("Cambodia")
+start_time = "2019-01-01"
+end_time = "2019-03-01"
+
+# get a Landsat 8 collection
+lc8 = hf.Landsat8(region,start_time,end_time)
+
+process_steps = (
+    hf.mndwi,
+    (hf.edge_otsu, dict(
+        initial_threshold=0,
+        edge_buffer=300,
+        scale=150,
+        invert=True
+    ))
+)
+
+water = lc8.pipe(process_steps)
+
+water_img = water.collection.mode()
+
+water_img.getThumbURL({
+    "min":0,"max":1,
+    "palette":"silver,navy",
+    "dimensions":1500,
+    "region":region
+})
+```
+![](img/datasets_lc8_pipe.png)
+
+
+The `.pipe()` methods allows for _any_ function object to be passed as long as the first argument to the function is an ee.Image object. So, users can write their own custom functions or supply anonymous functions (i.e. `lambda` functions) and it will work. Again, this is the preferred method when doing a lot of preprocessing to prevent unnecessarily looping through the dataset multiple times.
 
 ## Writing your own dataset class
 
