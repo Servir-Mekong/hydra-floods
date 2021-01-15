@@ -25,6 +25,7 @@ setup(name='hydrafloods',
         'simplecmr',
         'earthengine-api',
         'gcsfs',
-        'fire'
+        'fire',
+        'pipetools'
     ],
 )
