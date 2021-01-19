@@ -154,6 +154,45 @@ class Dataset:
         )
         return eeDates.getInfo()
 
+    @staticmethod
+    def from_imgcollection(img_collection):
+        """Static method to convert an ee.ImageCollection object to a hf.Dataset object.
+        This method will take some time as it uses computed ee Objects from the image collection
+        propeties to populate the Dataset object properties (passing info from server to client)
+
+        args:
+            img_collection (ee.ImageCollection): computed ee.ImageCollection object to create a hf.Dataset
+
+        returns:
+            hf.Dataset: dataset object with property information directly from the ee.ImageCollection
+        """
+
+        # get region and date information
+        region = img_collection.map(geeutils.get_geoms).union(maxError=100).geometry(maxError=100)
+        # convert ee.Date info to string format
+        dates = (
+            img_collection.aggregate_array("system:time_start").sort()
+            .map(lambda x: ee.Date(x).format("YYYY-MM-dd HH:mm:ss.S"))
+        )
+
+        # pull the date info to local strings
+        start_time = dates.get(0).getInfo()
+        end_time = dates.get(-1).getInfo()
+
+        # get the collection id for `.asset_id` property
+        collection_id = img_collection.get("system:id").getInfo()
+        if collection_id is "None":
+            collection_id = "Custom ImageCollection"
+
+        # make a dummy dataset 
+        dummy_ds = Dataset(region,start_time,end_time,asset_id="NOAA/VIIRS/001/VNP09GA",use_qa=False)
+
+        # override the dummy dataset information with the correct data fr
+        dummy_ds.asset_id = collection_id
+        dummy_ds.collection = img_collection
+
+        return dummy_ds
+
     def copy(self):
         """returns a deep copy of the hydrafloods dataset class
         """
