@@ -58,6 +58,7 @@ s1 = hf.datasets.Sentinel1(region, start_time, end_time)
 water_imgs = s1.apply_func(
     hf.thresholding.edge_otsu,
     initial_threshold=-14,
+    thresh_no_data=-20,
     edge_buffer=300
 )
 

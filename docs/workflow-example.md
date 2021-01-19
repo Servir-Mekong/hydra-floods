@@ -92,6 +92,7 @@ dswfp.export_daily_surface_water(
     fusion_samples=None, 
     output_asset_path=None,
     initial_threshold=0.1,
+    thresh_no_data=-0.1,
     tile=False
 )
 ```

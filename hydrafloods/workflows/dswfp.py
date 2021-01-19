@@ -378,6 +378,7 @@ def export_daily_surface_water(
     output_asset_path=None,
     output_bucket_path=None,
     initial_threshold=0.1,
+    thresh_no_data=None,
     tile=False,
     tile_size=1.0,
     tile_buffer=100000,
@@ -530,6 +531,7 @@ def export_daily_surface_water(
                     output_asset_path=output_asset_tile,
                     output_bucket_path=output_bucket_tile,
                     initial_threshold=initial_threshold,
+                    thresh_no_data=thresh_no_data,
                     tile=False,
                     tile_buffer=tile_buffer,
                     output_scale=output_scale,
@@ -624,6 +626,7 @@ def export_daily_surface_water(
         ci_threshold = thresholding.edge_otsu(
             fused_pred,
             initial_threshold=initial_threshold,
+            thresh_no_data=thresh_no_data,
             edge_buffer=300,
             region=prod_region,
             invert=True,
