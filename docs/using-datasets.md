@@ -99,6 +99,29 @@ print(noqa_thumb)
 
 We can clearly see the image on the left has clouds and cloud shadows masked and can therefore be used directly in analysis with minimal effort. More information on the internals of these specialized datasets and how you can write your own can be found at the [Writing your own dataset class](#writing-your-own-dataset-class) section.
 
+## Creating a Dataset from a computed `ee.ImageCollection`
+
+While HYDRAFloods provides some specialized Dataset classes for users to immediately access, there are often times when a user would like to use their own Image Collection. To this end, a method is available for users to create a dataset directly from an ee.ImageCollection object, [`hf.Dataset.from_imgcollection`](/datasets/#hydrafloods.datasets.Dataset.from_imgcollection). This allows Dataset objects to be created from image collections that have been filtered or with additional computation applied. Here is a quick example grabbing the public Planet SkySat data, filtering to the United States, and calculating NDVI:
+
+```python
+us = hf.country_bbox("United States")
+
+# get the public SkySat ImageCollection for the USA
+# and compute a NDVI band
+ic = (
+    ee.ImageCollection("SKYSAT/GEN-A/PUBLIC/ORTHO/MULTISPECTRAL")
+    .filterBounds(us)
+    .map(lambda x: x.addBands(x.normalizedDifference(["N","R"])))
+)
+
+planet = hf.Dataset.from_imgcollection(ic)
+
+print(planet.n_images)
+# should equal 33
+```
+
+It should be noted that hydrafloods will attempt to call `.getInfo()` from the `ee.ImageCollection` to get property information such as image geometries and acquisition dates. Image collections used to create a `hf.Dataset` via this method needed to be bounded (i.e. have `img.geometry()`) and have the `system:time_start` property defined. Additionally, since this passes data from the EE servers to the client, it may take some time to get the information required for the Dataset object. Therefore, [writing your own dataset class](#writing-your-own-dataset-class) is advised if a lot or advanced computations are needed to pre-process any ImageCollection into a `hf.Dataset`.
+
 ## Applying a function
 
 As we saw in the [Getting Stated](/getting-started/#image-processing) page, we can apply image processing functions using [`apply_func()`](/datasets/#hydrafloods.datasets.Dataset.apply_func) by passing a function object or any keyword parameters. This method wraps a function that accepts an image as the first argument (which most `hydrafloods` image processing algorithms do) and maps it over the collection. For example, if want to create a water map using Landsat 8, we will calculate a water index and then apply a thresholding algorithm: 
@@ -300,6 +323,7 @@ water_img.getThumbURL({
 
 
 The `.pipe()` methods allows for _any_ function object to be passed as long as the first argument to the function is an ee.Image object. So, users can write their own custom functions or supply anonymous functions (i.e. `lambda` functions) and it will work. Again, this is the preferred method when doing a lot of preprocessing to prevent unnecessarily looping through the dataset multiple times.
+
 
 ## Writing your own dataset class
 
