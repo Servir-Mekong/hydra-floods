@@ -330,7 +330,7 @@ def export_daily_surface_water(
     output_asset_path=None,
     output_bucket_path=None,
     initial_threshold=0.1,
-    thresh_no_data=-0.1,
+    thresh_no_data=None,
     tile=False,
     tile_size=1.0,
     tile_buffer=100000,

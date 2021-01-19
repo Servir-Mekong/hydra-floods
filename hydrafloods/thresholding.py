@@ -11,7 +11,7 @@ def bmax_otsu(
     region=None,
     scale=90,
     initial_threshold=0,
-    thresh_no_data=-0.2,
+    thresh_no_data=None,
     invert=False,
     grid_size=0.1,
     bmax_threshold=0.75,
@@ -49,7 +49,7 @@ def bmax_otsu(
     def calcBmax(feature):
         """Closure function to calculate Bmax for each feature covering image
         """
-        segment = img 
+        segment = img
         initial = segment.lt(initial_threshold)
         p1 = ee.Number(
             initial.reduceRegion(
@@ -127,7 +127,18 @@ def bmax_otsu(
         tileScale=16,
     )
 
-    threshold = ee.Number(ee.Algorithms.If(ee.Dictionary(histogram.get(histBand.cat("_histogram"))).contains('bucketMeans'), otsu(histogram.get(histBand.cat("_histogram"))), thresh_no_data))
+    if thresh_no_data is not None:
+        threshold = ee.Number(
+            ee.Algorithms.If(
+                ee.Dictionary(histogram.get(histBand.cat("_histogram"))).contains(
+                    "bucketMeans"
+                ),
+                otsu(histogram.get(histBand.cat("_histogram"))),
+                thresh_no_data,
+            )
+        )
+    else:
+        threshold = otsu(histogram.get(histBand.cat("_histogram")))
 
     if return_threshold is True:
         return ee.Image(threshold)
@@ -143,13 +154,13 @@ def edge_otsu(
     region=None,
     scale=90,
     initial_threshold=0,
-    thresh_no_data=-0.2,
+    thresh_no_data=None,
     invert=False,
-    canny_threshold=0.05, 
-    canny_sigma=0, 
-    canny_lt=0.05,  
-    connected_pixels=200,  
-    edge_length=50, 
+    canny_threshold=0.05,
+    canny_sigma=0,
+    canny_lt=0.05,
+    connected_pixels=200,
+    edge_length=50,
     edge_buffer=100,
     max_buckets=255,
     min_bucket_width=0.001,
@@ -217,7 +228,18 @@ def edge_otsu(
         tileScale=16,
     )
 
-    threshold = ee.Number(ee.Algorithms.If(ee.Dictionary(histogram.get(histBand.cat("_histogram"))).contains('bucketMeans'), otsu(histogram.get(histBand.cat("_histogram"))), thresh_no_data))
+    if thresh_no_data is not None:
+        threshold = ee.Number(
+            ee.Algorithms.If(
+                ee.Dictionary(histogram.get(histBand.cat("_histogram"))).contains(
+                    "bucketMeans"
+                ),
+                otsu(histogram.get(histBand.cat("_histogram"))),
+                thresh_no_data,
+            )
+        )
+    else:
+        threshold = otsu(histogram.get(histBand.cat("_histogram")))
 
     if return_threshold is True:
         return threshold
@@ -266,7 +288,17 @@ def otsu(histogram):
     return ee.Number(output)
 
 
-def kmeans_extent(img, hand, initial_threshold=0, region=None, band=None, samples=500, seed=7, invert=False, scale=90):
+def kmeans_extent(
+    img,
+    hand,
+    initial_threshold=0,
+    region=None,
+    band=None,
+    samples=500,
+    seed=7,
+    invert=False,
+    scale=90,
+):
     """Water thresholding methodology using image values and HAND.
     Method from https://doi.org/10.1016/j.rse.2020.111732
 
@@ -298,7 +330,7 @@ def kmeans_extent(img, hand, initial_threshold=0, region=None, band=None, sample
 
     hand_band = ee.String(hand.bandNames().get(0))
 
-    # convert invert to a number 0 or 1 for ee server-side 
+    # convert invert to a number 0 or 1 for ee server-side
     invert = 1 if invert else 0
 
     strata = img.gt(initial_threshold).rename("strata")
@@ -316,11 +348,11 @@ def kmeans_extent(img, hand, initial_threshold=0, region=None, band=None, sample
 
     clusterer = ee.Clusterer.wekaKMeans(2, 2).train(samples, [band, hand_band])
 
-    test = samples.cluster(clusterer,"classes")
+    test = samples.cluster(clusterer, "classes")
     classes = ee.Array(test.aggregate_array("classes"))
     vals = ee.Array(test.aggregate_array(band)).mask(classes)
 
-    class_mean = ee.Number(vals.reduce(ee.Reducer.mean(),[0]).get([0]))
+    class_mean = ee.Number(vals.reduce(ee.Reducer.mean(), [0]).get([0]))
 
     water = ee.Image.cat([img, hand.unmask(0)]).cluster(clusterer)
 
