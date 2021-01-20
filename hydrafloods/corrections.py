@@ -169,9 +169,7 @@ def slope_correction(image, elevation, model="volume", buffer=0, scale=1000):
     # 2.2
     # Gamma_nought
     gamma0 = sigma0Pow.divide(theta_iRad.cos())
-    gamma0dB = geeutils.db_to_power(gamma0).select(
-        ["VV", "VH"], ["VV_gamma0", "VH_gamma0"]
-    )
+    gamma0dB = geeutils.db_to_power(gamma0)
 
     if model == "volume":
         scf = _volumetric_model_SCF(theta_iRad, alpha_rRad)
@@ -186,7 +184,7 @@ def slope_correction(image, elevation, model="volume", buffer=0, scale=1000):
 
     # apply model for Gamm0_f
     gamma0_flat = gamma0.divide(scf)
-    gamma0_flatDB = geeutils.power_to_db(gamma0_flat).select(["VV", "VH"])
+    gamma0_flatDB = geeutils.power_to_db(gamma0_flat).select(["^(V).*"])
 
     # calculate layover and shadow mask
     masks = _masking(alpha_rRad, theta_iRad, buffer)
