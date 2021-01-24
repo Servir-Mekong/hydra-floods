@@ -168,10 +168,15 @@ class Dataset:
         """
 
         # get region and date information
-        region = img_collection.map(geeutils.get_geoms).union(maxError=100).geometry(maxError=100)
+        region = (
+            img_collection.map(geeutils.get_geoms)
+            .union(maxError=100)
+            .geometry(maxError=100)
+        )
         # convert ee.Date info to string format
         dates = (
-            img_collection.aggregate_array("system:time_start").sort()
+            img_collection.aggregate_array("system:time_start")
+            .sort()
             .map(lambda x: ee.Date(x).format("YYYY-MM-dd HH:mm:ss.S"))
         )
 
@@ -184,8 +189,14 @@ class Dataset:
         if collection_id is "None":
             collection_id = "Custom ImageCollection"
 
-        # make a dummy dataset 
-        dummy_ds = Dataset(region,start_time,end_time,asset_id="NOAA/VIIRS/001/VNP09GA",use_qa=False)
+        # make a dummy dataset
+        dummy_ds = Dataset(
+            region,
+            start_time,
+            end_time,
+            asset_id="NOAA/VIIRS/001/VNP09GA",
+            use_qa=False,
+        )
 
         # override the dummy dataset information with the correct data fr
         dummy_ds.asset_id = collection_id
@@ -331,7 +342,7 @@ class Dataset:
             return outCls
 
     def aggregate_time(
-        self, dates=None, period=1, reducer="mean", clip_to_area=False, inplace=False
+        self, dates=None, period=1, period_unit="day", reducer="mean", clip_to_area=False, inplace=False
     ):
         """Aggregates multiple images into one based on time periods and a user defined reducer.
         Useful for mosaicing images from same date or time period.
@@ -341,6 +352,7 @@ class Dataset:
             dates (list[str], optional): list of dates defined as beginning time period of aggregatation. default = None,
                 all available uniques dates in collection will be used
             period (int, optional): number of days to advance from dates for aggregation. default = 1
+            period_unit (str, optional): time unit to advance period for aggregation. default = "day"
             reducer (str | ee.Reducer, optional): reducer to apply to images for aggregation, accepts string reducer name 
                 or ee.Reducer opbject, default = "mean"
             clip_to_area (bool): switch to clip imagery that has been merged to the overlaping region of imagery, default=False
@@ -355,7 +367,7 @@ class Dataset:
             """Closure function to map through days and reduce data within a given time period
             """
             t1 = ee.Date(d)
-            t2 = t1.advance(period, "day")
+            t2 = t1.advance(period, period_unit)
             img = (
                 self.collection.filterDate(t1, t2)
                 .reduce(reducer)
@@ -410,7 +422,7 @@ class Dataset:
             .set("system:time_start", img.get("system:time_start"))
         )
 
-    def pipe(self,steps,inplace=False):
+    def pipe(self, steps, inplace=False):
         """Method to pipe imagery within dataset through multiple functions at once.
         Assumes the first argument into piped functions are and ee.Image
 
@@ -433,6 +445,7 @@ class Dataset:
             )
             ```
         """
+
         def _piper(funcs):
             """Closure function to nest list of functions
             """
@@ -451,7 +464,7 @@ class Dataset:
         for step in steps:
             try:
                 func, kwargs = step
-            
+
             except TypeError:
                 func = step
                 kwargs = None
@@ -476,7 +489,6 @@ class Dataset:
             outCls = self.copy()
             outCls.collection = out_coll
             return outCls
-
 
 
 class Sentinel1(Dataset):
@@ -508,7 +520,6 @@ class Sentinel1(Dataset):
         """
         angles = img.select("angle")
         return img.updateMask(angles.lt(45).And(angles.gt(30)))
-        
 
     def add_orbit_band(self, inplace=False):
         """Method to add orbit band from S1 image metadata
@@ -529,7 +540,7 @@ class Sentinel1(Dataset):
             orbit_band = ee.Algorithms.If(
                 orbit.compareTo("DESCENDING"), ee.Image(1), ee.Image(0)
             )
-        
+
             extraFeatures = ee.Image(orbit_band).rename("orbit")
 
             return img.addBands(extraFeatures.clip(bounds))
@@ -803,27 +814,30 @@ class Sentinel2(Dataset):
 
         # Get s2cloudless image, subset the probability band.
         cld_prb = ee.Image(
-            ee.ImageCollection('COPERNICUS/S2_CLOUD_PROBABILITY')
-            .filter(ee.Filter.eq('system:index',img.get('system:index')))
+            ee.ImageCollection("COPERNICUS/S2_CLOUD_PROBABILITY")
+            .filter(ee.Filter.eq("system:index", img.get("system:index")))
             .first()
-        ).select('probability')
+        ).select("probability")
 
         # Condition s2cloudless by the probability threshold value.
         is_cloud = cld_prb.gt(CLD_PRB_THRESH)
 
         # Identify water pixels from the SCL band, invert.
-        not_water = img.select('SCL').neq(6)
+        not_water = img.select("SCL").neq(6)
 
         # Identify dark NIR pixels that are not water (potential cloud shadow pixels).
-        dark_pixels = img.select('B8').lt(NIR_DRK_THRESH).multiply(not_water)
+        dark_pixels = img.select("B8").lt(NIR_DRK_THRESH).multiply(not_water)
 
         # Determine the direction to project cloud shadow from clouds (assumes UTM projection).
-        shadow_azimuth = ee.Number(90).subtract(ee.Number(img.get('MEAN_SOLAR_AZIMUTH_ANGLE')));
+        shadow_azimuth = ee.Number(90).subtract(
+            ee.Number(img.get("MEAN_SOLAR_AZIMUTH_ANGLE"))
+        )
 
         # Project shadows from clouds for the distance specified by the CLD_PRJ_DIST input.
-        cld_proj = (is_cloud.directionalDistanceTransform(shadow_azimuth, CLD_PRJ_DIST*10)
-            .reproject(**{'crs': CRS, 'scale': 120})
-            .select('distance')
+        cld_proj = (
+            is_cloud.directionalDistanceTransform(shadow_azimuth, CLD_PRJ_DIST * 10)
+            .reproject(**{"crs": CRS, "scale": 120})
+            .select("distance")
             .mask()
         )
 
@@ -835,9 +849,13 @@ class Sentinel2(Dataset):
 
         # Remove small cloud-shadow patches and dilate remaining pixels by BUFFER input.
         # 20 m scale is for speed, and assumes clouds don't require 10 m precision.
-        is_cld_shdw = (is_cld_shdw.focal_min(2).focal_max(BUFFER*2/20)
-            .reproject(**{'crs': CRS, 'scale': 60})
-            .rename('cloudmask'))
+        is_cld_shdw = (
+            is_cld_shdw.focal_min(2)
+            .focal_max(BUFFER * 2 / 20)
+            .reproject(**{"crs": CRS, "scale": 60})
+            .rename("cloudmask")
+        )
 
         # Subset reflectance bands and update their masks, return the result.
-        return img.select('B.*').updateMask(is_cld_shdw.Not())
+        return img.select("B.*").updateMask(is_cld_shdw.Not())
+
