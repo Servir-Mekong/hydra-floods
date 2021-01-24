@@ -422,7 +422,7 @@ class Dataset:
             .set("system:time_start", img.get("system:time_start"))
         )
 
-    def pipe(self, steps, inplace=False):
+    def pipe(self, steps, inplace=False,carry_metadata=True):
         """Method to pipe imagery within dataset through multiple functions at once.
         Assumes the first argument into piped functions are and ee.Image
 
@@ -477,7 +477,10 @@ class Dataset:
             fs.append(pfunc)
 
         # get the piped function
-        one_shot = _piper(fs)
+        if carry_metadata:
+            one_shot = decorators.carry_metadata(_piper(fs))
+        else:
+            one_shot = _piper(fs)
 
         # apply pipe to each image
         out_coll = self.collection.map(lambda img: one_shot(img))
