@@ -469,7 +469,7 @@ def perona_malik(img, iters=10, K=3, method=1):
             cE = dI_E.multiply(dI_E).multiply(k1).exp()
             cN = dI_N.multiply(dI_N).multiply(k1).exp()
             cS = dI_S.multiply(dI_S).multiply(k1).exp()
-	elif method == 2:
+        elif method == 2:
             cW = ee.Image(1.0).divide(ee.Image(1.0).add(dI_W.multiply(dI_W).divide(k2)))
             cE = ee.Image(1.0).divide(ee.Image(1.0).add(dI_E.multiply(dI_E).divide(k2)))
             cN = ee.Image(1.0).divide(ee.Image(1.0).add(dI_N.multiply(dI_N).divide(k2)))
