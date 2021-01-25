@@ -435,7 +435,7 @@ def p_median(img, window=5):
 
 @decorators.carry_metadata
 def perona_malik(img, iters=10, K=3, method=1):
-   """	Perona-Malik (anisotropic diffusion) convolution
+    """	Perona-Malik (anisotropic diffusion) convolution
     Developed by Gennadii Donchyts see https://groups.google.com/forum/#!topic/google-earth-engine-developers/a9W0Nlrhoq0
     I(n+1, i, j) = I(n, i, j) + lambda * (cN * dN(I) + cS * dS(I) + cE * dE(I), cW * dW(I))
     
