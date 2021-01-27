@@ -1,11 +1,54 @@
 import ee
+from collections import OrderedDict
 from hydrafloods import decorators
 
+@decorators.carry_metadata
+def apply_fcnn(image, project_name, model_name, model_kwargs=None,output_probas=False,output_names=None):
+    """
+    args:
+        output_bands (Iterable, optional): list of names to 
+    """
 
-def logistic_regression():
+    if model_kwargs is None:
+        model_kwargs = OrderedDict(
+            projectName = project_name,
+            modelName =  model_name
+        )
+    else:
+        positional = OrderedDict(
+            projectName = project_name,
+            modelName =  model_name
+        )
 
-    return
+        model_kwargs = OrderedDict({**positional,**model_kwargs})
 
+    # Load the trained model and use it for prediction.
+    model = ee.Model.fromAiPlatformPredictor(**model_kwargs)
+
+    # run the predictions
+    predictions = model.predictImage(image.toFloat().toArray())
+
+    if output_probas:
+        if output_names is None:
+            raise ValueError("please provide `output_names` when `ouput_probas` is set to True")
+
+        output = (
+            predictions
+            .arrayFlatten([output_names])
+        )
+
+    else:
+        output_names = "classification" if output_names is None else output_names
+        # find highest probability class
+        output = (
+            predictions
+            .arrayArgmax()
+            .arrayFlatten([[output_names]])
+        )
+
+    return output
+
+    
 
 def minmax_scaling_dict(fc, feature_names):
     """Function to calculate the minimum and maximum values of feautures in a collection
@@ -263,6 +306,60 @@ def random_forest_ee(
 
     classifier = (
         ee.Classifier.smileRandomForest(n_trees)
+        .setOutputMode(mode.upper())
+        .train(fc_norm, label, feature_names)
+    )
+
+    return classifier, scaling_dict
+
+def gradient_boosting_ee(
+    n_trees,
+    feature_collection,
+    feature_names,
+    label,
+    scaling=None,
+    mode="classification",
+    learning_rate=0.01,
+    loss="LeastAbsoluteDeviation"
+):
+    """Helper function to scale feature collection and train gradient tree boosting model
+
+    args:
+        n_trees (int): number of trees for gradient boosting model
+        feature_collection (ee.FeatureCollection): features to train random forest model
+        feature_names (list[str]): names of feature columns to use in random forest model (x values)
+        label (str): name of feature column to fit random forest model (y value)
+        scaling (str | None, optional): name of scaling to apply before training. One of: "minmax", "standard", `None`.
+            default = `None`
+        mode (str, optional): The output mode of the random forest model. One of: "classification", "regression",
+            "probability". default = "classification"
+        learning_rate (float,optional): The shrinkage parameter in (0, 1] controls the learning rate of procedure. default = 0.01
+        loss (str, optional): Loss function to be optimized. default = "LeastAbsoluteDeviation"
+    """
+
+    if scaling == "minmax":
+        scaling_dict = minmax_scaling_dict(feature_collection, feature_names)
+        fc_norm = minmax_feature_scaling(
+            feature_collection, scaling_dict, feature_names
+        )
+
+    elif scaling == "standard":
+        scaling_dict = standard_scaling_dict(feature_collection, feature_names)
+        fc_norm = standard_feature_scaling(
+            feature_collection, scaling_dict, feature_names
+        )
+
+    elif scaling is None:
+        scaling_dict = None
+        fc_norm = feature_collection
+
+    else:
+        raise ValueError(
+            "Could not determine scaling option. Options are ['minmax', 'standard', or None]"
+        )
+
+    classifier = (
+        ee.Classifier.smileGradientTreeBoost(numberOfTrees=n_trees,samplingRate=learning_rate,loss=loss)
         .setOutputMode(mode.upper())
         .train(fc_norm, label, feature_names)
     )
