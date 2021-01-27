@@ -434,7 +434,7 @@ def p_median(img, window=5):
     return ee.Image.cat([hv_median, diag_median]).reduce("mean").rename(band_names)
 
 @decorators.carry_metadata
-def perona_malik(img, iters=10, K=3, method=1):
+def perona_malik(img, n_iters=10, K=3, method=1):
     """	Perona-Malik (anisotropic diffusion) convolution
     Developed by Gennadii Donchyts see https://groups.google.com/forum/#!topic/google-earth-engine-developers/a9W0Nlrhoq0
     I(n+1, i, j) = I(n, i, j) + lambda * (cN * dN(I) + cS * dS(I) + cE * dE(I), cW * dW(I))
@@ -453,12 +453,13 @@ def perona_malik(img, iters=10, K=3, method=1):
     dyN = ee.Kernel.fixed(3, 3, [[ 0,  1,  0], [ 0, -1,  0], [ 0,  0,  0]])
     dyS = ee.Kernel.fixed(3, 3, [[ 0,  0,  0], [ 0, -1,  0], [ 0,  1,  0]])
     
-    Lambda = 0.2
+    l = ee.Image.constant(0.2)
     
-    k1 = ee.Image(-1.0/K)
-    k2 = ee.Image(K).multiply(ee.Image(K))
+    k = ee.Image.constant(K)
+    k1 = ee.Image.constant(-1.0/K)
+    k2 = k.pow(2)
     
-    for i in range(0, iter):
+    for i in range(n_iters):
         dI_W = img.convolve(dxW)
         dI_E = img.convolve(dxE)
         dI_N = img.convolve(dyN)
@@ -474,6 +475,6 @@ def perona_malik(img, iters=10, K=3, method=1):
             cE = ee.Image(1.0).divide(ee.Image(1.0).add(dI_E.multiply(dI_E).divide(k2)))
             cN = ee.Image(1.0).divide(ee.Image(1.0).add(dI_N.multiply(dI_N).divide(k2)))
             cS = ee.Image(1.0).divide(ee.Image(1.0).add(dI_S.multiply(dI_S).divide(k2)))
-        img = img.add(ee.Image(Lambda).multiply(cN.multiply(dI_N).add(cS.multiply(dI_S)).add(cE.multiply(dI_E)).add(cW.multiply(dI_W))))
+        img = img.add(l.multiply(cN.multiply(dI_N).add(cS.multiply(dI_S)).add(cE.multiply(dI_E)).add(cW.multiply(dI_W))))
     
     return img
