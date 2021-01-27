@@ -436,16 +436,16 @@ def p_median(img, window=5):
 @decorators.carry_metadata
 def perona_malik(img, n_iters=10, K=3, method=1):
     """	Perona-Malik (anisotropic diffusion) convolution
-    Developed by Gennadii Donchyts see https://groups.google.com/forum/#!topic/google-earth-engine-developers/a9W0Nlrhoq0
+    Developed by Gennadii Donchyts see https://groups.google.com/g/google-earth-engine-developers/c/umGlt5qIN1I/m/PD8lsJ7qBAAJ
     I(n+1, i, j) = I(n, i, j) + lambda * (cN * dN(I) + cS * dS(I) + cE * dE(I), cW * dW(I))
     
     args:
         img (ee.Image): Earth engine image object. Expects that imagery is a SAR image
-        iters (int, optional): Number of interations to apply filter
-	K moving window size to apply filter (i.e. a value of 7 == 7x7 window). default = 3
-        method: choose method 1 (default) or 2
+        n_iters (int, optional): Number of interations to apply filter
+	    K (int,optional): moving window size to apply filter (i.e. a value of 7 == 7x7 window). default = 3
+        method (int, optional): choose method 1 (default) or 2
     returns:
-        ee.Image: filtered SAR image using the Gamma Map algorithm
+        ee.Image: filtered SAR image using the perona malik algorithm
     """
 
     dxW = ee.Kernel.fixed(3, 3, [[ 0,  0,  0], [ 1, -1,  0], [ 0,  0,  0]])
