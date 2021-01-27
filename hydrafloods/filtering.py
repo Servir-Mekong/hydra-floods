@@ -448,33 +448,49 @@ def perona_malik(img, n_iters=10, K=3, method=1):
         ee.Image: filtered SAR image using the perona malik algorithm
     """
 
+    def _method_1(dI_W, dI_E, dI_N, dI_S):
+        cW = dI_W.pow(2).multiply(k1).exp()
+        cE = dI_E.pow(2).multiply(k1).exp()
+        cN = dI_N.pow(2).multiply(k1).exp()
+        cS = dI_S.pow(2).multiply(k1).exp()
+
+        return cW, cE, cN, cS
+
+    def _method_2(dI_W, dI_E, dI_N, dI_S):
+        cW = one.divide(one.add(dI_W.pow(2).divide(k2)))
+        cE = one.divide(one.add(dI_E.pow(2).divide(k2)))
+        cN = one.divide(one.add(dI_N.pow(2).divide(k2)))
+        cS = one.divide(one.add(dI_S.pow(2).divide(k2)))
+
+        return cW, cE, cN, cS
+
+
     dxW = ee.Kernel.fixed(3, 3, [[ 0,  0,  0], [ 1, -1,  0], [ 0,  0,  0]])
     dxE = ee.Kernel.fixed(3, 3, [[ 0,  0,  0], [ 0, -1,  1], [ 0,  0,  0]])
     dyN = ee.Kernel.fixed(3, 3, [[ 0,  1,  0], [ 0, -1,  0], [ 0,  0,  0]])
     dyS = ee.Kernel.fixed(3, 3, [[ 0,  0,  0], [ 0, -1,  0], [ 0,  1,  0]])
     
+    one = ee.Image.constant(1.0)
     l = ee.Image.constant(0.2)
-    
     k = ee.Image.constant(K)
     k1 = ee.Image.constant(-1.0/K)
     k2 = k.pow(2)
-    
+
+    if method == 1:
+        _method = _method_1
+    elif method == 2:
+        _method = _method_2
+    else:
+        raise NotImplementedError("Could not determine algorithm to apply filter...options for `method` are 1 or 2")
+
     for i in range(n_iters):
         dI_W = img.convolve(dxW)
         dI_E = img.convolve(dxE)
         dI_N = img.convolve(dyN)
         dI_S = img.convolve(dyS)
         
-        if method == 1:
-            cW = dI_W.multiply(dI_W).multiply(k1).exp()
-            cE = dI_E.multiply(dI_E).multiply(k1).exp()
-            cN = dI_N.multiply(dI_N).multiply(k1).exp()
-            cS = dI_S.multiply(dI_S).multiply(k1).exp()
-        elif method == 2:
-            cW = ee.Image(1.0).divide(ee.Image(1.0).add(dI_W.multiply(dI_W).divide(k2)))
-            cE = ee.Image(1.0).divide(ee.Image(1.0).add(dI_E.multiply(dI_E).divide(k2)))
-            cN = ee.Image(1.0).divide(ee.Image(1.0).add(dI_N.multiply(dI_N).divide(k2)))
-            cS = ee.Image(1.0).divide(ee.Image(1.0).add(dI_S.multiply(dI_S).divide(k2)))
+        cW, cE, cN, cS = _method(dI_W, dI_E, dI_N, dI_S)
+
         img = img.add(l.multiply(cN.multiply(dI_N).add(cS.multiply(dI_S)).add(cE.multiply(dI_E)).add(cW.multiply(dI_W))))
     
     return img
