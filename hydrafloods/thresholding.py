@@ -294,7 +294,7 @@ def kmeans_extent(
     initial_threshold=0,
     region=None,
     band=None,
-    samples=500,
+    n_samples=500,
     seed=7,
     invert=False,
     scale=90,
@@ -318,6 +318,14 @@ def kmeans_extent(
         ee.Image: clustered image from KMeans clusterer. Classes assumed to be water/no-water
 
     """
+    def _cluster_center(x):
+        return (ee.Array(
+            samples
+            .aggregate_array(band))
+            .mask(classes.eq(ee.Number(x)))
+            .reduce(ee.Reducer.mean(),[0])
+        ).get([0])
+
     if region is None:
         region = img.geometry()
 
@@ -333,32 +341,41 @@ def kmeans_extent(
     # convert invert to a number 0 or 1 for ee server-side
     invert = 1 if invert else 0
 
-    strata = img.gt(initial_threshold).rename("strata")
+    img = img.addBands(hand.unmask(0))
 
-    samples = ee.Image.cat([img, hand, strata]).stratifiedSample(
-        numPoints=samples,
+    strata = img.select(band).gt(initial_threshold).rename("strata")
+
+    samples = img.addBands(strata).stratifiedSample(
+        numPoints=n_samples,
         classBand="strata",
         region=region,
         scale=scale,
         classValues=[0, 1],
-        classPoints=[samples, samples],
+        classPoints=[n_samples, n_samples],
         tileScale=16,
         seed=seed,
     )
 
-    clusterer = ee.Clusterer.wekaKMeans(2, 2).train(samples, [band, hand_band])
+    clusterer = ee.Clusterer.wekaKMeans(2, 1).train(samples, [band, hand_band])
 
-    test = samples.cluster(clusterer, "classes")
-    classes = ee.Array(test.aggregate_array("classes"))
-    vals = ee.Array(test.aggregate_array(band)).mask(classes)
+    samples = samples.cluster(clusterer, "classes")
+    classes = samples.aggregate_array("classes")
+    unique = classes.distinct().sort()
+    classes = ee.Array(classes)
 
-    class_mean = ee.Number(vals.reduce(ee.Reducer.mean(), [0]).get([0]))
+    class_means = unique.map(_cluster_center)
 
-    water = ee.Image.cat([img, hand.unmask(0)]).cluster(clusterer)
+    min_mean = class_means.reduce(ee.Reducer.min())
 
-    do_inversion = class_mean.gt(initial_threshold).And(ee.Number(invert))
+    water_class = class_means.indexOf(min_mean)
+
+    water = img.cluster(clusterer)
+
+    do_inversion = water_class.And(ee.Number(invert))
 
     water = ee.Image(ee.Algorithms.If(do_inversion, water.Not(), water))
 
     return water.rename("water").uint8()
+    
+
 
