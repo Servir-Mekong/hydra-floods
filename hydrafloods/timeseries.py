@@ -1,6 +1,7 @@
 import ee
 import math
 import copy
+from pipetools import pipe
 from functools import partial
 from hydrafloods import decorators, datasets
 
@@ -46,13 +47,21 @@ def prep_inputs(collection, keep_bands=None, apply_mask=False):
 
     if keep_bands is None:
         keep_bands = []
-
-    tband = partial(add_time_band,apply_mask=apply_mask)
+    
+    prepfunc = None 
 
     if "time" not in keep_bands:
-        outCollection = outCollection.map(tband)
+        prepfunc = partial(add_time_band,apply_mask=apply_mask)
+        # outCollection = outCollection.map(tband)
     if "constant" not in keep_bands:
-        outCollection = outCollection.map(lambda x: x.addBands(ee.Image(1)))
+        add_const = lambda x: x.addBands(ee.Image(1))
+        if "time" in keep_bands:
+            prepfunc = add_const
+        else:
+            prepfunc = pipe | prepfunc | add_const
+        
+    if ("time" not in keep_bands) or ("constant" not in keep_bands):
+        outCollection = outCollection.map(prepfunc)
 
     out_band_order = ee.List(["constant", "time"]).cat(keep_bands)
     return outCollection.select(out_band_order)
@@ -316,7 +325,7 @@ def get_dummy_img(t):
     return img.addBands(time_band)
 
 
-def get_dummy_collection(start_time, end_time):
+def get_dummy_collection(start_time=None, end_time=None, dates=None):
     """Helper function to create image collection of images to apply time series prediction on
     Creates daily imagery between start_time and end_time
 
@@ -327,17 +336,27 @@ def get_dummy_collection(start_time, end_time):
     returns:
         ee.ImageCollection: image collection with image containing time and constant bands
     """
-    def _gen_image(i):
+    def _gen_image_seq(i):
         t = start_time.advance(ee.Number(i), "day")
         return ee.Image().rename("blank").set("system:time_start", t.millis())
 
-    if not isinstance(start_time, ee.Date):
-        start_time = ee.Date(start_time)
-    if not isinstance(end_time, ee.Date):
-        end_time = ee.Date(end_time)
+    def _gen_image(d):
+        d = ee.Date(d)
+        return ee.Image().rename("blank").set("system:time_start", d.millis())
 
-    n = end_time.difference(start_time, "day")
-    coll = ee.ImageCollection(ee.List.sequence(0, n).map(_gen_image))
+    if (start_time is not None) and (end_time is not None):
+        if not isinstance(start_time, ee.Date):
+            start_time = ee.Date(start_time)
+        if not isinstance(end_time, ee.Date):
+            end_time = ee.Date(end_time)
+
+        n = end_time.difference(start_time, "day")
+        coll = ee.ImageCollection(ee.List.sequence(0, n).map(_gen_image_seq))
+    elif dates is not None:
+        coll = ee.ImageCollection(dates.map(_gen_image))
+
+    else:
+        raise ValueError("Either 'dates' or 'start_time'/'end_time' need to be defined")
 
     return prep_inputs(coll)
 
