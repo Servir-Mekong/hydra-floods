@@ -464,6 +464,8 @@ def perona_malik(img, n_iters=10, K=3, method=1):
 
         return cW, cE, cN, cS
 
+    # covnert db to natural units  before applying filter
+    power = geeutils.db_to_power(img)
 
     dxW = ee.Kernel.fixed(3, 3, [[ 0,  0,  0], [ 1, -1,  0], [ 0,  0,  0]])
     dxE = ee.Kernel.fixed(3, 3, [[ 0,  0,  0], [ 0, -1,  1], [ 0,  0,  0]])
@@ -484,13 +486,16 @@ def perona_malik(img, n_iters=10, K=3, method=1):
         raise NotImplementedError("Could not determine algorithm to apply filter...options for `method` are 1 or 2")
 
     for i in range(n_iters):
-        dI_W = img.convolve(dxW)
-        dI_E = img.convolve(dxE)
-        dI_N = img.convolve(dyN)
-        dI_S = img.convolve(dyS)
+        dI_W = power.convolve(dxW)
+        dI_E = power.convolve(dxE)
+        dI_N = power.convolve(dyN)
+        dI_S = power.convolve(dyS)
         
         cW, cE, cN, cS = _method(dI_W, dI_E, dI_N, dI_S)
 
-        img = img.add(l.multiply(cN.multiply(dI_N).add(cS.multiply(dI_S)).add(cE.multiply(dI_E)).add(cW.multiply(dI_W))))
+        power = power.add(l.multiply(cN.multiply(dI_N).add(cS.multiply(dI_S)).add(cE.multiply(dI_E)).add(cW.multiply(dI_W))))
     
+    # covnert natural to db units after filter is done
+    img = geeutils.power_to_db(power)
+
     return img
