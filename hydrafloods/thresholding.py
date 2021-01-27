@@ -318,13 +318,13 @@ def kmeans_extent(
         ee.Image: clustered image from KMeans clusterer. Classes assumed to be water/no-water
 
     """
+
     def _cluster_center(x):
-        return (ee.Array(
-            samples
-            .aggregate_array(band))
-            .mask(classes.eq(ee.Number(x)))
-            .reduce(ee.Reducer.mean(),[0])
-        ).get([0])
+        return ee.Number(
+            (
+                band_arr.mask(classes.eq(ee.Number(x))).reduce(ee.Reducer.mean(), [0])
+            ).get([0])
+        )
 
     if region is None:
         region = img.geometry()
@@ -362,6 +362,7 @@ def kmeans_extent(
     classes = samples.aggregate_array("classes")
     unique = classes.distinct().sort()
     classes = ee.Array(classes)
+    band_arr = ee.Array(samples.aggregate_array(band))
 
     class_means = unique.map(_cluster_center)
 
@@ -376,6 +377,105 @@ def kmeans_extent(
     water = ee.Image(ee.Algorithms.If(do_inversion, water.Not(), water))
 
     return water.rename("water").uint8()
-    
 
+
+def multidim_semisupervised(
+    img,
+    bands,
+    rank_band=None,
+    ranking="min",
+    region=None,
+    n_samples=500,
+    seed=7,
+    scale=90,
+    proba_threshold=None,
+):
+    """Implementation of the Automatic water detection from 
+    multidimensional hierarchical clustering algorithm.
+    Method details: https://doi.org/10.1016/j.rse.2020.112209
+    Note: this is a similar method, not exact from the paper
+
+    args:
+        img (ee.Image): input image to thresholding algorithm
+        bands (list | ee.List): band names to use for the semi supervised classification
+        rank_band (str, optional): band name used to rank which unserpervised class is water. If None then first band name in `bands` is used. default = None
+        ranking (str, optional): method to rank the classes by `rank_band`. Options are 'min' or 'max'. If 'min', then the lowest class mean is considered water. default = 'min'
+        region (ee.Geometry | None, optional): region to sample values for KMeans clustering, if set to `None` will use img.geometry(). default = None
+        samples (int, optional): number of stratified samples to gather for clustering from the initial water/no-water map. default=500
+        seed (int, optional): random number generator seed for sampling. default = 7
+        scale (int, optional): scale at which to perform reduction operations, setting higher will prevent OOM errors. default = 90
+        proba_threshold (float, optional): probability threshold to create a binary water mask, should be in range of 0-1. If None, then the probability values are returned. default = None
+    """
+
+    def _cluster_center(x):
+        return (
+            band_arr.mask(classes.eq(ee.Number(x))).reduce(ee.Reducer.mean(), [0])
+        ).get([0])
+
+    if region is None:
+        region = img.geometry()
+
+    if bands is None:
+        bands = img.bandNames()
+    else:
+        bands = ee.List(bands)
+
+    if rank_band is None:
+        rank_band = ee.String(bands.get(0))
+
+    samples = img.select(bands).sample(
+        region=region,
+        scale=scale,
+        numPixels=n_samples,
+        seed=seed,
+        dropNulls=True,
+        tileScale=16,
+    )
+
+    clusterer = ee.Clusterer.wekaXMeans(3, 12, 5).train(samples, bands)
+
+    samples = samples.cluster(clusterer, "init_classes")
+
+    classes = samples.aggregate_array("init_classes")
+    unique = classes.distinct().sort()
+    classes = ee.Array(classes)
+    band_arr = ee.Array(samples.aggregate_array(rank_band))
+
+    class_means = unique.map(_cluster_center)
+
+    if ranking == "min":
+        ranker = ee.Reducer.min()
+    elif ranking == "max":
+        ranker = ee.Reducer.max()
+    else:
+        raise NotImplementedError(
+            "ranking selection is not implemented. options are 'min' or 'max'"
+        )
+
+    ranked_mean = class_means.reduce(ranker)
+
+    water_class = class_means.indexOf(ranked_mean)
+
+    binary_samples = samples.map(
+        lambda x: (
+            ee.Feature(x).set(
+                "init_classes", ee.Number(x.get("init_classes")).eq(water_class)
+            )
+        )
+    )
+
+    classifier = (
+        ee.Classifier.smileRandomForest(numberOfTrees=50)
+        .setOutputMode("PROBABILITY")
+        .train(binary_samples, "init_classes", bands)
+    )
+
+    probas = img.select(bands).classify(classifier)
+
+    if proba_threshold is None:
+        output = probas.rename("water_proba")
+    else:
+        output = probas.gt(proba_threshold).rename("water").uint8()
+
+    return output
 
