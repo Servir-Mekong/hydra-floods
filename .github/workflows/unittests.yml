@@ -23,13 +23,13 @@ jobs:
         with:
           python-version: 3.6
       - name: Install dependencies
-          run: |
-            pip install .
-            pip install pytests
+        run: |
+          pip install --user .
+          pip install --user pytests
       - name: LOAD EE CREDENTIALS
-          run: python ./.github/ee_token.py
-          env:
-            EARTHENGINE_TOKEN: ${{ secrets.EARTHENGINE_TOKEN }}
+        run: python ./.github/ee_token.py
+        env:
+          EARTHENGINE_TOKEN: ${{ secrets.EARTHENGINE_TOKEN }}
       - name: UNIT TESTS 
-          run: |
-            pytest
+        run: |
+          pytest
