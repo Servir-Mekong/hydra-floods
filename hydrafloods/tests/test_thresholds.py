@@ -15,80 +15,104 @@ S1 = ee.Image(
 
 GEOM = S1.geometry().centroid()
 
+PROCESS_SCALE = 250
+REDUCTION_SCALE = 90
 
-def test_edge_otsu():
-    kwargs = dict(
-        initial_threshold=-16, edge_buffer=300, scale=150, return_threshold=True
-    )
-    threshold = (
-        hf.edge_otsu(S1, **kwargs).reduceRegion(ee.Reducer.mean(), GEOM, 10).getInfo()
-    )
 
-    thresh_expected = {"constant": -14.203254920711124}
+class TestThresholds:
+    def test_edge_otsu(self):
+        kwargs = dict(
+            initial_threshold=-16,
+            edge_buffer=300,
+            scale=PROCESS_SCALE,
+            return_threshold=True,
+        )
+        threshold = (
+            hf.edge_otsu(S1, **kwargs)
+            .reduceRegion(ee.Reducer.mean(), GEOM, REDUCTION_SCALE)
+            .getInfo()
+        )
+        threshold = {k: round(v, 6) for k, v in threshold.items()}
 
-    kwargs["return_threshold"] = False
-    water = (
-        hf.edge_otsu(S1, **kwargs).reduceRegion(ee.Reducer.mean(), GEOM, 10).getInfo()
-    )
+        thresh_expected = {"constant": -14.205071}
 
-    water_expected = {"water": 0}
+        kwargs["return_threshold"] = False
+        water = (
+            hf.edge_otsu(S1, **kwargs)
+            .reduceRegion(ee.Reducer.mean(), GEOM, REDUCTION_SCALE)
+            .getInfo()
+        )
 
-    assert (threshold == thresh_expected) and (water == water_expected)
+        water_expected = {"water": 0}
 
-def test_edge_otsu():
-    kwargs = dict(
-        initial_threshold=-16, scale=150, return_threshold=True
-    )
-    threshold = (
-        hf.bmax_otsu(S1, **kwargs).reduceRegion(ee.Reducer.mean(), GEOM, 10).getInfo()
-    )
+        assert (threshold == thresh_expected) and (water == water_expected)
 
-    thresh_expected = {"constant": -14.459723114655215}
+    def test_bmax_otsu(self):
+        kwargs = dict(initial_threshold=-16, scale=PROCESS_SCALE, return_threshold=True)
+        threshold = (
+            hf.bmax_otsu(S1, **kwargs)
+            .reduceRegion(ee.Reducer.mean(), GEOM, REDUCTION_SCALE)
+            .getInfo()
+        )
+        threshold = {k: round(v, 6) for k, v in threshold.items()}
 
-    kwargs["return_threshold"] = False
-    water = (
-        hf.bmax_otsu(S1, **kwargs).reduceRegion(ee.Reducer.mean(), GEOM, 10).getInfo()
-    )
+        thresh_expected = {"constant": -14.207951}
 
-    water_expected = {"water": 0}
+        kwargs["return_threshold"] = False
+        water = (
+            hf.bmax_otsu(S1, **kwargs)
+            .reduceRegion(ee.Reducer.mean(), GEOM, REDUCTION_SCALE)
+            .getInfo()
+        )
 
-    assert (threshold == thresh_expected) and (water == water_expected)
+        water_expected = {"water": 0}
 
-def test_kmeans_extent():
-    hand = ee.Image("MERIT/Hydro/v1_0_1").select("hnd")
+        assert (threshold == thresh_expected) and (water == water_expected)
 
-    water = hf.kmeans_extent(S1,hand,band="VV",initial_threshold=-16).reduceRegion(ee.Reducer.mean(), GEOM, 10).getInfo()
+    def test_kmeans_extent(self):
+        hand = ee.Image("MERIT/Hydro/v1_0_1").select("hnd")
 
-    water_expected = {"water": 0}
+        water = (
+            hf.kmeans_extent(S1, hand, band="VV", initial_threshold=-16)
+            .reduceRegion(ee.Reducer.mean(), GEOM, REDUCTION_SCALE)
+            .getInfo()
+        )
 
-    assert water == water_expected
+        water_expected = {"water": 0}
 
-def test_multidim_semisupervised():
-    index_img = hf.add_indices(S1,indices=["ndpi","vv_vh_ratio","nvvi","nvhi"])
+        assert water == water_expected
 
-    multidim = hf.multidim_semisupervised(
-        index_img,
-        bands=["VV","VH","ndpi"],
-        rank_band="VH",
-        ranking="min",
-        n_samples=500,
-    )
+    def test_multidim_semisupervised(self):
+        index_img = hf.add_indices(S1, indices=["ndpi", "vv_vh_ratio", "nvvi", "nvhi"])
 
-    water_proba = multidim.reduceRegion(ee.Reducer.mean(), GEOM, 10).getInfo()
+        multidim = hf.multidim_semisupervised(
+            index_img,
+            bands=["VV", "VH", "ndpi"],
+            rank_band="VH",
+            ranking="min",
+            n_samples=500,
+        )
 
-    proba_expected = {'water_proba': 0.02067818018845265}
+        water_proba = multidim.reduceRegion(
+            ee.Reducer.mean(), GEOM, REDUCTION_SCALE
+        ).getInfo()
+        water_proba = {k: round(v, 6) for k, v in water_proba.items()}
 
-    multidim = hf.multidim_semisupervised(
-        index_img,
-        bands=["VV","VH","ndpi"],
-        rank_band="VH",
-        ranking="min",
-        n_samples=500,
-        proba_threshold=0.5
-    )
+        proba_expected = {"water_proba": 0.007236}
 
-    water = multidim.reduceRegion(ee.Reducer.mean(), GEOM, 10).getInfo()
+        multidim = hf.multidim_semisupervised(
+            index_img,
+            bands=["VV", "VH", "ndpi"],
+            rank_band="VH",
+            ranking="min",
+            n_samples=500,
+            proba_threshold=0.5,
+        )
 
-    water_expected = {"water": 0}
+        water = multidim.reduceRegion(
+            ee.Reducer.mean(), GEOM, REDUCTION_SCALE
+        ).getInfo()
 
-    assert (water_proba == proba_expected) and (water == water_expected)
+        water_expected = {"water": 0}
+
+        assert (water_proba == proba_expected) and (water == water_expected)

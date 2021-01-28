@@ -5,86 +5,60 @@ import hydrafloods as hf
 
 ee.Initialize()
 
-TEST_REGION = ee.Geometry.Rectangle([102.3335, 10.4045, 107.6277, 14.6900])
-TEST_START_TIME = "2019-02-07"
-TEST_END_TIME = "2019-02-08"
-
-S1 = ee.Image(
-    hf.Sentinel1(TEST_REGION, TEST_START_TIME, TEST_END_TIME).collection.first()
-)
-
-GEOM = S1.geometry().centroid()
+# set constants for testing
+IMG = ee.Image("projects/servir-mekong/unitTests/dummyv1")
+GEOM = IMG.geometry()
+SCALE = 1
 
 
-def test_lee_sigma():
-    filtered = hf.lee_sigma(S1)
-    value = filtered.reduceRegion(ee.Reducer.mean(), GEOM, 10)
+class TestFilters:
+    def test_lee_sigma(self):
+        filtered = hf.lee_sigma(IMG, keep_bands=None)
+        result = filtered.reduceRegion(ee.Reducer.mean(), GEOM, SCALE).getInfo()
+        result = {k: round(v, 6) for k, v in result.items()}
 
-    expected = {
-        "VH": -13.66781582837678,
-        "VV": -7.876199146226998,
-        "angle": 38.63777542114258,
-    }
+        expected = {"b1": 2.750624}
 
-    assert value.getInfo() == expected
+        assert result == expected
 
+    def test_gamma_map(self):
+        filtered = hf.gamma_map(IMG)
+        result = filtered.reduceRegion(ee.Reducer.mean(), GEOM, SCALE).getInfo()
+        result = {k: round(v, 6) for k, v in result.items()}
 
-def test_gamma_map():
-    filtered = hf.gamma_map(S1)
-    value = filtered.reduceRegion(ee.Reducer.mean(), GEOM, 10)
+        expected = {"b1": 0.517725}
 
-    expected = {
-        "VH": -13.977827072143555,
-        "VV": -7.706578731536865,
-        "angle": 38.63688659667969,
-    }
+        assert result == expected
 
-    assert value.getInfo() == expected
+    def test_refined_lee(self):
+        filtered = hf.refined_lee(IMG)
+        result = filtered.reduceRegion(ee.Reducer.mean(), GEOM, SCALE).getInfo()
+        result = {k: round(v, 6) for k, v in result.items()}
 
+        expected = {"b1": 0.513949}
 
-def test_refined_lee():
-    filtered = hf.refined_lee(S1)
-    value = filtered.reduceRegion(ee.Reducer.mean(), GEOM, 10)
+        assert result == expected
 
-    expected = {
-        "VH": -14.386202713274955,
-        "VV": -7.370427354980791,
-        "angle": 38.63797261920891,
-    }
+    def test_p_median(self):
+        filtered = hf.p_median(IMG)
+        result = filtered.reduceRegion(ee.Reducer.mean(), GEOM, SCALE).getInfo()
+        result = {k: round(v, 6) for k, v in result.items()}
 
-    assert value.getInfo() == expected
+        expected = {"b1": 0.503379}
 
+        assert result == expected
 
-def test_p_median():
-    filtered = hf.p_median(S1)
-    value = filtered.reduceRegion(ee.Reducer.mean(), GEOM, 10)
+    def test_perona_malik(self):
+        filtered1 = hf.perona_malik(IMG, method=1)
+        result1 = filtered1.reduceRegion(ee.Reducer.mean(), GEOM, SCALE).getInfo()
+        result1 = {k: round(v, 6) for k, v in result1.items()}
 
-    expected = {
-        "VH": -14.252587399378688,
-        "VV": -7.465488774911076,
-        "angle": 38.63777542114258,
-    }
+        expected1 = {"constant": -0.252697}
 
-    assert value.getInfo() == expected
+        filtered2 = hf.perona_malik(IMG, method=2)
+        result2 = filtered2.reduceRegion(ee.Reducer.mean(), GEOM, SCALE).getInfo()
+        result2 = {k: round(v, 6) for k, v in result2.items()}
 
+        expected2 = {"constant": -0.328251}
 
-def test_perona_malik():
-    filtered1 = hf.perona_malik(S1, method=1)
-    value1 = filtered1.reduceRegion(ee.Reducer.mean(), GEOM, 10)
-
-    expected1 = {
-        "VH": -13.829632515470857,
-        "VV": -7.3728422483001115,
-        "angle": 38.63777451159317,
-    }
-
-    filtered2 = hf.perona_malik(S1, method=2)
-    value2 = filtered2.reduceRegion(ee.Reducer.mean(), GEOM, 10)
-
-    expected2 = {
-        "VH": -13.829609585803633,
-        "VV": -7.372836610955799,
-        "angle": 38.637774542076784,
-    }
-
-    assert (value1.getInfo() == expected1) and (value2.getInfo() == expected2)
+        assert (result1 == expected1) and (result2 == expected2)
