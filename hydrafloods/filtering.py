@@ -21,9 +21,14 @@ def lee_sigma(img, window=9, sigma=0.9, looks=4, tk=7, keep_bands="angle"):
         ee.Image: filtered SAR image using the Lee Sigma algorithm
     """
     band_names = img.bandNames()
-    proc_bands = band_names.remove(keep_bands)
-    keep_img = img.select(keep_bands)
+    if keep_bands is not None:
+        keep_img = img.select(keep_bands)
+        proc_bands = band_names.remove(keep_bands)
+    else:
+        proc_bands = band_names
+
     img = img.select(proc_bands)
+    
 
     midPt = (window // 2) + 1 if (window % 2) != 0 else window // 2
     kernelWeights = ee.List.repeat(ee.List.repeat(1, window), window)
@@ -115,7 +120,12 @@ def lee_sigma(img, window=9, sigma=0.9, looks=4, tk=7, keep_bands="angle"):
     retainPixel = K.gte(tk)
     xHat = geeutils.power_to_db(img.updateMask(retainPixel).unmask(mmse))
 
-    return ee.Image(xHat).rename(proc_bands).addBands(keep_img)
+    output = ee.Image(xHat).rename(proc_bands)
+
+    if keep_bands is not None:
+        output = output.addBands(keep_img)
+
+    return output
 
 
 # The RL speckle filter
@@ -314,9 +324,10 @@ def refined_lee(image):
 
     bandNames = image.bandNames()
     power = geeutils.db_to_power(image)
+    bandList = ee.List.sequence(0,bandNames.length().subtract(1))
 
-    result = ee.ImageCollection(bandNames.map(apply_filter)).toBands().rename(bandNames)
-    return geeutils.power_to_db(ee.Image(result))
+    result = ee.ImageCollection(bandList.map(apply_filter)).toBands()
+    return geeutils.power_to_db(ee.Image(result)).rename(bandNames)
 
 
 @decorators.carry_metadata
