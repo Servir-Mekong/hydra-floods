@@ -310,8 +310,6 @@ def kmeans_extent(
         band (str | None,optional): band name to use for thresholding, if set to `None` will use first band in image. default = None
         samples (int, optional): number of stratified samples to gather for clustering from the initial water/no-water map. default=500
         seed (int, optional): random number generator seed for sampling. default = 7
-        invert (bool, optional): boolean switch to determine if class 1 is greater than initial_threshold then water (True),
-             or less than initial_water then water (False). default = False
         scale (int, optional): scale at which to perform reduction operations, setting higher will prevent OOM errors. default = 90
 
     returns:
@@ -372,9 +370,7 @@ def kmeans_extent(
 
     water = img.cluster(clusterer)
 
-    do_inversion = water_class.And(ee.Number(invert))
-
-    water = ee.Image(ee.Algorithms.If(do_inversion, water.Not(), water))
+    water = ee.Image(ee.Algorithms.If(water_class.eq(0), water.Not(), water))
 
     return water.rename("water").uint8()
 
