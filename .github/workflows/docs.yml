@@ -1,8 +1,8 @@
 name: docs
 on:
-  push:
-    branches:
-      - master
+    release:
+    types: [created]
+    
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -11,7 +11,5 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: 3.6
-      - run: pip install mkdocs-material
-      - run: pip install mkdocstrings
-      - run: pip install hydrafloods
+      - run: pip install mkdocs-material mkdocstrings hydrafloods
       - run: mkdocs gh-deploy --force
