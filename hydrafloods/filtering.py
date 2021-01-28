@@ -369,7 +369,9 @@ def gamma_map(img, window=7, enl=4.9):
     )
     f = b.multiply(mean).add(d.sqrt()).divide(alpha.multiply(2.0))
 
-    caster = ee.Dictionary.fromLists(bandNames, ee.List.repeat("float", bandNames.length()))
+    caster = ee.Dictionary.fromLists(
+        bandNames, ee.List.repeat("float", bandNames.length())
+    )
     img1 = (
         geeutils.power_to_db(mean.updateMask(ci.lte(cu))).rename(bandNames).cast(caster)
     )
@@ -405,6 +407,13 @@ def p_median(img, window=5):
         ee.Image: filtered image
     """
 
+    def _band_filter(bname):
+        selector = ee.List([bname])
+        band_img = img.select(selector)
+        hv_median = band_img.reduceNeighborhood(ee.Reducer.median(), hv_kernel)
+        diag_median = band_img.reduceNeighborhood(ee.Reducer.median(), diag_kernel)
+        return ee.Image(ee.Image.cat([hv_median, diag_median]).reduce("mean")).rename(selector)
+
     if window % 2 == 0:
         window += 1
 
@@ -427,11 +436,12 @@ def p_median(img, window=5):
     hv_kernel = ee.Kernel.fixed(window, window, hv_weights)
     diag_kernel = ee.Kernel.fixed(window, window, diag_weights)
 
-    hv_median = img.reduceNeighborhood(ee.Reducer.median(), hv_kernel)
+    reduced_bands = ee.ImageCollection.fromImages(
+        band_names.map(_band_filter)
+    ).toBands()
 
-    diag_median = img.reduceNeighborhood(ee.Reducer.median(), diag_kernel)
+    return reduced_bands.rename(band_names)
 
-    return ee.Image.cat([hv_median, diag_median]).reduce("mean").rename(band_names)
 
 @decorators.carry_metadata
 def perona_malik(img, n_iters=10, K=3, method=1):
@@ -467,15 +477,15 @@ def perona_malik(img, n_iters=10, K=3, method=1):
     # covnert db to natural units  before applying filter
     power = geeutils.db_to_power(img)
 
-    dxW = ee.Kernel.fixed(3, 3, [[ 0,  0,  0], [ 1, -1,  0], [ 0,  0,  0]])
-    dxE = ee.Kernel.fixed(3, 3, [[ 0,  0,  0], [ 0, -1,  1], [ 0,  0,  0]])
-    dyN = ee.Kernel.fixed(3, 3, [[ 0,  1,  0], [ 0, -1,  0], [ 0,  0,  0]])
-    dyS = ee.Kernel.fixed(3, 3, [[ 0,  0,  0], [ 0, -1,  0], [ 0,  1,  0]])
-    
+    dxW = ee.Kernel.fixed(3, 3, [[0, 0, 0], [1, -1, 0], [0, 0, 0]])
+    dxE = ee.Kernel.fixed(3, 3, [[0, 0, 0], [0, -1, 1], [0, 0, 0]])
+    dyN = ee.Kernel.fixed(3, 3, [[0, 1, 0], [0, -1, 0], [0, 0, 0]])
+    dyS = ee.Kernel.fixed(3, 3, [[0, 0, 0], [0, -1, 0], [0, 1, 0]])
+
     one = ee.Image.constant(1.0)
     l = ee.Image.constant(0.2)
     k = ee.Image.constant(K)
-    k1 = ee.Image.constant(-1.0/K)
+    k1 = ee.Image.constant(-1.0 / K)
     k2 = k.pow(2)
 
     if method == 1:
@@ -483,18 +493,27 @@ def perona_malik(img, n_iters=10, K=3, method=1):
     elif method == 2:
         _method = _method_2
     else:
-        raise NotImplementedError("Could not determine algorithm to apply filter...options for `method` are 1 or 2")
+        raise NotImplementedError(
+            "Could not determine algorithm to apply filter...options for `method` are 1 or 2"
+        )
 
     for i in range(n_iters):
         dI_W = power.convolve(dxW)
         dI_E = power.convolve(dxE)
         dI_N = power.convolve(dyN)
         dI_S = power.convolve(dyS)
-        
+
         cW, cE, cN, cS = _method(dI_W, dI_E, dI_N, dI_S)
 
-        power = power.add(l.multiply(cN.multiply(dI_N).add(cS.multiply(dI_S)).add(cE.multiply(dI_E)).add(cW.multiply(dI_W))))
-    
+        power = power.add(
+            l.multiply(
+                cN.multiply(dI_N)
+                .add(cS.multiply(dI_S))
+                .add(cE.multiply(dI_E))
+                .add(cW.multiply(dI_W))
+            )
+        )
+
     # covnert natural to db units after filter is done
     img = geeutils.power_to_db(power)
 
