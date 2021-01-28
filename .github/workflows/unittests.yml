@@ -4,8 +4,19 @@ on:
     branches:
       - master
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
+  py-check:
+    runs-on: ${{ matrix.config.os }}
+    name: ${{ matrix.config.os }} (${{ matrix.config.py }})
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - { os: windows-latest, py: "3.7" }
+          - { os: macOS-latest, py: "3.7" }
+          - { os: ubuntu-latest, py: "3.6" }
+          - { os: ubuntu-latest, py: "3.7" }
+          - { os: ubuntu-latest, py: "3.8" }
+
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
