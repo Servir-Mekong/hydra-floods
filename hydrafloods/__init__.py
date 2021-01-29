@@ -4,6 +4,7 @@ from hydrafloods.thresholding import *
 from hydrafloods.filtering import *
 from hydrafloods.corrections import *
 from hydrafloods.indices import *
+from hydrafloods.fuzzy import *
 from hydrafloods import fetch, utils
 # from hydrafloods import *
 
