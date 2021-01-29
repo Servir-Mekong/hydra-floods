@@ -13,6 +13,7 @@ nav:
         - decorators module: decorators.md
         - fetch module: fetch.md
         - filtering module: filtering.md
+        - fuzzy module: fuzzy.md
         - geeutils module: geeutils.md
         - indices module: indices.md
         - ml module: ml.md
