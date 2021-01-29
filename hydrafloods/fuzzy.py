@@ -21,6 +21,8 @@ def fuzzy_gaussian(img, midpoint, spread):
     returns:
         ee.Image: output floating-point image with values ranging from 0 to 1
     """
+    bandNames = img.bandNames()
+
     spread = ee.Image.constant(spread)
     midpoint = ee.Image.constant(midpoint)
     e = ee.Image.constant(math.e)
@@ -29,7 +31,7 @@ def fuzzy_gaussian(img, midpoint, spread):
         "e ** (-s * (x-m)**2)", {"e": e, "x": img, "s": spread, "m": midpoint}
     )
 
-    return gauss
+    return gauss.rename(bandNames)
 
 
 @decorators.carry_metadata
@@ -48,15 +50,17 @@ def fuzzy_near(img, midpoint, spread):
     returns:
         ee.Image: output floating-point image with values ranging from 0 to 1
     """
+    bandNames = img.bandNames()
+
     spread = ee.Image.constant(spread)
     midpoint = ee.Image.constant(midpoint)
     one = ee.Image.constant(1)
 
     near = one.expression(
-        "o / (o + s * (x - m)**2", {"o": one, "x": img, "s": spread, "m": midpoint}
+        "o / (o + s * (x - m)**2)", {"o": one, "x": img, "s": spread, "m": midpoint}
     )
 
-    return near
+    return near.rename(bandNames)
 
 
 @decorators.carry_metadata
@@ -76,6 +80,8 @@ def fuzzy_large(img, midpoint, spread):
     returns:
         ee.Image: output floating-point image with values ranging from 0 to 1
     """
+    bandNames = img.bandNames()
+
     spread = ee.Image.constant(spread)
     midpoint = ee.Image.constant(midpoint)
     one = ee.Image.constant(1)
@@ -85,7 +91,7 @@ def fuzzy_large(img, midpoint, spread):
         {"o": one, "x": img, "s": spread, "m": midpoint},
     )
 
-    return large
+    return large.rename(bandNames)
 
 
 @decorators.carry_metadata
@@ -107,6 +113,8 @@ def fuzzy_mslarge(img, mean_scaling, std_scaling, region=None, scale=90):
     """
     if region is None:
         region = img.geometry()
+
+    bandNames = img.bandNames()
 
     mean_scale = ee.Image.constant(mean_scaling)
     std_scale = ee.Image.constant(std_scaling)
@@ -132,7 +140,7 @@ def fuzzy_mslarge(img, mean_scaling, std_scaling, region=None, scale=90):
 
     mask = img.gte(stats.select(".*(mean)$").multiply(mean_scale))
 
-    return mslarge.multiply(mask)
+    return mslarge.multiply(mask).rename(bandNames)
 
 
 @decorators.carry_metadata
@@ -152,6 +160,8 @@ def fuzzy_small(img, midpoint, spread):
     returns:
         ee.Image: output floating-point image with values ranging from 0 to 1
     """
+    bandNames = img.bandNames()
+
     spread = ee.Image.constant(spread)
     midpoint = ee.Image.constant(midpoint)
     one = ee.Image.constant(1)
@@ -160,7 +170,7 @@ def fuzzy_small(img, midpoint, spread):
         "o / (o + (x / m) ** s)", {"o": one, "x": img, "s": spread, "m": midpoint}
     )
 
-    return small
+    return small.rename(bandNames)
 
 
 @decorators.carry_metadata
@@ -182,6 +192,8 @@ def fuzzy_mssmall(img, mean_scale, std_scale, region=None, scale=90):
     """
     if region is None:
         region = img.geometry()
+
+    bandNames = img.bandNames()
 
     mean_scale = ee.Image.constant(mean_scale)
     std_scale = ee.Image.constant(std_scale)
@@ -207,7 +219,7 @@ def fuzzy_mssmall(img, mean_scale, std_scale, region=None, scale=90):
 
     mask = img.gte(stats.select(".*(mean)$").multiply(mean_scale))
 
-    return mssmall.multiply(mask)
+    return mssmall.multiply(mask).rename(bandNames)
 
 
 @decorators.carry_metadata
@@ -226,6 +238,8 @@ def fuzzy_linear(img, minimum, maximum):
     returns:
         ee.Image: output floating-point image with values ranging from 0 to 1
     """
+    bandNames = img.bandNames()
+
     invert = minimum > maximum
 
     if invert:
@@ -240,7 +254,7 @@ def fuzzy_linear(img, minimum, maximum):
     if invert:
         linear = ee.Image.constant(1).subtract(linear)
 
-    return linear
+    return linear.rename(bandNames)
 
 
 def fuzzy_or(img_list):
