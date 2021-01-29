@@ -33,4 +33,4 @@ jobs:
           EARTHENGINE_TOKEN: ${{ secrets.EARTHENGINE_TOKEN }}
       - name: UNIT TESTS 
         run: |
-          pytest
+          pytest -v
