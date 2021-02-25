@@ -211,7 +211,7 @@ class Dataset:
 
     def apply_func(self, func, inplace=False, *args, **kwargs):
         """Wrapper method to apply a function to all of the image in the dataset.
-        Makes a copy of the collection and reassigns the image collection propety.
+        Makes a copy of the collection and reassigns the image collection property.
         Function must accept an ee.ImageCollection and return an ee.ImageCollection
 
         args:
