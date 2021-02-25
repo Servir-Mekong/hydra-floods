@@ -245,7 +245,7 @@ def add_indices(img, indices=["mndwi"]):
     return ee.Image.cat(cat_bands)
 
 
-def tile_region(region, grid_size=0.1, intersect_geom=None, contain_geom=None):
+def tile_region(region, grid_size=0.1, intersect_geom=None, contain_geom=None,centroid_within=None):
     """Function to create a feature collection of tiles covering a region
 
     args:
@@ -275,11 +275,15 @@ def tile_region(region, grid_size=0.1, intersect_geom=None, contain_geom=None):
             )
             if contain_geom is not None:
                 out = ee.Algorithms.If(
-                    box.contains(contain_geom, maxError=1000), box, None
+                    contain_geom.contains(box.geometry(), maxError=500), box, None
                 )
             elif intersect_geom is not None:
                 out = ee.Algorithms.If(
-                    box.intersects(intersect_geom, maxError=1000), box, None
+                    box.intersects(intersect_geom, maxError=500), box, None
+                )
+            elif centroid_within is not None:
+                out = ee.Algorithms.If(
+                    box.geometry().centroid().intersects(centroid_within, maxError=500), box, None
                 )
             else:
                 out = box
