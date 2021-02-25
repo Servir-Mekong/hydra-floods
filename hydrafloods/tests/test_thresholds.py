@@ -98,7 +98,7 @@ class TestThresholds:
         ).getInfo()
         water_proba = {k: round(v, 6) for k, v in water_proba.items()}
 
-        proba_expected = {"water_proba": 0.007236}
+        proba_expected = {"water_proba": 0.006705}
 
         multidim = hf.multidim_semisupervised(
             index_img,
