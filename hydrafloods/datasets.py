@@ -757,6 +757,65 @@ class Landsat7(Dataset):
         mask = qaCloud.And(qaShadow)  # .And(qaSnow)
         return img.updateMask(mask)
 
+class Landsat5(Dataset):
+    def __init__(
+        self,
+        *args,
+        asset_id="LANDSAT/LT05/C01/T1_SR",
+        use_qa=True,
+        apply_band_adjustment=False,
+        rescale=False,
+        **kwargs,
+    ):
+        """Initialize Landsat7 Dataset class
+        Can theoretically be useds with any Landsat surface reflectance collection (e.g. LANDSAT/LT05/C01/T1_SR)
+
+        args:
+            *args: positional arguments to pass to `Dataset` (i.e. `region`, `start_time`, `end_time`)
+            asset_id (str): asset id of the Landsat7 earth engine collection. default="LANDSAT/LE07/C01/T1_SR"
+            use_qa (bool, optional): boolean to determine to use a private `self.qa()` function. default=True
+            apply_band_adjustment (bool, optional): boolean switch to apply linear band pass equation to convert values to Landsat8. default=False
+            rescale (bool, optional): boolean switch to convert units from scaled int (0-10000) to float (0-1). If false values will be scaled int. default = False
+            **kwargs (optional): addtional arbitrary keywords to pass to `Dataset`
+        """
+        super(Landsat5, self).__init__(
+            *args, asset_id=asset_id, use_qa=use_qa, **kwargs
+        )
+
+        coll = self.collection.select(
+            self.BANDREMAP.get("landsat7"), self.BANDREMAP.get("new")
+        )
+
+        if apply_band_adjustment:
+            # TODO: get harmonization coefficients for TM to OLI
+            # slope coefficients
+            self.gain = ee.Image.constant(
+                [1,1,1,1,1,1,]
+            )
+            # y-intercept coefficients
+            self.bias = ee.Image.constant(
+                [0,0,0,0,0,0,]
+            ).multiply(10000)
+            coll = coll.map(self.band_pass_adjustment)
+
+        if rescale:
+            coll = coll.map(geeutils.rescale)
+
+        self.collection = coll
+
+        return
+
+    @decorators.carry_metadata
+    def qa(self, img):
+        """Custom QA masking method for Landsat7 surface reflectance dataset
+        """
+        qa_band = img.select("pixel_qa")
+        qaCloud = geeutils.extract_bits(qa_band, start=5, new_name="cloud_mask").eq(0)
+        qaShadow = geeutils.extract_bits(qa_band, start=3, new_name="shadow_mask").eq(0)
+        qaSnow = geeutils.extract_bits(qa_band, start=4, new_name="snow_mask").eq(0)
+        mask = qaCloud.And(qaShadow)  # .And(qaSnow)
+        return img.updateMask(mask)
+
 
 class Sentinel2(Dataset):
     def __init__(
