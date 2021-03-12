@@ -754,7 +754,7 @@ class Landsat7(Dataset):
         qaCloud = geeutils.extract_bits(qa_band, start=5, new_name="cloud_mask").eq(0)
         qaShadow = geeutils.extract_bits(qa_band, start=3, new_name="shadow_mask").eq(0)
         qaSnow = geeutils.extract_bits(qa_band, start=4, new_name="snow_mask").eq(0)
-        mask = qaCloud.And(qaShadow)  # .And(qaSnow)
+        mask = qaCloud.And(qaShadow).And(qaSnow)
         return img.updateMask(mask)
 
 class Landsat5(Dataset):
@@ -813,7 +813,7 @@ class Landsat5(Dataset):
         qaCloud = geeutils.extract_bits(qa_band, start=5, new_name="cloud_mask").eq(0)
         qaShadow = geeutils.extract_bits(qa_band, start=3, new_name="shadow_mask").eq(0)
         qaSnow = geeutils.extract_bits(qa_band, start=4, new_name="snow_mask").eq(0)
-        mask = qaCloud.And(qaShadow)  # .And(qaSnow)
+        mask = qaCloud.And(qaShadow).And(qaSnow)
         return img.updateMask(mask)
 
 
