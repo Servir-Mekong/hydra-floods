@@ -15,6 +15,7 @@ def bmax_otsu(
     invert=False,
     grid_size=0.1,
     bmax_threshold=0.75,
+    iters = 1,
     max_boxes=100,
     seed=7,
     max_buckets=255,
@@ -35,7 +36,8 @@ def bmax_otsu(
         invert (bool, optional): boolean switch to determine if to threshold greater than (True) or less than (False). default = False
         grid_size (float, optional): size in decimal degrees to tile image/region to check for bimodality. default = 0.1
         bmax_threshold (float, optional): value 0-1 to determine if a value of bmax is bimodal or not. default = 0.75
-        max_boxes (int, optional): maximum number of tiles/boxes to use when determining threshold. default = 100
+        iters (int, optional): number of iterations to successively shrink the bmax tiles to refine threshold. 1 uses defined grid_size. default = 1
+        max_boxes (int, optional): maximum number of tiles/boxes to use when determining threshold. default = None
         seed (int, optional): random number generator seed for randomly selected max_boxes. default = 7
         max_buckets (int, optional): The maximum number of buckets to use when building a histogram; will be rounded up to a power of 2. default = 255
         min_bucket_width (float, optional): The minimum histogram bucket width to allow any power of 2. default = 0.001
@@ -59,7 +61,7 @@ def bmax_otsu(
                 scale=scale,
             ).get(histBand)
         )
-        p1 = ee.Number(ee.Algorithms.If(p1, p1, 0.99))
+        p1 = ee.Number(ee.Algorithms.If(p1, p1, 0.9999))
         p2 = ee.Number(1).subtract(p1)
 
         m = (
@@ -105,17 +107,27 @@ def bmax_otsu(
     if region is None:
         region = img.geometry()
 
-    grid = geeutils.tile_region(region, intersect_geom=region, grid_size=0.1)
+    grid = geeutils.tile_region(region, centroid_within=region, grid_size=grid_size)
 
     bmaxes = (
         grid.map(calcBmax)
         .filter(ee.Filter.gt("bmax", bmax_threshold))
-        .randomColumn("random", seed)
     )
 
-    nBoxes = ee.Number(bmaxes.size())
-    randomThresh = ee.Number(max_boxes).divide(nBoxes)
-    selection = bmaxes.filter(ee.Filter.lt("random", randomThresh))
+    if iters > 1:
+        for i in range(iters-1):
+            grid_size /= 2.0
+            grid = geeutils.tile_region(bmaxes.geometry(), centroid_within=bmaxes, grid_size=grid_size)
+
+            bmaxes = (
+                grid.map(calcBmax)
+                .filter(ee.Filter.gt("bmax", bmax_threshold))
+            )
+
+    if max_boxes is not None:
+        selection = bmaxes.randomColumn("random", seed).limit(max_boxes,"random")
+    else:
+        selection = bmaxes
 
     histogram = img.reduceRegion(
         ee.Reducer.histogram(max_buckets, min_bucket_width, max_raw)
