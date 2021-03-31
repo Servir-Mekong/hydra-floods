@@ -1,7 +1,7 @@
 import ee
 from ee.ee_exception import EEException
 import random
-from hydrafloods import geeutils, decorators
+from hydrafloods import geeutils, decorators, ml
 
 
 @decorators.carry_metadata
@@ -415,11 +415,6 @@ def multidim_semisupervised(
         proba_threshold (float, optional): probability threshold to create a binary water mask, should be in range of 0-1. If None, then the probability values are returned. default = None
     """
 
-    def _cluster_center(x):
-        return (
-            band_arr.mask(classes.eq(ee.Number(x))).reduce(ee.Reducer.mean(), [0])
-        ).get([0])
-
     if region is None:
         region = img.geometry()
 
@@ -440,43 +435,7 @@ def multidim_semisupervised(
         tileScale=16,
     )
 
-    clusterer = ee.Clusterer.wekaXMeans(3, 12, 5).train(samples, bands)
-
-    samples = samples.cluster(clusterer, "init_classes")
-
-    classes = samples.aggregate_array("init_classes")
-    unique = classes.distinct().sort()
-    classes = ee.Array(classes)
-    band_arr = ee.Array(samples.aggregate_array(rank_band))
-
-    class_means = unique.map(_cluster_center)
-
-    if ranking == "min":
-        ranker = ee.Reducer.min()
-    elif ranking == "max":
-        ranker = ee.Reducer.max()
-    else:
-        raise NotImplementedError(
-            "ranking selection is not implemented. options are 'min' or 'max'"
-        )
-
-    ranked_mean = class_means.reduce(ranker)
-
-    water_class = class_means.indexOf(ranked_mean)
-
-    binary_samples = samples.map(
-        lambda x: (
-            ee.Feature(x).set(
-                "init_classes", ee.Number(x.get("init_classes")).eq(water_class)
-            )
-        )
-    )
-
-    classifier = (
-        ee.Classifier.smileRandomForest(numberOfTrees=50)
-        .setOutputMode("PROBABILITY")
-        .train(binary_samples, "init_classes", bands)
-    )
+    classifier = ml.unsupervised_rf(100,samples,features=bands,rank_feature=rank_band,ranking=ranking)
 
     probas = img.select(bands).classify(classifier)
 
