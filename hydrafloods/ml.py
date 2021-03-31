@@ -366,6 +366,75 @@ def gradient_boosting_ee(
 
     return classifier, scaling_dict
 
+def unsupervised_rf(n_trees,samples,features=None,rank_feature=None,ranking="min",):
+    """Unserpersived machine learning workflow to classify water
+    Methods similar to: https://doi.org/10.1016/j.rse.2020.112209
+
+    args:
+        n_trees (int): number of trees to creat random forest model for class generalization
+        samples (ee.FeatureCollection): input samples to create water classifier for
+        features (list | ee.List): property names from samples to use for the semi supervised classification, If none then all properties are used. default = None
+        rank_feature (str, optional): property name used to rank which unserpervised class is water. If None then first band name in `bands` is used. default = None
+        ranking (str, optional): method to rank the classes by `rank_band`. Options are 'min' or 'max'. If 'min', then the lowest class mean is considered water. default = 'min'
+    
+    returns:
+        ee.Classifier.RandomForest: random forest classifier to estimate probability that a pixel is water
+    """
+
+    def _cluster_center(x):
+        return (
+            feature_arr.mask(classes.eq(ee.Number(x))).reduce(ee.Reducer.mean(), [0])
+        ).get([0])
+
+    if features is None:
+        bands = samples.first().propertyNames()
+    else:
+        features = ee.List(features)
+
+    if rank_feature is None:
+        rank_feature = ee.String(features.get(0))
+
+    clusterer = ee.Clusterer.wekaXMeans(3, 12, 5).train(samples, features)
+
+    samples = samples.cluster(clusterer, "init_classes")
+
+    classes = samples.aggregate_array("init_classes")
+    unique = classes.distinct().sort()
+    classes = ee.Array(classes)
+    feature_arr = ee.Array(samples.aggregate_array(rank_feature))
+
+    class_means = unique.map(_cluster_center)
+
+    if ranking == "min":
+        ranker = ee.Reducer.min()
+    elif ranking == "max":
+        ranker = ee.Reducer.max()
+    else:
+        raise NotImplementedError(
+            "ranking selection is not implemented. options are 'min' or 'max'"
+        )
+
+    ranked_mean = class_means.reduce(ranker)
+
+    water_class = class_means.indexOf(ranked_mean)
+
+    binary_samples = samples.map(
+        lambda x: (
+            ee.Feature(x).set(
+                "init_classes", ee.Number(x.get("init_classes")).eq(water_class)
+            )
+        )
+    )
+
+    classifier = (
+        ee.Classifier.smileRandomForest(numberOfTrees=n_trees)
+        .setOutputMode("PROBABILITY")
+        .train(binary_samples, "init_classes", features)
+    )
+
+    return classifier
+
+
 
 def calc_image_pca(image, region=None, scale=90, max_pixels=1e9):
     """Principal component analysis decomposition of image bands
