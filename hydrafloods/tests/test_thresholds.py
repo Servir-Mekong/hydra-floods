@@ -49,14 +49,23 @@ class TestThresholds:
 
     def test_bmax_otsu(self):
         kwargs = dict(initial_threshold=-16, scale=PROCESS_SCALE, return_threshold=True)
-        threshold = (
+        threshold1 = (
             hf.bmax_otsu(S1, **kwargs)
             .reduceRegion(ee.Reducer.mean(), GEOM, REDUCTION_SCALE)
             .getInfo()
         )
-        threshold = {k: round(v, 6) for k, v in threshold.items()}
+        threshold1 = {k: round(v, 6) for k, v in threshold1.items()}
 
-        thresh_expected = {"constant": -14.207951}
+        thresh1_expected = {"constant": -13.950876}
+
+        threshold2 = (
+            hf.bmax_otsu(S1, **{**kwargs,**{"iters":3}})
+            .reduceRegion(ee.Reducer.mean(), GEOM, REDUCTION_SCALE)
+            .getInfo()
+        )
+        threshold2 = {k: round(v, 6) for k, v in threshold1.items()}
+
+        thresh2_expected = {"constant": -13.950876}
 
         kwargs["return_threshold"] = False
         water = (
@@ -67,7 +76,7 @@ class TestThresholds:
 
         water_expected = {"water": 0}
 
-        assert (threshold == thresh_expected) and (water == water_expected)
+        assert (threshold1 == thresh1_expected) and (threshold2 == thresh2_expected) and (water == water_expected)
 
     def test_kmeans_extent(self):
         hand = ee.Image("MERIT/Hydro/v1_0_1").select("hnd")
@@ -98,7 +107,7 @@ class TestThresholds:
         ).getInfo()
         water_proba = {k: round(v, 6) for k, v in water_proba.items()}
 
-        proba_expected = {"water_proba": 0.006705}
+        proba_expected = {"water_proba": 0.006551}
 
         multidim = hf.multidim_semisupervised(
             index_img,

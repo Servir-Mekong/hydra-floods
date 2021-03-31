@@ -29,7 +29,7 @@ class TestDatasets:
 
     def test_modis(self):
         modis = hf.Modis(TEST_REGION, TEST_START_TIME, TEST_END_TIME)
-        assert modis.n_images == 6
+        assert modis.n_images == 7
 
     def test_viirs(self):
         viirs = hf.Viirs(TEST_REGION, TEST_START_TIME, TEST_END_TIME)
