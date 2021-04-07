@@ -446,3 +446,133 @@ def multidim_semisupervised(
 
     return output
 
+@decorators.carry_metadata
+def segmentOtsu(
+    img,
+    band=None,
+    region=None,
+    scale=90,
+    initial_threshold= -15.5,
+    grid_size=0.1,
+    max_boxes= 20,
+    seed= 0,
+    max_buckets=255,
+    min_bucket_width=0.001,
+    max_raw=1e6,
+):
+
+	""" Implementation of Otsu thresholding algorithm.
+	Segment the grids into water and land representation using initial threshold and randomly select features to calculate 
+	minimum and maximum threshold of the image. Calculate Midpoint of min and max threshold using Fuzzy_Gaussian to map water.
+	
+ 
+	args:
+        img (ee.Image): input image to thresholding algorithm
+        band (str | None,optional): band name to use for thresholding, if set to `None` will use first band in image. default = None
+        region (ee.Geometry | None, optional): region to determine threshold, if set to `None` will use img.geometry(). default = None
+        scale (int, optional): scale at which to perform reduction operations, setting higher will prevent OOM errors. default = 90
+        initial_threshold (float, optional): initial estimate of water/no-water for estimating the probabilities of classes in segment. default = -15.5
+        grid_size (float, optional): size in decimal degrees to tile image/region to check for bimodality. default = 0.1
+        max_boxes (int, optional): maximum number of tiles/boxes to use when determining threshold. default = 20
+        seed (int, optional): random number generator seed for randomly selected max_boxes. default = 7
+        max_buckets (int, optional): The maximum number of buckets to use when building a histogram; will be rounded up to a power of 2. default = 255
+        min_bucket_width (float, optional): The minimum histogram bucket width to allow any power of 2. default = 0.001
+        max_raw (int, optional): The number of values to accumulate before building the initial histogram. default = 1e6
+        
+    returns:
+        ee.Image: thresholded water image.    
+ 
+	"""
+ 
+	#Function to Segment Land and Water Grids
+	def segment_grid(feature):
+		segmentWater = ee.Image(initWater).clip(feature);
+		segmentLand = ee.Image(initLand).clip(feature);
+		waterCount = segmentWater.reduceRegion(
+							reducer = ee.Reducer.sum(),
+							geometry = feature.geometry(),
+							bestEffort = True,
+							scale = scale
+							).get('water');
+			  
+		landCount = segmentLand.reduceRegion(
+						reducer = ee.Reducer.sum(),
+						geometry = feature.geometry(),
+						bestEffort = True,
+						scale = scale
+						).get('land');
+			 
+		return feature.set("water",waterCount).set("land",landCount)
+		
+		
+	if region is None:
+		region = img.geometry()
+
+	if band is None:
+		img = img.select([0])
+		histBand = ee.String(img.bandNames().get(0))
+
+	else:
+		histBand = ee.String(band)
+		img = img.select(histBand)
+		
+	grid = geeutils.tile_region(region, intersect_geom=region, grid_size=grid_size)
+	
+	# Prepare good representation of water and land
+	initWater = img.lt(initial_threshold).rename("water")
+	initLand = img.gt(initial_threshold).rename("land")
+	 
+	grid = grid.map(segment_grid)
+	
+	
+	# Select water and land grid
+	selection = grid.filter(ee.Filter.gt("water",1000)) 
+	selection = selection.filter(ee.Filter.gt("land",1000)) 
+	
+	# Randomly select features
+	selection = selection.randomColumn("random")
+	nBoxes = ee.Number(selection.size());
+	randomSelection = ee.Number(max_boxes).divide(nBoxes);
+	selection = selection.filter(ee.Filter.lt('random',randomSelection));
+
+	img_hist = img.clip(selection)
+
+	#Create histogram for selected features to calculate min threshold
+	histogram = img_hist.reduceRegion(
+					ee.Reducer.histogram(max_buckets, min_bucket_width, max_raw)
+					.combine("mean", None, True)
+					.combine("variance", None, True),
+					selection.geometry(),
+					scale,
+					bestEffort=True,
+					tileScale=16)
+					
+	
+	min_threshold = otsu(histogram.get(histBand.cat("_histogram")))
+	
+	# Create histogram to calculate max threshold
+	histogram2 = img_hist.updateMask(img_hist.lt(threshold1)).reduceRegion(
+					ee.Reducer.histogram(max_buckets, min_bucket_width, max_raw)
+					.combine("mean", None, True)
+					.combine("variance", None, True),
+					selection.geometry(),
+					scale,
+					bestEffort=True,
+					tileScale=16)
+					
+					
+	max_threshold = otsu(histogram2.get(histBand.cat("_histogram")))
+	
+	# Calculate Midpoint of min and max threshold using Fuzzy_Gaussian
+	midpoint = ee.Number(ee.Number(min_threshold).add(ee.Number(max_threshold))).divide(2)
+	spread = 0.2
+	
+	gauss = fuzzy.fuzzy_gaussian(img,midpoint,spread).clip(region)
+	
+	waterImg =  img.lt(midpoint).clip(geom) 
+	
+	waterImg = waterImg.where(waterImg.eq(0),gauss)
+	
+	return ee.Image(waterImg)
+	
+
