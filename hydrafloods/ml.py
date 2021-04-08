@@ -261,6 +261,37 @@ def standard_image_scaling(image, scaling_dict, feature_names):
         .float()
     )
 
+def onehot_feature_encoding(fc, column_name, classes, class_names=None):
+
+    def feature_encoding(feature):
+        c = feature.get(column_name)
+        encoded = classes.map(lambda x: c.eq(ee.Number(x)))
+        new_cols = ee.Dictionary.fromLists(class_names,encoded)
+        return feature.set(new_cols)
+
+    if class_names is None:
+        class_names = ee.List.sequence(0,classes.length()).map(lambda x: ee.String("b").cat(ee.String(x)))
+
+    fc_encoded = fc.map(feature_encoding)
+
+    return fc_encoded
+
+
+@decorators.carry_metadata
+def onehot_image_encoding(img,classes,class_names=None,band=None):
+    
+    if class_names is None:
+        class_names = ee.List.sequence(0,classes.length()).map(lambda x: ee.String("b").cat(ee.String(x)))
+
+    if band is None:
+        img = img.select([0])
+    else:
+        img = img.select(band)
+        
+    encoded_imgs = classes.map(lambda x: img.eq(ee.Number(x)))
+    
+    return ee.ImageCollection.fromImages(ee.List(encoded_imgs)).toBands().rename(class_names)
+
 
 def random_forest_ee(
     n_trees,
@@ -269,6 +300,7 @@ def random_forest_ee(
     label,
     scaling=None,
     mode="classification",
+    min_samples_leaf=1
 ):
     """Helper function to scale feature collection and train random forest model
 
@@ -305,7 +337,7 @@ def random_forest_ee(
         )
 
     classifier = (
-        ee.Classifier.smileRandomForest(n_trees)
+        ee.Classifier.smileRandomForest(n_trees,minLeafPopulation=min_samples_leaf)
         .setOutputMode(mode.upper())
         .train(fc_norm, label, feature_names)
     )
@@ -319,7 +351,7 @@ def gradient_boosting_ee(
     label,
     scaling=None,
     mode="classification",
-    learning_rate=0.01,
+    shrinkage=0.01,
     loss="LeastAbsoluteDeviation"
 ):
     """Helper function to scale feature collection and train gradient tree boosting model
@@ -359,7 +391,7 @@ def gradient_boosting_ee(
         )
 
     classifier = (
-        ee.Classifier.smileGradientTreeBoost(numberOfTrees=n_trees,samplingRate=learning_rate,loss=loss)
+        ee.Classifier.smileGradientTreeBoost(numberOfTrees=n_trees,shrinkage=shrinkage,loss=loss)
         .setOutputMode(mode.upper())
         .train(fc_norm, label, feature_names)
     )
