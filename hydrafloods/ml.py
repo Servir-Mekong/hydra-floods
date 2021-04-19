@@ -647,6 +647,18 @@ def apply_image_pca(img, eigen_vecs, names, center=None):
 
 
 def hist_matching(samples, predictor, target, n_estimators=50):
+    """Trains classifiers to perform histogram matching
+
+    args:
+        samples (ee.FeatureCollection): feature collection with samples for histogram matching
+        predictor (str): column name of values to transform
+        target (str): column name of values to match
+        n_estimators (int, optional): number of trees to create random forest models from. default = 50
+
+    returns:
+        list[ee.Classifier]: list of classifiers with first element being the val to proba and second being proba to val classifiers
+
+    """
 
     def get_cdf(fc,column):
         def array_to_features(l):
