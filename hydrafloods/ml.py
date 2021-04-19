@@ -264,7 +264,7 @@ def standard_image_scaling(image, scaling_dict, feature_names):
 def onehot_feature_encoding(fc, column_name, classes, class_names=None):
 
     def feature_encoding(feature):
-        c = feature.get(column_name)
+        c = ee.Number(feature.get(column_name))
         encoded = classes.map(lambda x: c.eq(ee.Number(x)))
         new_cols = ee.Dictionary.fromLists(class_names,encoded)
         return feature.set(new_cols)
@@ -644,3 +644,67 @@ def apply_image_pca(img, eigen_vecs, names, center=None):
     )
     
     return pcaImage
+
+
+def hist_matching(samples, predictor, target, n_estimators=50):
+
+    def get_cdf(fc,column):
+        def array_to_features(l):
+            return ee.Feature(None, {
+                column: ee.List(l).get(0), 
+                "probability": ee.List(l).get(1)
+            })
+
+        # Histogram equalization start:
+        histo = ee.Dictionary(fc.reduceColumns(
+            ee.Reducer.histogram(
+                maxBuckets= 2**12, 
+            ),
+            [column]
+        ).get("histogram"))
+
+        valsList = ee.List(histo.get('bucketMeans'))
+        freqsList = ee.List(histo.get('histogram'))
+        cdfArray = ee.Array(freqsList).accum(0)
+        total = cdfArray.get([-1])
+        normalizedCdf = cdfArray.divide(total)
+
+        array = ee.Array.cat([valsList, normalizedCdf], 1)
+        
+        return ee.FeatureCollection(array.toList().map(array_to_features))
+
+
+    pred_cdf = get_cdf(samples,predictor)
+    target_cdf = get_cdf(samples,target)
+
+    proba_to_val = (
+        ee.Classifier.smileRandomForest(n_estimators)
+        .setOutputMode('REGRESSION')
+        .train(
+            features= target_cdf, 
+            classProperty= target, 
+            inputProperties= ['probability']
+        )
+    )
+  
+    val_to_proba = (
+        ee.Classifier.smileRandomForest(n_estimators)
+        .setOutputMode('REGRESSION')
+        .train(
+            features= pred_cdf, 
+            classProperty= 'probability', 
+            inputProperties= [predictor]
+        )
+    )
+
+    return val_to_proba, proba_to_val
+
+@decorators.carry_metadata
+def apply_image_matching(image, matching_classifiers,output_name="dn"):
+    return (image
+        .classify(matching_classifiers[0],'probability')
+        .classify(matching_classifiers[1],output_name)
+    )
+
+
+
