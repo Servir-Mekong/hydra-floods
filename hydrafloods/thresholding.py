@@ -503,7 +503,7 @@ def fuzzy_otsu(
         histBand = ee.String(band)
         img = img.select(histBand)
 
-    grid = geeutils.tile_region(region, centroid_within=region, grid_size=grid_size)
+    grid = geeutils.tile_region(region, intersect_geom=region, grid_size=grid_size)
 
     # Prepare good representation of water and land
     initWater = img.lt(initial_threshold).rename("water")
