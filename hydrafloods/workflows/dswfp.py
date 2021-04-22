@@ -69,9 +69,9 @@ def export_fusion_samples(
     _ = ds_kwargs.pop("rescale")
 
     s1 = datasets.Sentinel1(**ds_kwargs)
-    # s1.collection = timeseries.temporal_iqr_filter(s1.collection)
+
     s1 = s1.apply_func(
-        geeutils.add_indices, indices=["vv_vh_ratio", "ndpi","nvvi","nvhi"]
+        geeutils.add_indices, indices=["vv_vh_ratio", "ndpi", "nvvi", "nvhi"]
     )
 
     optical = lc8.merge(s2).merge(le7)
@@ -81,7 +81,11 @@ def export_fusion_samples(
 
     ds = optical.join(s1)
 
-    sample_region = ds.collection.map(geeutils.get_geoms).union(maxError=1000).geometry(maxError=1000)
+    sample_region = (
+        ds.collection.map(geeutils.get_geoms)
+        .union(maxError=1000)
+        .geometry(maxError=1000)
+    ).intersection(region, maxError=1000)
 
     # n = ds.n_images
     # logging.info(f"Found {n} images to sample from")
@@ -92,101 +96,99 @@ def export_fusion_samples(
     aggregate_samples = 0
 
     if stratify_samples:
-        class_band = "landcover"
+
+        class_band = "strata"
+        interval = 20
+
+        water_freq = (
+            ee.Image("JRC/GSW1_2/GlobalSurfaceWater").select("occurrence")
+        )
+
+        class_intervals = ee.List.sequence(0, 100, interval)
+        n_water_classes = class_intervals.size().subtract(1)
+        water_classes = ee.List.sequence(1, n_water_classes)
+
+        water_img = (
+            ee.ImageCollection.fromImages(
+                class_intervals.map(lambda x: water_freq.gt(ee.Number(x)))
+            )
+            .reduce(ee.Reducer.sum())
+            .uint8()
+            .rename(class_band)
+        )
+
+        # class_band = "landcover"
         igbp_classes = ee.List(
             [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
         )
         ipcc_classes = ee.List([1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 6, 3, 5, 3, 4, 4, 6])
 
-        stratification_img = (
+        lc_img = (
             ee.ImageCollection("MODIS/006/MCD12Q1")
             .limit(1, "system:time_start", True)
             .first()
             .remap(igbp_classes, ipcc_classes)
             .rename(class_band)
         )
-        classes = ipcc_classes.distinct()
+        lc_classes = ipcc_classes.distinct().map(lambda x:
+            ee.Number(x).add(water_classes.size())
+        ).sort()
 
-        base_samples = (
-            stratification_img.select(class_band)
-            .stratifiedSample(
-                region=sample_region,
-                numPoints=n_samples,
-                classBand=class_band,
-                scale=sample_scale,
-                seed=seed,
-                classValues=classes,
-                classPoints=ee.List.repeat(
-                    n_samples, classes.size().subtract(1)
-                ).add(n_samples * 4),
-                tileScale=16,
-                geometries=True,
-            )
+        final_strata_img = water_img.unmask(lc_img).rename(class_band)
+
+        half = ee.Number(n_samples).multiply(n_water_classes.subtract(1))
+        n_lc = half.divide(lc_classes.size()).round()
+
+        all_classes = water_classes.slice(1).cat(lc_classes).map(
+            lambda x: ee.Number(x).subtract(1)
+        )
+        per_class_samples = ee.List.repeat(n_samples, n_water_classes.subtract(1)).cat(
+            ee.List.repeat(n_lc, lc_classes.size())
+        )
+
+        base_samples = final_strata_img.subtract(1).select(class_band).stratifiedSample(
+            region=sample_region,
+            numPoints=n_samples,
+            classBand=class_band,
+            scale=sample_scale,
+            seed=seed,
+            classValues=all_classes,
+            classPoints=per_class_samples,
+            tileScale=16,
+            geometries=True,
         )
     else:
-        base_samples = ee.FeatureCollection.randomPoints(sample_region,n_samples,seed)
-
+        base_samples = ee.FeatureCollection.randomPoints(sample_region, n_samples, seed)
 
     def sample_img(img):
         geom = img.geometry()
         date = img.date()
-        img_samples = base_samples.filterBounds(geom).randomColumn("random",seed)
+        img_samples = base_samples.filterBounds(geom).randomColumn("random", seed)
 
-        samples = img_samples.limit(max_samples,"random")
+        samples = img_samples.limit(max_samples, "random")
 
-        features = img.sampleRegions(samples,scale=sample_scale,tileScale=16,geometries=True)
+        features = img.sampleRegions(
+            samples, scale=sample_scale, tileScale=16, geometries=True
+        )
 
-        features = features.map(lambda x: ee.Feature(x).set("timestamp",date.millis()))
+        features = features.map(lambda x: ee.Feature(x).set("timestamp", date.millis()))
 
         return features
 
+    sample_features = ds.collection.map(sample_img).flatten()
 
-
-    # for i in range(n):
-    #     try:
-    #         sample_img = ee.Image(img_list.get(i))
-
-    #         sample_region = sample_img.geometry(sample_scale).bounds(sample_scale)
-
-    #         if stratification_img is not None:
-
-    #             samples = (
-                    
-
-    #         else:
-    #             samples = sample_img.sample(
-    #                 region=sample_region,
-    #                 scale=sample_scale,
-    #                 numPixels=n_samples,
-    #                 seed=seed + i,
-    #                 tileScale=16,
-    #                 geometries=True,
-    #             )
-
-    #         these_samples = samples.size().getInfo()
-
-    #         output_features = (
-    #             output_features.merge(samples.randomColumn())
-    #             if  these_samples > 0
-    #             else output_features
-    #         )
-
-    #         aggregate_samples += these_samples
-
-    #         if aggregate_samples > max_samples:
-    #             logging.info(f"max samples reached, beginning export!")
-    #             break
-
-    #     except EEException as e:
-    #         warnings.warn(f"Sampling process ran into an error: {str(e)}")
-    #         break
-
-    output_features = ds.collection.map(sample_img).flatten()
+    output_features = ee.FeatureCollection(
+        sample_features.aggregate_array(class_band)
+        .distinct()
+        .map(
+            lambda x: sample_features.filter(ee.Filter.eq(class_band, x)).randomColumn()
+        )
+    ).flatten()
 
     task = ee.batch.Export.table.toAsset(
         collection=output_features, assetId=output_asset_path
     )
-    task.start()
+    # task.start()
     logging.info(f"Started export task for {output_asset_path}")
 
     return
@@ -226,8 +228,11 @@ def _fuse_dataset(
 
     s1_proc = (
         (geeutils.add_indices, dict(indices=["vv_vh_ratio", "ndpi", "nvvi", "nvhi"])),
-        (ml.standard_image_scaling, dict(scaling_dict=scaling_dict, feature_names=feature_names)),
-        lambda x: x.classify(fusion_model, target_band)
+        (
+            ml.standard_image_scaling,
+            dict(scaling_dict=scaling_dict, feature_names=feature_names),
+        ),
+        lambda x: x.classify(fusion_model, target_band),
     )
     s1 = s1.pipe(s1_proc)
 
@@ -282,7 +287,6 @@ def export_surface_water_harmonics(
         output_scale (float, optional): output resolution of harmonic weight image. default = 30
     """
 
-
     if tile:
         land_area = (
             ee.FeatureCollection("USDOS/LSIB_SIMPLE/2017")
@@ -316,7 +320,7 @@ def export_surface_water_harmonics(
                 output_scale=output_scale,
             )
 
-    else:        
+    else:
         if fusion_samples is not None:
             fusion_model, scaling_dict = ml.random_forest_ee(
                 25,
@@ -379,6 +383,7 @@ def export_surface_water_harmonics(
 
     return
 
+
 def export_fusion_product(
     region,
     target_date,
@@ -395,7 +400,7 @@ def export_fusion_product(
     tile=False,
     tile_size=1.0,
     tile_buffer=100000,
-    output_scale=30
+    output_scale=30,
 ):
     def get_residuals(i):
         """Closure function to calculate residuals of harmonic water estimate
@@ -411,7 +416,7 @@ def export_fusion_product(
             ds.collection.select(label)
             .filterDate(new_date, new_date.advance(1, "day"))
             .median()
-        )#.select(f"^{label}.*",label)
+        )  # .select(f"^{label}.*",label)
 
         time_img = timeseries.get_dummy_img(new_date)
 
@@ -467,7 +472,7 @@ def export_fusion_product(
                     tile=tile,
                     tile_size=tile_size,
                     tile_buffer=tile_buffer,
-                    output_scale=output_scale
+                    output_scale=output_scale,
                 )
 
     else:
@@ -523,9 +528,8 @@ def export_fusion_product(
             scaling_dict,
             feature_names,
             target_band=label,
-            use_viirs=True
+            use_viirs=True,
         )
-        
 
         dummy_target = timeseries.get_dummy_img(target_date)
 
@@ -544,14 +548,12 @@ def export_fusion_product(
         )
 
         har_pred = (
-            timeseries.add_harmonic_coefs(dummy_target,n_cycles=n_cycles)
+            timeseries.add_harmonic_coefs(dummy_target, n_cycles=n_cycles)
             .multiply(harmonic_coefs)
             .reduce("sum")
         )
 
-        fused_pred = (har_pred.subtract(lin_pred)).rename(
-            "fused_product"
-        )
+        fused_pred = (har_pred.subtract(lin_pred)).rename("fused_product")
 
         fused_pred = fused_pred.multiply(10000).int16()
 
@@ -565,7 +567,7 @@ def export_fusion_product(
                 "execution_time": time_str,
                 "lag": lag,
                 "look_back": look_back,
-                "scale_factor": 0.0001
+                "scale_factor": 0.0001,
             }
         )
 
@@ -843,7 +845,7 @@ def export_daily_surface_water(
             scaling_dict,
             feature_names,
             target_band=label,
-            use_viirs=True
+            use_viirs=True,
         )
 
         dummy_target = timeseries.get_dummy_img(target_date)
@@ -863,14 +865,12 @@ def export_daily_surface_water(
         )
 
         har_pred = (
-            timeseries.add_harmonic_coefs(dummy_target,n_cycles=n_cycles)
+            timeseries.add_harmonic_coefs(dummy_target, n_cycles=n_cycles)
             .multiply(harmonic_coefs)
             .reduce("sum")
         )
 
-        fused_pred = (har_pred.subtract(lin_pred)).rename(
-            "fused_product"
-        )
+        fused_pred = (har_pred.subtract(lin_pred)).rename("fused_product")
 
         ci_threshold = thresholding.edge_otsu(
             fused_pred,
