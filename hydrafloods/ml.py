@@ -612,6 +612,7 @@ def apply_feature_pca(fc, eigen_vecs, names, center=None):
     
     return fc_pca
     
+@decorators.carry_metadata
 def apply_image_pca(img, eigen_vecs, names, center=None):
     """Applies Principal component decomposition on image
 
