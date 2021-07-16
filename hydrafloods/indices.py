@@ -187,10 +187,11 @@ def wri(img):
 def mbwi(img,factor=3):
     """Function to calculate multi band water index (MBWI).
     Expects image has "green", "red", "nir", "swir1", and "swir2" bands.
+    https://doi.org/10.1016/j.jag.2018.01.018
 
     args:
         img (ee.Image): image to calculate MBWI
-        factor (int,optional): factor to scale green band for index. default=2
+        factor (int,optional): factor to scale green band for index. default=3
 
     returns:
         ee.Image: MBWI image
