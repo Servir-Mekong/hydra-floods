@@ -19,179 +19,92 @@ from hydrafloods import (
     indices,
     thresholding,
     decorators,
+    corrections,
 )
 
 
-def export_fusion_samples(
-    region,
-    start_time,
-    end_time,
-    output_asset_path,
-    stratify_samples=False,
-    sample_scale=30,
-    n_samples=25,
-    max_samples=10000,
-    seed=0,
+def _get_output_names(band_names: ee.List, reducer_names: ee.List) -> ee.List:
+    def name_outer_loop(prefix):
+        """Closure function to loop over output band name prefixes"""
+
+        def name_inner_loop(suffix):
+            """Closure function to loop over output band name suffixes and combine with prefixes"""
+            return ee.String(prefix).cat(ee.String("_")).cat(ee.String(suffix))
+
+        # loop over suffixes
+        return reducer_names.map(name_inner_loop)
+
+    return band_names.map(name_outer_loop).flatten()
+
+
+def _calc_sar_anomalies(
+    years, s1_ds, sar_bands=["VH", "VV", "ndpi", "nvhi", "nvvi", "ratio"]
 ):
-    """First step of the daily surface water fusion process.
-    This procedure samples values from coincident optical and SAR data
-    so that we can use ML for data fusion. This will calculate MNDWI, NWI,
-    AEWInsh, and AEWIsh optical water indices and a few indices from SAR imagery
-    (VV/VH, NDPI, NVVI, NVHI) to predict a water index.
-
-    args:
-        region (ee.Geometry): geographic region to look for coincident data and sample from
-        start_time (str | datetime.datetime): start time used to look for coincident data
-        end_time (str | datetime.datetime): end time used to look for coincident data
-        output_asset_path (str): Earth Engine asset id to save sampled values too
-        stratify_samples (bool, optional): boolean keyword to specify for sampling data stratified
-            by MODIS land cover. If False, then a random sampling wil be used. default = False
-        sample_scale (float, optional): resolution in meters to sample data at
-        n_samples (int, optional): number of samples to collect per coincident image pair. If 
-            stratified_samples == True, this value be be samples per class. default = 25
-        max_samples (int,optional): maximum number of samples to collect for the sampling process. Once
-            max_samples are collected, then the sampling process will stop and export to asset. default = 10000
-        seed (int,optional): random number generator seed, used for setting random sampling. default = 0
-
-    """
-
-    optical_water_indices = ["mndwi", "nwi", "aewish", "aewinsh"]
-
-    ds_kwargs = dict(
-        region=region, start_time=start_time, end_time=end_time, rescale=True
-    )
-    dsa_kwargs = {**ds_kwargs, **{"apply_band_adjustment": True}}
-
-    lc8 = datasets.Landsat8(**ds_kwargs)
-    le7 = datasets.Landsat7(**dsa_kwargs)
-    s2 = datasets.Sentinel2(**dsa_kwargs)
-
-    _ = ds_kwargs.pop("rescale")
-
-    s1 = datasets.Sentinel1(**ds_kwargs)
-
-    s1 = s1.apply_func(
-        geeutils.add_indices, indices=["vv_vh_ratio", "ndpi", "nvvi", "nvhi"]
-    )
-
-    optical = lc8.merge(s2).merge(le7)
-    optical = optical.apply_func(geeutils.add_indices, indices=optical_water_indices)
-
-    # optical.collection = optical.collection.select(optical_water_indices)
-
-    ds = optical.join(s1)
-
-    sample_region = (
-        ds.collection.map(geeutils.get_geoms)
-        .union(maxError=1000)
-        .geometry(maxError=1000)
-    ).intersection(region, maxError=1000)
-
-    # n = ds.n_images
-    # logging.info(f"Found {n} images to sample from")
-
-    img_list = ds.collection.toList(ds.collection.size())
-
-    output_features = ee.FeatureCollection([])
-    aggregate_samples = 0
-
-    if stratify_samples:
-
-        class_band = "strata"
-        interval = 20
-
-        water_freq = (
-            ee.Image("JRC/GSW1_2/GlobalSurfaceWater").select("occurrence")
-        )
-
-        class_intervals = ee.List.sequence(0, 100, interval)
-        n_water_classes = class_intervals.size().subtract(1)
-        water_classes = ee.List.sequence(1, n_water_classes)
-
-        water_img = (
-            ee.ImageCollection.fromImages(
-                class_intervals.map(lambda x: water_freq.gt(ee.Number(x)))
+    def calc_anomalies_yr(yr):
+        """Closure function to loop over each year and calculate stats then"""
+        # @decorators.carry_metadata
+        def calc_anomalies_img(img):
+            """Closure function to calculate the difference of img from yearly stats"""
+            anomalies = (
+                ee.ImageCollection.fromImages(
+                    ee.List(
+                        # loop over each band prefix to make sure we calculate difference from correct combo of bands
+                        sar_bands.map(
+                            # calculate image difference from yearly statistics
+                            lambda x: img.select(ee.String(x)).subtract(
+                                stats_yr.select(ee.String(x).cat("_.*"))
+                            )
+                        )
+                    )
+                )
+                .toBands()  # convert imagecollection to image
+                .float()  # cast to float
+                .rename(out_band_names)  # rename the output bands
             )
-            .reduce(ee.Reducer.sum())
-            .uint8()
-            .rename(class_band)
-        )
 
-        # class_band = "landcover"
-        igbp_classes = ee.List(
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
-        )
-        ipcc_classes = ee.List([1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 6, 3, 5, 3, 4, 4, 6])
+            return img.addBands(anomalies)
 
-        lc_img = (
-            ee.ImageCollection("MODIS/006/MCD12Q1")
-            .limit(1, "system:time_start", True)
-            .first()
-            .remap(igbp_classes, ipcc_classes)
-            .rename(class_band)
-        )
-        lc_classes = ipcc_classes.distinct().map(lambda x:
-            ee.Number(x).add(water_classes.size())
-        ).sort()
+        # get the time range for the year
+        t1 = ee.Date.fromYMD(yr, 1, 1)
+        t2 = t1.advance(1, "year")
+        # select the imagery to reduce for the year
+        s1_yr = s1_ds.collection.filterDate(t1, t2)
+        # apply reduction
+        stats_yr = s1_yr.reduce(all_stats_reducer, 8)
+        # loop over each image within year and calculate anomalies stats
+        anomalies = s1_yr.map(calc_anomalies_img)
 
-        final_strata_img = water_img.unmask(lc_img).rename(class_band)
+        return anomalies
 
-        half = ee.Number(n_samples).multiply(n_water_classes.subtract(1))
-        n_lc = half.divide(lc_classes.size()).round()
+    # cast band name list to ee.List and sort
+    # need to sort to make sure order matches output
+    sar_bands = ee.List(sar_bands).sort()
 
-        all_classes = water_classes.slice(1).cat(lc_classes).map(
-            lambda x: ee.Number(x).subtract(1)
-        )
-        per_class_samples = ee.List.repeat(n_samples, n_water_classes.subtract(1)).cat(
-            ee.List.repeat(n_lc, lc_classes.size())
-        )
-
-        base_samples = final_strata_img.subtract(1).select(class_band).stratifiedSample(
-            region=sample_region,
-            numPoints=n_samples,
-            classBand=class_band,
-            scale=sample_scale,
-            seed=seed,
-            classValues=all_classes,
-            classPoints=per_class_samples,
-            tileScale=16,
-            geometries=True,
-        )
-    else:
-        base_samples = ee.FeatureCollection.randomPoints(sample_region, n_samples, seed)
-
-    def sample_img(img):
-        geom = img.geometry()
-        date = img.date()
-        img_samples = base_samples.filterBounds(geom).randomColumn("random", seed)
-
-        samples = img_samples.limit(max_samples, "random")
-
-        features = img.sampleRegions(
-            samples, scale=sample_scale, tileScale=16, geometries=True
-        )
-
-        features = features.map(lambda x: ee.Feature(x).set("timestamp", date.millis()))
-
-        return features
-
-    sample_features = ds.collection.map(sample_img).flatten()
-
-    output_features = ee.FeatureCollection(
-        sample_features.aggregate_array(class_band)
-        .distinct()
-        .map(
-            lambda x: sample_features.filter(ee.Filter.eq(class_band, x)).randomColumn()
-        )
-    ).flatten()
-
-    task = ee.batch.Export.table.toAsset(
-        collection=output_features, assetId=output_asset_path
+    # get all of the statistics in one reducer so it is more efficient
+    all_stats_reducer = (
+        ee.Reducer.mean()
+        .combine(ee.Reducer.stdDev(), None, True)
+        .combine(ee.Reducer.percentile([5, 95]), None, True)
     )
-    # task.start()
-    logging.info(f"Started export task for {output_asset_path}")
 
-    return
+    # get the names of the reducer suffixes
+    reducer_suffixes = all_stats_reducer.getOutputs().sort()
+
+    # create a new list of expected band names based on
+    out_band_names = _get_output_names(sar_bands, reducer_suffixes)
+
+    # select the sar bands we want to process to trim any unneccessary computations
+    s1_ds.collection = s1_ds.collection.select(sar_bands)
+
+    # apply the anomaly process
+    # outputs is weird formation List[<ImageCollection>, ..., <ImageCollection>]
+    # need to convert to FeatureCollection -> flatten -> then ImageCollection
+    s1_anomalies = ee.ImageCollection(
+        ee.FeatureCollection(years.map(calc_anomalies_yr)).flatten()
+    )
+
+    # output is an ImageCollection...be careful if using with hf.Dataset
+    return s1_anomalies
 
 
 def _fuse_dataset(
@@ -226,15 +139,30 @@ def _fuse_dataset(
 
     s1 = datasets.Sentinel1(**ds_kwargs)
 
+    years = (
+        s1.collection.aggregate_array("system:time_start")
+        .map(lambda x: ee.Date(x).get("year"))
+        .distinct()
+    )
+
+    dem = ee.Image("NASA/NASADEM_HGT/001").select("elevation")
+
     s1_proc = (
+        (corrections.slope_correction, dict(elevation=dem, buffer=30)),
         (geeutils.add_indices, dict(indices=["vv_vh_ratio", "ndpi", "nvvi", "nvhi"])),
-        (
-            ml.standard_image_scaling,
-            dict(scaling_dict=scaling_dict, feature_names=feature_names),
-        ),
-        lambda x: x.classify(fusion_model, target_band),
+        #     (
+        #         ml.standard_image_scaling,
+        #         dict(scaling_dict=scaling_dict, feature_names=feature_names),
+        #     ),
+        #     lambda x: x.classify(fusion_model, target_band),
     )
     s1 = s1.pipe(s1_proc)
+
+    s1_anomalies = _calc_sar_anomalies(years, s1)
+
+    s1.collection = s1_anomalies.map(
+        decorators.carry_metadata(lambda x: x.classify(fusion_model, target_band))
+    )
 
     fused_ds = optical.merge(s1)
 
@@ -245,6 +173,225 @@ def _fuse_dataset(
     )
 
     return fused_ds
+
+
+def export_fusion_samples(
+    region,
+    start_time,
+    end_time,
+    output_asset_path,
+    stratify_samples=True,
+    sample_scale=30,
+    n_samples=25,
+    seed=0,
+):
+    """First step of the daily surface water fusion process.
+    This procedure samples values from coincident optical and SAR data
+    so that we can use ML for data fusion. This will calculate MNDWI, NWI,
+    AEWInsh, and AEWIsh optical water indices and a few indices from SAR imagery
+    (VV/VH, NDPI, NVVI, NVHI) to predict a water index.
+
+    args:
+        region (ee.Geometry): geographic region to look for coincident data and sample from
+        start_time (str | datetime.datetime): start time used to look for coincident data
+        end_time (str | datetime.datetime): end time used to look for coincident data
+        output_asset_path (str): Earth Engine asset id to save sampled values too
+        stratify_samples (bool, optional): boolean keyword to specify for sampling data stratified
+            by a combination of the MODIS land cover and JRC surface water occurrence. If False,
+            then a random sampling wil be used. default = False
+        sample_scale (float, optional): resolution in meters to sample data at
+        n_samples (int, optional): number of samples to collect per coincident image pair. If
+            stratified_samples == True, this value be be samples per class. default = 25
+        seed (int,optional): random number generator seed, used for setting random sampling. default = 0
+
+    """
+
+    dem = ee.Image("NASA/NASADEM_HGT/001").select("elevation")
+
+    optical_water_indices = ["mndwi", "nwi", "aewish", "aewinsh"]
+
+    ds_kwargs = dict(
+        region=region, start_time=start_time, end_time=end_time, rescale=True
+    )
+    dsa_kwargs = {**ds_kwargs, **{"apply_band_adjustment": True}}
+
+    lc8 = datasets.Landsat8(**ds_kwargs)
+    le7 = datasets.Landsat7(**dsa_kwargs)
+    s2 = datasets.Sentinel2(**dsa_kwargs)
+
+    _ = ds_kwargs.pop("rescale")
+
+    s1a = datasets.Sentinel1Asc(**ds_kwargs)
+    s1d = datasets.Sentinel1Desc(**ds_kwargs)
+
+    years = (
+        s1a.collection.aggregate_array("system:time_start")
+        .map(lambda x: ee.Date(x).get("year"))
+        .distinct()
+    )
+
+    sar_proc = (
+        (
+            corrections.slope_correction,
+            dict(elevation=dem, buffer=50,),
+        ),
+        hf.gamma_map,
+        (geeutils.add_indices, dict(indices=["vv_vh_ratio", "ndpi", "nvvi", "nvhi"])),
+    )
+
+    s1a.pipe(sar_proc, inplace=True)
+    s1d.pipe(sar_proc, inplace=True)
+
+    s1a_anomalies = _calc_sar_anomalies(years, s1a)
+    s1d_anomalies = _calc_sar_anomalies(years, s1d)
+
+    s1a.collection = s1a_anomalies
+    s1d.collection = s1d_anomalies
+
+    s1 = s1a.merge(s1d)
+
+    optical = lc8.merge(s2).merge(le7)
+
+    optical = optical.apply_func(geeutils.add_indices, indices=optical_water_indices)
+
+    ds = optical.join(s1)
+
+    sample_region = (
+        ds.collection.map(geeutils.get_geoms)
+        .union(maxError=1000)
+        .geometry(maxError=1000)
+    ).intersection(region, maxError=1000)
+
+    img_list = ds.collection.toList(ds.collection.size())
+
+    output_features = ee.FeatureCollection([])
+    aggregate_samples = 0
+
+    if stratify_samples:
+
+        class_band = "strata"
+        interval = 20
+
+        water_freq = ee.Image("JRC/GSW1_2/GlobalSurfaceWater").select("occurrence")
+
+        class_intervals = ee.List.sequence(0, 80, interval)
+        logging.info(f"Water intervals: {class_intervals.getInfo()}")
+        n_water_classes = class_intervals.size()
+        water_classes = ee.List.sequence(1, n_water_classes)
+        logging.info(f"Water Classes: {water_classes.getInfo()}")
+
+        water_img = (
+            ee.ImageCollection.fromImages(
+                class_intervals.map(lambda x: water_freq.gte(ee.Number(x)))
+            )
+            .reduce(ee.Reducer.sum())
+            .uint8()
+            .rename(class_band)
+        )
+
+        # class_band = "landcover"
+        igbp_classes = ee.List(
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+        )
+        ipcc_classes = ee.List([1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 6, 3, 5, 3, 4, 4, 6])
+
+        lc_img = (
+            ee.ImageCollection("MODIS/006/MCD12Q1")
+            .limit(1, "system:time_start", True)
+            .first()
+            .remap(igbp_classes, ipcc_classes)
+            .rename(class_band)
+        ).add(water_classes.size())
+        lc_classes = (
+            ipcc_classes.distinct()
+            .map(lambda x: ee.Number(x).add(water_classes.size()))
+            .sort()
+        )
+        logging.info(f"LC Classes: {lc_classes.getInfo()}")
+
+        final_strata_img = water_img.unmask(lc_img).rename(class_band)
+
+        half = ee.Number(n_samples).multiply(n_water_classes.subtract(1))
+        n_lc = half.divide(lc_classes.size()).round()
+
+        all_classes = (
+            water_classes.slice(1)
+            .cat(lc_classes)
+            .map(lambda x: ee.Number(x).subtract(1))
+        )
+        n_water_samples = ee.List.repeat(n_samples, n_water_classes)
+        n_lc_samples = ee.List.repeat(n_lc, lc_classes.size())
+        logging.info(f"n Water Samples {n_water_samples.getInfo()}")
+        logging.info(f"n LC Samples {n_lc_samples.getInfo()}")
+
+        base_samples = water_img.select(class_band).stratifiedSample(
+            region=sample_region,
+            numPoints=n_samples,
+            classBand=class_band,
+            scale=sample_scale,
+            seed=seed,
+            classValues=water_classes,
+            classPoints=n_water_samples,
+            tileScale=16,
+            geometries=True,
+        )
+    else:
+        base_samples = ee.FeatureCollection.randomPoints(sample_region, n_samples, seed)
+
+    def sample_img(img):
+        geom = img.geometry()
+        date = img.date()
+        week = date.get("week")
+        year = date.get("year")
+        new_seed = week.add(year).add(seed)
+
+        lc_samples = lc_img.select(class_band).stratifiedSample(
+            region=sample_region,
+            numPoints=n_samples,
+            classBand=class_band,
+            scale=sample_scale,
+            seed=new_seed,
+            classValues=lc_classes,
+            classPoints=n_lc_samples,
+            tileScale=16,
+            geometries=True,
+        )
+        samples = (
+            base_samples.merge(lc_samples)
+            .filterBounds(geom)
+            .randomColumn("random", seed)
+        )
+
+        features = img.sampleRegions(
+            samples, scale=sample_scale, tileScale=16, geometries=True
+        )
+
+        features = features.map(lambda x: ee.Feature(x).set("timestamp", date.millis()))
+
+        return features
+
+    sample_features = ds.collection.map(sample_img).flatten()
+
+    output_features = ee.FeatureCollection(
+        sample_features.aggregate_array(class_band)
+        .distinct()
+        .map(
+            lambda x: sample_features.filter(ee.Filter.eq(class_band, x)).randomColumn()
+        )
+    ).flatten()
+
+    now = datetime.datetime.now()
+    time_id = now.strftime("%Y%m%d%H%M%s")
+
+    task = ee.batch.Export.table.toAsset(
+        collection=output_features,
+        assetId=output_asset_path,
+        description=f"hydrafloods_fusion_samples_export_{time_id}",
+    )
+    task.start()
+    logging.info(f"Started export task for {output_asset_path}")
+
+    return
 
 
 def export_surface_water_harmonics(
@@ -262,7 +409,7 @@ def export_surface_water_harmonics(
 ):
     """Second step of the daily surface water fusion process.
     This procedure uses samples from `export_fusion_samples` to build a
-    random forest model to predict a water index from SAR imagery. This a 
+    random forest model to predict a water index from SAR imagery. This a
     time series of optical-SAR fused data is used to calculate a harmonic
     model for long-term surface water trend and is exported to an Earth Engine
     asset.
@@ -278,11 +425,11 @@ def export_surface_water_harmonics(
         label (str): name of feature column to predict using `feature_names`
         fusion_samples (str): Earth Engine FeatureCollection asset id of samples to get a data
             fusion model from. Should be the asset output from `export_fusion_samples`
-        tile (bool, optional): boolean keyword to tile exports. If false will try to calculate 
+        tile (bool, optional): boolean keyword to tile exports. If false will try to calculate
             harmonic weights as image. If true, it will tile area and recusively call to export
-            smaller areas. If true then expects that `output_asset_path` is an ImageCollection. 
+            smaller areas. If true then expects that `output_asset_path` is an ImageCollection.
             default = False
-        tile_size (float, optional): resolution in decimal degrees to create tiles over region 
+        tile_size (float, optional): resolution in decimal degrees to create tiles over region
             for smaller exports. Only used if tile==True. default = 1.0
         output_scale (float, optional): output resolution of harmonic weight image. default = 30
     """
@@ -323,11 +470,11 @@ def export_surface_water_harmonics(
     else:
         if fusion_samples is not None:
             fusion_model, scaling_dict = ml.random_forest_ee(
-                25,
-                fusion_samples.limit(10000),
+                30,
+                fusion_samples,
                 feature_names,
                 label,
-                scaling="standard",
+                scaling=None,
                 mode="regression",
             )
         else:
@@ -485,10 +632,10 @@ def export_fusion_product(
         if fusion_samples is not None:
             fusion_model, scaling_dict = ml.random_forest_ee(
                 30,
-                fusion_samples.limit(10000),
+                fusion_samples,
                 feature_names,
                 label,
-                scaling="standard",
+                scaling=None,
                 mode="regression",
             )
         else:
@@ -636,8 +783,8 @@ def export_daily_surface_water(
     output_scale=30,
 ):
     """Last and repeated step of the daily surface water fusion process.
-    This procedure uses the results from `export_fusion_samples` and 
-    `export_surface_water_harmonics` to build a random forest model to predict 
+    This procedure uses the results from `export_fusion_samples` and
+    `export_surface_water_harmonics` to build a random forest model to predict
     a water index from SAR imagery and predict water using the harmonic model.
     This process will correct the harmonic estimate using observed data and export
     the resulting imagery.
@@ -646,10 +793,10 @@ def export_daily_surface_water(
         region (ee.Geometry): geographic region to look for coincident data and sample from
         target_date (str | datetime.datetime): date to estimate surface water extent for
         harmonic_image (str, optional): Earth Engine Image asset id of the harmonic model weights
-            exported by `export_surface_water_harmonics`. If left as None then `harmonic_collection` 
+            exported by `export_surface_water_harmonics`. If left as None then `harmonic_collection`
             must be defined. default = None
-        harmonic_collection (str, optional): Earth Engine ImageCollection asset id of the harmonic 
-            model weights from tile `export_surface_water_harmonics`. If left as None then 
+        harmonic_collection (str, optional): Earth Engine ImageCollection asset id of the harmonic
+            model weights from tile `export_surface_water_harmonics`. If left as None then
             `harmonic_image` must be defined. default = None
         feature_names (list[str],):  names of feature columns used to calculate `label` from
         label (str): name of feature column to predict using `feature_names`
@@ -668,16 +815,16 @@ def export_daily_surface_water(
         output_asset_path (str): Earth Engine asset id to save estimate water and fusion results to as image.
             If tile==True, then output_asset_path much be a precreated ImageCollection asset. If left
             as None then `output_bucket_path` must be specified. default = None
-        output_bucket_path (str): GCP cloud bucket path to save estimate water and fusion results to 
+        output_bucket_path (str): GCP cloud bucket path to save estimate water and fusion results to
             cloud optimized geotiffs. If tile==True, then multiple file will be created. If left
             as None then `output_asset_path` must be specified. default = None
         initial_threshold (float, optional): initial threshold value used in `edge_otsu` thresholding
             algorithm to segment water from fusion image. default = 0.1
-        tile (bool, optional): boolean keyword to tile exports. If false will try to calculate 
+        tile (bool, optional): boolean keyword to tile exports. If false will try to calculate
             harmonic weights as image. If true, it will tile area and recusively call to export
-            smaller areas. If true then expects that `output_asset_path` is an ImageCollection. 
+            smaller areas. If true then expects that `output_asset_path` is an ImageCollection.
             default = False
-        tile_size (float, optional): resolution in decimal degrees to create tiles over region 
+        tile_size (float, optional): resolution in decimal degrees to create tiles over region
             for smaller exports. Only used if tile==True. default = 1.0
         tile_buffer (float,optional): buffer size in meters to buffer tiles to calculate threshold. This
             is used to ensure running tiled exports produces consistent results at tile seams. default = 100000
@@ -777,7 +924,6 @@ def export_daily_surface_water(
                     n_cycles=n_cycles,
                     include_confidence=include_confidence,
                     include_flood=include_flood,
-                    export_fusion=export_fusion,
                     fusion_samples=fusion_samples,
                     output_asset_path=output_asset_tile,
                     output_bucket_path=output_bucket_tile,
@@ -798,10 +944,10 @@ def export_daily_surface_water(
         if fusion_samples is not None:
             fusion_model, scaling_dict = ml.random_forest_ee(
                 30,
-                fusion_samples.limit(10000),
+                fusion_samples,
                 feature_names,
                 label,
-                scaling="standard",
+                scaling=None,
                 mode="regression",
             )
         else:
@@ -1019,10 +1165,10 @@ def merge_gcp_tiled_results(
             if you are sure the merging is/will be successful. default = False
         cloud_project (str, optional): name of GCP cloud project name that the cloud storage bucket is part
             of. If nothing is provided, it will try to use default system GCP credentials. default = None
-        file_dims (int | list[int], optional): the dimensions in pixels of each image file, if the image 
-            is too large to fit in a single file. May specify a single number to indicate a square shape, 
-            or a list of two dimensions to indicate (width,height). Note that the image will still be 
-            clipped to the overall image dimensions. Must be a multiple of shardSize (256). If none, then 
+        file_dims (int | list[int], optional): the dimensions in pixels of each image file, if the image
+            is too large to fit in a single file. May specify a single number to indicate a square shape,
+            or a list of two dimensions to indicate (width,height). Note that the image will still be
+            clipped to the overall image dimensions. Must be a multiple of shardSize (256). If none, then
             Earth Engine will automatically estimate dimensions. default = None
         output_scale (float, optional): output resolution of harmonic weight image. default = 30
     """
