@@ -4,11 +4,11 @@ from hydrafloods import geeutils, decorators
 
 
 @decorators.carry_metadata
-def slope_correction(image, elevation, model="volume", buffer=0, scale=1000):
+def slope_correction(image, elevation, model="volume", buffer=0, scale=1000, in_units="db",out_units="same"):
     """This function applies the slope correction on a Sentinel-1 image.
     Function based on https:# doi.org/10.3390/rs12111867.
     Adapted from https:# github.com/ESA-PhiLab/radiometric-slope-correction/blob/master/notebooks/1%20-%20Generate%20Data.ipynb
-       
+
     args:
         image (ee.Image): Sentinel-1 to perform correction on
         elevation (ee.Image): Input DEM to calculate slope corrections from
@@ -17,7 +17,7 @@ def slope_correction(image, elevation, model="volume", buffer=0, scale=1000):
         buffer (int, optional): buffer in meters for layover/shadow mask. If zero then no buffer will be applied. default = 0
         scale (int, optional): reduction scale to process satellite heading compared to ground. Increasing will reduce
             chance of OOM errors but reduce local scale correction accuracy. default = 1000
-        
+
     returns:
         ee.Image: slope corrected SAR imagery with look and local incidence angle bands
 
@@ -27,11 +27,11 @@ def slope_correction(image, elevation, model="volume", buffer=0, scale=1000):
 
     def _volumetric_model_SCF(theta_iRad, alpha_rRad):
         """Closure funnction for calculation of volumetric model SCF
-        
+
         args:
             theta_iRad (ee.Image): incidence angle in radians
             alpha_rRad (ee.Image): slope steepness in range
-        
+
         returns:
             ee.Image
         """
@@ -43,12 +43,12 @@ def slope_correction(image, elevation, model="volume", buffer=0, scale=1000):
 
     def _surface_model_SCF(theta_iRad, alpha_rRad, alpha_azRad):
         """Closure funnction for calculation of direct model SCF
-        
+
         args:
             theta_iRad (ee.Image): incidence angle in radians
             alpha_rRad (ee.Image): slope steepness in range
             alpha_azRad (ee.Image): slope steepness in azimuth
-        
+
         returns:
             ee.Image
         """
@@ -67,8 +67,8 @@ def slope_correction(image, elevation, model="volume", buffer=0, scale=1000):
         args:
             image (ee.Image): image that should be buffered
             distance (int): distance of buffer in meters
-        
-        returns: 
+
+        returns:
             ee.Image
       """
 
@@ -84,13 +84,13 @@ def slope_correction(image, elevation, model="volume", buffer=0, scale=1000):
 
     def _masking(alpha_rRad, theta_iRad, buffer):
         """Closure function for masking of layover and shadow
-        
+
         args:
             alpha_rRad (ee.Image): slope steepness in range
             theta_iRad (ee.Image): incidence angle in radians
             buffer (int): buffer in meters
-        
-        returns: 
+
+        returns:
             ee.Image
         """
         # layover, where slope > radar viewing angle
@@ -114,6 +114,7 @@ def slope_correction(image, elevation, model="volume", buffer=0, scale=1000):
     # get the image geometry and projection
     geom = image.geometry(scale)
     proj = image.select(1).projection()
+    angle_band = image.select("angle")
 
     # image to convert angle to radians
     to_radians = ee.Image.constant((math.pi / 180))
@@ -127,8 +128,17 @@ def slope_correction(image, elevation, model="volume", buffer=0, scale=1000):
         .get("aspect")
     )
 
+    if in_units not in ["db","power"]:
+        raise ValueError("could not understand input units. needs to be either 'db' or 'power'")
+
+    if out_units not in ["same","other",None]:
+        raise ValueError("could not understand output units option. needs to be either 'same' or 'other'")
+
     # Sigma0 to Power of input image
-    sigma0Pow = geeutils.db_to_power(image)
+    if in_units == "db":
+        sigma0Pow = geeutils.db_to_power(image)
+    else:
+        sigma0Pow = image
 
     # the numbering follows the article chapters
     # 2.1.1 Radar geometry
@@ -184,14 +194,22 @@ def slope_correction(image, elevation, model="volume", buffer=0, scale=1000):
 
     # apply model for Gamm0_f
     gamma0_flat = gamma0.divide(scf)
-    gamma0_flatDB = geeutils.power_to_db(gamma0_flat).select(["^(V).*"])
+
+    if out_units == "same" and in_units == "db":
+        gamma0_flatDB = geeutils.power_to_db(gamma0_flat).select(["^(V).*"])
+
+    elif out_units != "same" and in_units == "power":
+        gamma0_flatDB = geeutils.power_to_db(gamma0_flat).select(["^(V).*"])
+
+    else:
+        gamma0_flatDB = gamma0_flat.select(["^(V).*"])
 
     # calculate layover and shadow mask
     masks = _masking(alpha_rRad, theta_iRad, buffer)
 
     return (
         gamma0_flatDB.updateMask(masks)
-        .addBands(image.select("angle"))
+        .addBands(angle_band)
         .addBands(theta_liaDeg.rename("local_inc_angle"))
     )
 
@@ -199,7 +217,7 @@ def slope_correction(image, elevation, model="volume", buffer=0, scale=1000):
 @decorators.carry_metadata
 def illumination_correction(image, elevation, model="rotation", scale=90, sensor="LC8"):
     """This function applies a terrain correction to optical imagery based on solar and viewing geometry
-     
+
     args:
         image (ee.Image): Optical image to perform correction on
         elevation (ee.Image): Input DEM to calculate illumination corrections from
@@ -209,7 +227,7 @@ def illumination_correction(image, elevation, model="rotation", scale=90, sensor
             chance of OOM errors but reduce local scale correction accuracy. default = 90
         sensor (str, optional): name of sensor to correct. options are 'LC8' or 'S2' (lower case also accepted).
             default = LC8
-        
+
     returns:
         ee.Image: illumination corrected optical imagery
 
