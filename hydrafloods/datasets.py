@@ -21,22 +21,22 @@ class Dataset:
         Create a dataset object for Sentinel-1 data over Alabama for 2019
         >>> ds = Dataset(
         ...    region = ee.Geometry.Rectangle([
-                   -88.473227, 
-                   30.223334, 
-                   -84.88908, 
+                   -88.473227,
+                   30.223334,
+                   -84.88908,
                    35.008028
                ]),
         ...    start_time = "2019-01-01",
         ...    end_time = "2020-01-01",
         ...    asset_id = "COPERNICUS/S1_GRD"
         ... )
-        >>> ds 
+        >>> ds
         HYDRAFloods Dataset:
         {'asset_id': 'COPERNICUS/S1_GRD',
         'end_time': '2020-01-01',
         'name': 'Dataset',
         'region': [[[...], [...], [...], [...], [...]]],
-        'start_time': '2019-01-01'}    
+        'start_time': '2019-01-01'}
     """
 
     def __init__(self, region, start_time, end_time, asset_id, use_qa=False):
@@ -47,7 +47,7 @@ class Dataset:
             start_time (str | datetime.datetime): start time used to filter image collection
             end_time (str | datetime.datetime): end time used to filter image collection
             asset_id (str): asset id of earth engine collection
-            use_qa (bool, optional): boolean to determine to use an internal function qa(). 
+            use_qa (bool, optional): boolean to determine to use an internal function qa().
                 Used for definining custom dataset objects
 
         raises:
@@ -128,27 +128,23 @@ class Dataset:
 
     @property
     def collection(self):
-        """image collection object property wrapped by dataset
-        """
+        """image collection object property wrapped by dataset"""
         return self._collection
 
     @collection.setter
     def collection(self, value):
-        """setter function for collection property
-        """
+        """setter function for collection property"""
         self._collection = value
         return
 
     @property
     def n_images(self):
-        """Number of images contained in the dataset
-        """
+        """Number of images contained in the dataset"""
         return self.collection.size().getInfo()
 
     @property
     def dates(self):
-        """Dates of imagery contained in the image collection
-        """
+        """Dates of imagery contained in the image collection"""
         eeDates = self.collection.aggregate_array("system:time_start").map(
             lambda x: ee.Date(x).format("YYYY-MM-dd HH:mm:ss.SSS")
         )
@@ -186,7 +182,7 @@ class Dataset:
 
         # get the collection id for `.asset_id` property
         collection_id = img_collection.get("system:id").getInfo()
-        if collection_id is "None":
+        if collection_id == "None":
             collection_id = "Custom ImageCollection"
 
         # make a dummy dataset
@@ -205,8 +201,7 @@ class Dataset:
         return dummy_ds
 
     def copy(self):
-        """returns a deep copy of the hydrafloods dataset class
-        """
+        """returns a deep copy of the hydrafloods dataset class"""
         return copy.deepcopy(self)
 
     def apply_func(self, func, inplace=False, *args, **kwargs):
@@ -248,8 +243,7 @@ class Dataset:
 
         @decorators.carry_metadata
         def clip(img):
-            """Closure function to perform the clipping while carrying metadata
-            """
+            """Closure function to perform the clipping while carrying metadata"""
             return ee.Image(img.clip(self.region))
 
         if inplace:
@@ -259,6 +253,10 @@ class Dataset:
             outCls = self.copy()
             outCls.collection = self.collection.map(clip)
             return outCls
+
+    def filter(self, filter, inplace=False):
+
+        return
 
     def merge(self, dataset, inplace=False):
         """Merge the collection of two datasets into one where self.collection will contain imagery from self and dataset arg.
@@ -287,7 +285,7 @@ class Dataset:
         Result will be a dataset where the collection is colocated imagery in space and time
 
         args:
-            dataset (Dataset): dataset object to apply join with. Used as right in join operations 
+            dataset (Dataset): dataset object to apply join with. Used as right in join operations
             inplace (bool, optional): define whether to return another dataset object or update inplace. default = False
 
         returns:
@@ -296,8 +294,7 @@ class Dataset:
         """
 
         def _merge(img):
-            """Closure func to take results from the join and combine into one image with overlaping region
-            """
+            """Closure func to take results from the join and combine into one image with overlaping region"""
             join_coll = ee.ImageCollection.fromImages(img.get(key))
 
             img_geom = img.geometry(100)
@@ -342,7 +339,14 @@ class Dataset:
             return outCls
 
     def aggregate_time(
-        self, dates=None, period=1, period_unit="day", reducer="mean", clip_to_area=False, inplace=False
+        self,
+        dates=None,
+        period=1,
+        period_unit="day",
+        reducer="mean",
+        rename=True,
+        clip_to_area=False,
+        inplace=False,
     ):
         """Aggregates multiple images into one based on time periods and a user defined reducer.
         Useful for mosaicing images from same date or time period.
@@ -353,7 +357,7 @@ class Dataset:
                 all available uniques dates in collection will be used
             period (int, optional): number of days to advance from dates for aggregation. default = 1
             period_unit (str, optional): time unit to advance period for aggregation. default = "day"
-            reducer (str | ee.Reducer, optional): reducer to apply to images for aggregation, accepts string reducer name 
+            reducer (str | ee.Reducer, optional): reducer to apply to images for aggregation, accepts string reducer name
                 or ee.Reducer opbject, default = "mean"
             clip_to_area (bool): switch to clip imagery that has been merged to the overlaping region of imagery, default=False
             inplace (bool, optional): define whether to return another dataset object or update inplace. default = False
@@ -364,16 +368,17 @@ class Dataset:
         """
 
         def _aggregation(d):
-            """Closure function to map through days and reduce data within a given time period
-            """
+            """Closure function to map through days and reduce data within a given time period"""
             t1 = ee.Date(d)
             t2 = t1.advance(period, period_unit)
             img = (
                 self.collection.filterDate(t1, t2)
                 .reduce(reducer)
-                .rename(band_names)
                 .set("system:time_start", t1.millis())
             )
+            if rename:
+                img = img.rename(band_names)
+
             geom = (
                 ee.FeatureCollection(
                     self.collection.filterDate(t1, t2).map(geeutils.get_geoms)
@@ -422,7 +427,7 @@ class Dataset:
             .set("system:time_start", img.get("system:time_start"))
         )
 
-    def pipe(self, steps, inplace=False,carry_metadata=True):
+    def pipe(self, steps, inplace=False, carry_metadata=True):
         """Method to pipe imagery within dataset through multiple functions at once.
         Assumes the first argument into piped functions are and ee.Image
 
@@ -447,8 +452,7 @@ class Dataset:
         """
 
         def _piper(funcs):
-            """Closure function to nest list of functions
-            """
+            """Closure function to nest list of functions"""
             if len(funcs) > 1:
                 one_shotter = funcs[0]
                 for func in funcs[1:]:
@@ -496,6 +500,7 @@ class Dataset:
 
 class Sentinel1(Dataset):
     """Class extending dataset for the Sentinel 1 collection
+    This Sentinel 1 dataset is in backscatter units
     """
 
     def __init__(self, *args, asset_id="COPERNICUS/S1_GRD", use_qa=True, **kwargs):
@@ -519,10 +524,12 @@ class Sentinel1(Dataset):
 
     @decorators.carry_metadata
     def qa(self, img):
-        """Custom QA masking method for Sentinel2 surface reflectance dataset
+        """Custom QA masking method for Sentinel1 backscatter based on view angle
+        Angle threshold values taken from https://doi.org/10.3390/rs13101954
         """
-        angles = img.select("angle")
-        return img.updateMask(angles.lt(45).And(angles.gt(30)))
+        angle = img.select("angle")
+        angle_mask = angle.lt(45.23993).And(angle.gt(30.63993))
+        return img.updateMask(angle_mask)
 
     def add_orbit_band(self, inplace=False):
         """Method to add orbit band from S1 image metadata
@@ -536,8 +543,7 @@ class Sentinel1(Dataset):
         """
 
         def _add_features(img):
-            """Closure function to add features as bands to the images
-            """
+            """Closure function to add features as bands to the images"""
             bounds = img.geometry(100)
             orbit = ee.String(img.get("orbitProperties_pass"))
             orbit_band = ee.Algorithms.If(
@@ -549,6 +555,84 @@ class Sentinel1(Dataset):
             return img.addBands(extraFeatures.clip(bounds))
 
         return self.apply_func(_add_features, inplace=inplace)
+
+    def to_db(self, inplace=False):
+        """Convience method to convert units from power to db"""
+        out_coll = self.collection.map(geeutils.power_to_db)
+
+        if inplace:
+            self.collection = out_coll
+            return
+        else:
+            outCls = self.copy()
+            outCls.collection = out_coll
+            return outCls
+
+    def to_power(self, inplace=False):
+        """Convience method to convert units from db to power"""
+        out_coll = self.collection.map(geeutils.db_to_power)
+
+        if inplace:
+            self.collection = out_coll
+            return
+        else:
+            outCls = self.copy()
+            outCls.collection = out_coll
+            return outCls
+
+
+class Sentinel1Asc(Sentinel1):
+    """Class extending dataset for the Sentinel 1 collection for ascending orbit
+    This Sentinel 1 dataset is in power units
+    """
+
+    def __init__(
+        self, *args, asset_id="COPERNICUS/S1_GRD", use_qa=True, **kwargs
+    ):
+        """Initialize Sentinel1 Dataset class
+
+        args:
+            *args: positional arguments to pass to `Dataset` (i.e. `region`, `start_time`, `end_time`)
+            asset_id (str): asset id of the Sentinel 1 earth engine collection. default="COPERNICUS/S1_GRD"
+            use_qa (bool, optional): boolean to determine to use a private `self.qa()` function. default=True
+            **kwargs (optional): addtional arbitrary keywords to pass to `Dataset`
+        """
+        super(Sentinel1Asc, self).__init__(
+            *args, asset_id=asset_id, use_qa=use_qa, **kwargs
+        )
+
+        self.collection = self.collection.filter(
+            ee.Filter.eq("orbitProperties_pass", "ASCENDING"),
+        )
+
+        return
+
+
+class Sentinel1Desc(Sentinel1):
+    """Class extending dataset for the Sentinel 1 collection for descending orbit
+    This Sentinel dataset is in power units
+    """
+
+    def __init__(
+        self, *args, asset_id="COPERNICUS/S1_GRD", use_qa=True, **kwargs
+    ):
+        """Initialize Sentinel1 Dataset class
+
+        args:
+            *args: positional arguments to pass to `Dataset` (i.e. `region`, `start_time`, `end_time`)
+            asset_id (str): asset id of the Sentinel 1 earth engine collection. default="COPERNICUS/S1_GRD"
+            use_qa (bool, optional): boolean to determine to use a private `self.qa()` function. default=True
+            **kwargs (optional): addtional arbitrary keywords to pass to `Dataset`
+        """
+        super(Sentinel1Desc, self).__init__(
+            *args, asset_id=asset_id, use_qa=use_qa, **kwargs
+        )
+
+        self.collection = self.collection.filter(
+            ee.Filter.eq("orbitProperties_pass", "DESCENDING"),
+        )
+
+        return
 
 
 class Viirs(Dataset):
@@ -599,8 +683,7 @@ class Viirs(Dataset):
 
     @decorators.carry_metadata
     def qa(self, img):
-        """Custom QA masking method for VIIRS VNP09GA dataset
-        """
+        """Custom QA masking method for VIIRS VNP09GA dataset"""
         cloudMask = geeutils.extract_bits(
             img.select("QF1"), 2, end=3, new_name="cloud_qa"
         ).lt(1)
@@ -643,8 +726,7 @@ class Modis(Dataset):
 
     @decorators.carry_metadata
     def qa(self, img):
-        """Custom QA masking method for MODIS MXD09GA dataset
-        """
+        """Custom QA masking method for MODIS MXD09GA dataset"""
         qa = img.select("state_1km")
         cloudMask = geeutils.extract_bits(qa, 10, end=11, new_name="cloud_qa").lt(1)
         shadowMask = geeutils.extract_bits(qa, 2, new_name="shadow_qa").Not()
@@ -688,8 +770,7 @@ class Landsat8(Dataset):
 
     @decorators.carry_metadata
     def qa(self, img):
-        """Custom QA masking method for Landsat8 surface reflectance dataset
-        """
+        """Custom QA masking method for Landsat8 surface reflectance dataset"""
         qa_band = img.select("pixel_qa")
         qaCloud = geeutils.extract_bits(qa_band, start=5, new_name="cloud_mask").eq(0)
         qaShadow = geeutils.extract_bits(qa_band, start=3, new_name="shadow_mask").eq(0)
@@ -748,14 +829,14 @@ class Landsat7(Dataset):
 
     @decorators.carry_metadata
     def qa(self, img):
-        """Custom QA masking method for Landsat7 surface reflectance dataset
-        """
+        """Custom QA masking method for Landsat7 surface reflectance dataset"""
         qa_band = img.select("pixel_qa")
         qaCloud = geeutils.extract_bits(qa_band, start=5, new_name="cloud_mask").eq(0)
         qaShadow = geeutils.extract_bits(qa_band, start=3, new_name="shadow_mask").eq(0)
         qaSnow = geeutils.extract_bits(qa_band, start=4, new_name="snow_mask").eq(0)
         mask = qaCloud.And(qaShadow).And(qaSnow)
         return img.updateMask(mask)
+
 
 class Landsat5(Dataset):
     def __init__(
@@ -790,11 +871,25 @@ class Landsat5(Dataset):
             # TODO: get harmonization coefficients for TM to OLI
             # slope coefficients
             self.gain = ee.Image.constant(
-                [1,1,1,1,1,1,]
+                [
+                    1,
+                    1,
+                    1,
+                    1,
+                    1,
+                    1,
+                ]
             )
             # y-intercept coefficients
             self.bias = ee.Image.constant(
-                [0,0,0,0,0,0,]
+                [
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                    0,
+                ]
             ).multiply(10000)
             coll = coll.map(self.band_pass_adjustment)
 
@@ -807,8 +902,7 @@ class Landsat5(Dataset):
 
     @decorators.carry_metadata
     def qa(self, img):
-        """Custom QA masking method for Landsat7 surface reflectance dataset
-        """
+        """Custom QA masking method for Landsat7 surface reflectance dataset"""
         qa_band = img.select("pixel_qa")
         qaCloud = geeutils.extract_bits(qa_band, start=5, new_name="cloud_mask").eq(0)
         qaShadow = geeutils.extract_bits(qa_band, start=3, new_name="shadow_mask").eq(0)
@@ -866,8 +960,7 @@ class Sentinel2(Dataset):
 
     @decorators.carry_metadata
     def qa(self, img):
-        """Custom QA masking method for Sentinel2 surface reflectance dataset
-        """
+        """Custom QA masking method for Sentinel2 surface reflectance dataset"""
         CLD_PRB_THRESH = 40
         NIR_DRK_THRESH = 0.175 * 1e4
         CLD_PRJ_DIST = 3
@@ -920,4 +1013,3 @@ class Sentinel2(Dataset):
 
         # Subset reflectance bands and update their masks, return the result.
         return img.select("B.*").updateMask(is_cld_shdw.Not())
-
