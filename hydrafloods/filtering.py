@@ -4,7 +4,7 @@ from hydrafloods import geeutils, decorators
 
 
 @decorators.carry_metadata
-def lee_sigma(img, window=9, sigma=0.9, looks=4, tk=7, keep_bands="angle"):
+def lee_sigma(img, window=9, sigma=0.9, looks=4, tk=7, keep_bands=["angle"]):
     """Lee Sigma speckle filtering algorithm.
     Implemented from interpreting https://doi.org/10.1109/TGRS.2008.2002881
 
@@ -14,8 +14,8 @@ def lee_sigma(img, window=9, sigma=0.9, looks=4, tk=7, keep_bands="angle"):
         sigma (float, optional): sigma lookup value from table 1 in paper. default = 0.9
         looks (int, optional): look intensity value from table 1 in paper. default = 4
         tk (int, optional): threshold value to determine values in window as point targets. default = 7
-        keep_bands (str | list[str], optional): regex name or list of band names to drop during filtering and include in the result
-            default = "angle"
+        keep_bands (list[str], optional): list of band names to drop during filtering and include in the result
+            default = ["angle"]
 
     returns:
         ee.Image: filtered SAR image using the Lee Sigma algorithm
@@ -23,12 +23,11 @@ def lee_sigma(img, window=9, sigma=0.9, looks=4, tk=7, keep_bands="angle"):
     band_names = img.bandNames()
     if keep_bands is not None:
         keep_img = img.select(keep_bands)
-        proc_bands = band_names.remove(keep_bands)
+        proc_bands = band_names.removeAll(keep_bands)
     else:
         proc_bands = band_names
 
     img = img.select(proc_bands)
-    
 
     midPt = (window // 2) + 1 if (window % 2) != 0 else window // 2
     kernelWeights = ee.List.repeat(ee.List.repeat(1, window), window)
@@ -42,41 +41,41 @@ def lee_sigma(img, window=9, sigma=0.9, looks=4, tk=7, keep_bands="angle"):
         {
             1: ee.Dictionary(
                 {
-                    0.5: ee.Dictionary({"A1": 0.436, "A2": 1.92, "η": 0.4057}),
-                    0.6: ee.Dictionary({"A1": 0.343, "A2": 2.21, "η": 0.4954}),
-                    0.7: ee.Dictionary({"A1": 0.254, "A2": 2.582, "η": 0.5911}),
-                    0.8: ee.Dictionary({"A1": 0.168, "A2": 3.094, "η": 0.6966}),
-                    0.9: ee.Dictionary({"A1": 0.084, "A2": 3.941, "η": 0.8191}),
+                    0.5:  ee.Dictionary({"A1": 0.436, "A2": 1.92, "η": 0.4057}),
+                    0.6:  ee.Dictionary({"A1": 0.343, "A2": 2.21, "η": 0.4954}),
+                    0.7:  ee.Dictionary({"A1": 0.254, "A2": 2.582, "η": 0.5911}),
+                    0.8:  ee.Dictionary({"A1": 0.168, "A2": 3.094, "η": 0.6966}),
+                    0.9:  ee.Dictionary({"A1": 0.084, "A2": 3.941, "η": 0.8191}),
                     0.95: ee.Dictionary({"A1": 0.043, "A2": 4.840, "η": 0.8599}),
                 }
             ),
             2: ee.Dictionary(
                 {
-                    0.5: ee.Dictionary({"A1": 0.582, "A2": 1.584, "η": 0.2763}),
-                    0.6: ee.Dictionary({"A1": 0.501, "A2": 1.755, "η": 0.3388}),
-                    0.7: ee.Dictionary({"A1": 0.418, "A2": 1.972, "η": 0.4062}),
-                    0.8: ee.Dictionary({"A1": 0.327, "A2": 2.260, "η": 0.4819}),
-                    0.9: ee.Dictionary({"A1": 0.221, "A2": 2.744, "η": 0.5699}),
+                    0.5:  ee.Dictionary({"A1": 0.582, "A2": 1.584, "η": 0.2763}),
+                    0.6:  ee.Dictionary({"A1": 0.501, "A2": 1.755, "η": 0.3388}),
+                    0.7:  ee.Dictionary({"A1": 0.418, "A2": 1.972, "η": 0.4062}),
+                    0.8:  ee.Dictionary({"A1": 0.327, "A2": 2.260, "η": 0.4819}),
+                    0.9:  ee.Dictionary({"A1": 0.221, "A2": 2.744, "η": 0.5699}),
                     0.95: ee.Dictionary({"A1": 0.152, "A2": 3.206, "η": 0.6254}),
                 }
             ),
             3: ee.Dictionary(
                 {
-                    0.5: ee.Dictionary({"A1": 0.652, "A2": 1.458, "η": 0.2222}),
-                    0.6: ee.Dictionary({"A1": 0.580, "A2": 1.586, "η": 0.2736}),
-                    0.7: ee.Dictionary({"A1": 0.505, "A2": 1.751, "η": 0.3280}),
-                    0.8: ee.Dictionary({"A1": 0.419, "A2": 1.865, "η": 0.3892}),
-                    0.9: ee.Dictionary({"A1": 0.313, "A2": 2.320, "η": 0.4624}),
+                    0.5:  ee.Dictionary({"A1": 0.652, "A2": 1.458, "η": 0.2222}),
+                    0.6:  ee.Dictionary({"A1": 0.580, "A2": 1.586, "η": 0.2736}),
+                    0.7:  ee.Dictionary({"A1": 0.505, "A2": 1.751, "η": 0.3280}),
+                    0.8:  ee.Dictionary({"A1": 0.419, "A2": 1.865, "η": 0.3892}),
+                    0.9:  ee.Dictionary({"A1": 0.313, "A2": 2.320, "η": 0.4624}),
                     0.95: ee.Dictionary({"A1": 0.238, "A2": 2.656, "η": 0.5084}),
                 }
             ),
             4: ee.Dictionary(
                 {
-                    0.5: ee.Dictionary({"A1": 0.694, "A2": 1.385, "η": 0.1921}),
-                    0.6: ee.Dictionary({"A1": 0.630, "A2": 1.495, "η": 0.2348}),
-                    0.7: ee.Dictionary({"A1": 0.560, "A2": 1.627, "η": 0.2825}),
-                    0.8: ee.Dictionary({"A1": 0.480, "A2": 1.804, "η": 0.3354}),
-                    0.9: ee.Dictionary({"A1": 0.378, "A2": 2.094, "η": 0.3991}),
+                    0.5:  ee.Dictionary({"A1": 0.694, "A2": 1.385, "η": 0.1921}),
+                    0.6:  ee.Dictionary({"A1": 0.630, "A2": 1.495, "η": 0.2348}),
+                    0.7:  ee.Dictionary({"A1": 0.560, "A2": 1.627, "η": 0.2825}),
+                    0.8:  ee.Dictionary({"A1": 0.480, "A2": 1.804, "η": 0.3354}),
+                    0.9:  ee.Dictionary({"A1": 0.378, "A2": 2.094, "η": 0.3991}),
                     0.95: ee.Dictionary({"A1": 0.302, "A2": 2.360, "η": 0.4391}),
                 }
             ),
@@ -130,8 +129,8 @@ def lee_sigma(img, window=9, sigma=0.9, looks=4, tk=7, keep_bands="angle"):
 
 # The RL speckle filter
 @decorators.carry_metadata
-def refined_lee(image):
-    """Refined Lee speckle filtering algorithm. 
+def refined_lee(image, keep_bands=["angle"]):
+    """Refined Lee speckle filtering algorithm.
     Algorithm adapted from https://groups.google.com/g/google-earth-engine-developers/c/ExepnAmP-hQ/m/7e5DnjXXAQAJ
 
     args:
@@ -142,9 +141,9 @@ def refined_lee(image):
     """
     # TODO: include keep bands...maybe one-shot filtering if using keep_bands???
     def apply_filter(b):
-        """Closure function to apply the refined lee algorithm on individual bands
-        """
-        img = power.select([b])
+        """Closure function to apply the refined lee algorithm on individual bands"""
+        b = ee.String(b)
+        img = power.select(b)
 
         # img must be in natural units, i.e. not in dB!
         # Set up 3x3 kernels
@@ -322,17 +321,30 @@ def refined_lee(image):
             .float()
         )
 
-    bandNames = image.bandNames()
-    power = geeutils.db_to_power(image)
-    bandList = ee.List.sequence(0,bandNames.length().subtract(1))
+    band_names = image.bandNames()
+    if keep_bands is not None:
+        keep_img = image.select(keep_bands)
+        proc_bands = band_names.removeAll(keep_bands)
+    else:
+        proc_bands = band_names
 
-    result = ee.ImageCollection(bandList.map(apply_filter)).toBands()
-    return geeutils.power_to_db(ee.Image(result)).rename(bandNames)
+    image = image.select(proc_bands)
+
+    power = geeutils.db_to_power(image)
+
+    result = ee.ImageCollection(proc_bands.map(apply_filter)).toBands()
+
+    output = geeutils.power_to_db(ee.Image(result)).rename(proc_bands)
+
+    if keep_bands is not None:
+        output = output.addBands(keep_img)
+
+    return output
 
 
 @decorators.carry_metadata
-def gamma_map(img, window=7, enl=4.9):
-    """Gamma Map speckle filtering algorithm. 
+def gamma_map(img, window=7, enl=4.9,keep_bands=["angle"]):
+    """Gamma Map speckle filtering algorithm.
     Algorithm adapted from https://groups.google.com/g/google-earth-engine-developers/c/a9W0Nlrhoq0/m/tnGMC45jAgAJ.
 
     args:
@@ -341,12 +353,22 @@ def gamma_map(img, window=7, enl=4.9):
         enl (float, optional): equivalent number of looks (enl) per pixel from a SAR scan.
             See https://sentinel.esa.int/web/sentinel/user-guides/sentinel-1-sar/resolutions/level-1-ground-range-detected.
             default = 4.9
+        keep_bands (list[str], optional): list of band names to drop during filtering and include in the result
+            default = ["angle"]
 
     returns:
         ee.Image: filtered SAR image using the Gamma Map algorithm
     """
 
-    bandNames = img.bandNames()
+    band_names = img.bandNames()
+    if keep_bands is not None:
+        keep_img = img.select(keep_bands)
+        proc_bands = band_names.removeAll(keep_bands)
+    else:
+        proc_bands = band_names
+
+    img = img.select(proc_bands)
+
     # Square kernel, window should be odd (typically 3, 5 or 7)
     weights = ee.List.repeat(ee.List.repeat(1, window), window)
     midPt = (window // 2) + 1 if (window % 2) != 0 else window // 2
@@ -381,32 +403,35 @@ def gamma_map(img, window=7, enl=4.9):
     f = b.multiply(mean).add(d.sqrt()).divide(alpha.multiply(2.0))
 
     caster = ee.Dictionary.fromLists(
-        bandNames, ee.List.repeat("float", bandNames.length())
+        proc_bands, ee.List.repeat("float", proc_bands.length())
     )
     img1 = (
-        geeutils.power_to_db(mean.updateMask(ci.lte(cu))).rename(bandNames).cast(caster)
+        geeutils.power_to_db(mean.updateMask(ci.lte(cu))).rename(proc_bands).cast(caster)
     )
     img2 = (
         geeutils.power_to_db(f.updateMask(ci.gt(cu)).updateMask(ci.lt(cmax)))
-        .rename(bandNames)
+        .rename(proc_bands)
         .cast(caster)
     )
-    img3 = img.updateMask(ci.gte(cmax)).rename(bandNames).cast(caster)
+    img3 = img.updateMask(ci.gte(cmax)).rename(proc_bands).cast(caster)
 
     # If ci > cmax do not filter at all (i.e. we don't do anything, other then masking)
-    result = (
+    output = (
         ee.ImageCollection([img1, img2, img3])
         .reduce(ee.Reducer.firstNonNull())
-        .rename(bandNames)
+        .rename(proc_bands)
         .clip(img.geometry())
     )
 
+    if keep_bands is not None:
+        output = output.addBands(keep_img)
+
     # Compose a 3 band image with the mean filtered "pure speckle", the "low textured" filtered and the unfiltered portions
-    return result
+    return output
 
 
 @decorators.carry_metadata
-def p_median(img, window=5):
+def p_median(img, window=5,keep_bands=["angle"]):
     """P-Median filter for smoothing imagery.
     Calculates the average from the median along cross and diagnal pixels of a window
 
@@ -423,7 +448,9 @@ def p_median(img, window=5):
         band_img = img.select(selector)
         hv_median = band_img.reduceNeighborhood(ee.Reducer.median(), hv_kernel)
         diag_median = band_img.reduceNeighborhood(ee.Reducer.median(), diag_kernel)
-        return ee.Image(ee.Image.cat([hv_median, diag_median]).reduce("mean")).rename(selector)
+        return ee.Image(ee.Image.cat([hv_median, diag_median]).reduce("mean")).rename(
+            selector
+        )
 
     if window % 2 == 0:
         window += 1
@@ -456,14 +483,14 @@ def p_median(img, window=5):
 
 @decorators.carry_metadata
 def perona_malik(img, n_iters=10, K=3, method=1):
-    """	Perona-Malik (anisotropic diffusion) convolution
+    """Perona-Malik (anisotropic diffusion) convolution
     Developed by Gennadii Donchyts see https://groups.google.com/g/google-earth-engine-developers/c/umGlt5qIN1I/m/PD8lsJ7qBAAJ
     I(n+1, i, j) = I(n, i, j) + lambda * (cN * dN(I) + cS * dS(I) + cE * dE(I), cW * dW(I))
-    
+
     args:
         img (ee.Image): Earth engine image object. Expects that imagery is a SAR image
         n_iters (int, optional): Number of interations to apply filter
-	    K (int,optional): moving window size to apply filter (i.e. a value of 7 == 7x7 window). default = 3
+            K (int,optional): moving window size to apply filter (i.e. a value of 7 == 7x7 window). default = 3
         method (int, optional): choose method 1 (default) or 2
     returns:
         ee.Image: filtered SAR image using the perona malik algorithm
