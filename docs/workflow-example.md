@@ -75,7 +75,7 @@ dswfp.export_surface_water_harmonics(
 
 ### 3. Export daily water map
 
-Now that we have our data exported and ready to use, we can begin predicting daily surface water maps. Here we provide a date that will want to estimate water for and this algorithm will estimate a water index based on the long-term harmonic trend while correcting that with recent observations. This kicks off two exports, one for the fused water index and another for the water map. The final water index is segmented using on of the [thresholding](/thresholding/) algorithms.
+Now that we have our data exported and ready to use, we can begin predicting daily surface water maps. Here we provide a date that will want to estimate water for and this algorithm will estimate a water index based on the long-term harmonic trend while correcting that with recent observations. This kicks off two exports, one for the fused water index and another for the water map. The final water index is segmented using on of the [thresholding](/hydra-floods/thresholding/) algorithms.
 
 ```python
 target_date = "2020-10-31"

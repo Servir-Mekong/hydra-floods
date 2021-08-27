@@ -12,9 +12,9 @@ SAR imagery is affected by artifacts called Speckle. Speckle looks like  granula
 
 `hydrafloods` has implemented a few of these Speckle filter algorithms in the package to help effectively use SAR imagery for image processing, in this case for surface water mapping. Here is a list of Speckle filter algorithms available:
 
- - Lee Sigma: [`hydrafloods.lee_sigma`](/filtering/#hydrafloods.filtering.lee_sigma) ([Lee et al., 2008](https://doi.org/10.1109/TGRS.2008.2002881))
- - Gamma Map: [`hydrafloods.gamma_map`](/filtering/#hydrafloods.filtering.gamma_map) ([Beauchemin et al., 1995](https://doi.org/10.1080/01431169608949067))
- - Refined Lee: [`hydrafloods.refined_lee`](/filtering/#hydrafloods.filtering.refined_lee) ([Lee, 1981](https://doi.org/10.1016/S0146-664X(81)80018-4))
+ - Lee Sigma: [`hydrafloods.lee_sigma`](/hydra-floods/filtering/#hydrafloods.filtering.lee_sigma) ([Lee et al., 2008](https://doi.org/10.1109/TGRS.2008.2002881))
+ - Gamma Map: [`hydrafloods.gamma_map`](/hydra-floods/filtering/#hydrafloods.filtering.gamma_map) ([Beauchemin et al., 1995](https://doi.org/10.1080/01431169608949067))
+ - Refined Lee: [`hydrafloods.refined_lee`](/hydra-floods/filtering/#hydrafloods.filtering.refined_lee) ([Lee, 1981](https://doi.org/10.1016/S0146-664X(81)80018-4))
 
  Here is a brief example of how one might apply these algorithms to SAR data using `hydrafloods`:
 
@@ -79,7 +79,7 @@ print(refined_lee_filtered.getThumbURL(viz_params))
 :-------------------------------:|:-------------------------------:
 ![](img/algos_sar_gammamap.png) | ![](img/algos_sar_refinedlee.png) 
 
-For more information on the filtering algorithms and the specific arguments, please see the [filtering module](/filtering/) API reference
+For more information on the filtering algorithms and the specific arguments, please see the [filtering module](/hydra-floods/filtering/) API reference
 
 
 ## Correction Algorithms
@@ -133,7 +133,7 @@ Original Landsat 8 Image                    | Corrected Landsat 8 Image
 :------------------------------------------:|:---------------------------------------:
 ![](img/algos_optical_terrain_original.png) | ![](img/algos_optical_terrain_flat.png)
 
-We can see that the algorithm corrected the poorly illuminated areas. This function is valid for both the Landsat8 and Sentinel2 imagery. More information on the illumination correction algorithm and the input arguments can be found at the [corrections module](/corrections/#hydrafloods.corrections.illumination_correction) page
+We can see that the algorithm corrected the poorly illuminated areas. This function is valid for both the Landsat8 and Sentinel2 imagery. More information on the illumination correction algorithm and the input arguments can be found at the [corrections module](/hydra-floods/corrections/#hydrafloods.corrections.illumination_correction) page
 
 
 ### Applying slope correction on SAR imagery
@@ -173,7 +173,7 @@ Original Sentinel 1 Image               | Corrected Sentinel 1 Image
 :--------------------------------------:|:-----------------------------------:
 ![](img/algos_sar_terrain_original.png) | ![](img/algos_sar_terrain_flat.png)
 
-We can see that the effects of terrain are mostly removed. Note: the slope correction algorithm calculates area of terrain shadow and layover (i.e. areas that cannot be corrected) and mask those area, hince some transparent areas.  More documentation regarding the slope correction algorithm and the input arguments can be found at the [corrections module](/corrections/#hydrafloods.corrections.slope_correction) page
+We can see that the effects of terrain are mostly removed. Note: the slope correction algorithm calculates area of terrain shadow and layover (i.e. areas that cannot be corrected) and mask those area, hince some transparent areas.  More documentation regarding the slope correction algorithm and the input arguments can be found at the [corrections module](/hydra-floods/corrections/#hydrafloods.corrections.slope_correction) page
 
 ## Generic Water Mapping Algorithms
 
@@ -183,7 +183,7 @@ The goal of `hydrafloods` is to provide efficient, easily accessible surface wat
 - Bmax Otsu: [`hydrafloods.bmax_otsu`](/thresholding/#hydrafloods.thresholding.bmax_otsu) ([Cao et al.,2019](https://doi.org/10.3390/w11040786); [Markert et al., 2020](https://doi.org/10.3390/rs12152469))
 - KMeans Extent: [`hydrafloods.kmeans_extent`](/thresholding/#hydrafloods.thresholding.kmeans_extent) ([Chang et al., 2020](https://doi.org/10.1016/j.rse.2020.111732))
 
-To begin, we will access optical and SAR data for a coincident time period following the example from [Using Datasets](/using-datasets/):
+To begin, we will access optical and SAR data for a coincident time period following the example from [Using Datasets](/hydra-floods/using-datasets/):
 
 ```python
 # area where overlap is known
@@ -233,7 +233,7 @@ sar_viz = {
 }
 ```
 
-Now that we have our data here we will highlight how to use some generic surface water mapping algorithms, specifically the [`edge_otsu()`](/thresholding/#hydrafloods.thresholding.edge_otsu) algorithm:
+Now that we have our data here we will highlight how to use some generic surface water mapping algorithms, specifically the [`edge_otsu()`](/hydra-floods/thresholding/#hydrafloods.thresholding.edge_otsu) algorithm:
 
 ```python
 # apply the edge otsu algorithm on the MNDWI optical index
@@ -271,6 +271,6 @@ print(sar_water.getThumbURL(water_viz))
 :------------------------------------:|:---------------------------------:
 ![](img/algos_water_optical_edge.png) | ![](img/algos_water_sar_edge.png) 
 
-This is just one example of surface water mapping and there are additional water mapping algorithms as mentioned above. More documentation regarding the water mapping functions and the input arguments can be found at the [thresholding module](/thresholding/)
+This is just one example of surface water mapping and there are additional water mapping algorithms as mentioned above. More documentation regarding the water mapping functions and the input arguments can be found at the [thresholding module](/hydra-floods/thresholding/)
 
 If there are other algorithms you would like to see in the `hydrafloods` package, please file an [issue](https://github.com/Servir-Mekong/hydra-floods/issues) with specifics (and hopefully a link to the paper) on our GitHub repo.
