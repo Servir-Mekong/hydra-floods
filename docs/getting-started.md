@@ -10,7 +10,7 @@ import hydrafloods as hf
 
 ## Get a `hf.Dataset`
 
-You can access commonly used image collections on Earth Engine as a [`hydrafloods.Dataset`](/datasets/) to quickly filter by space and time as well as apply pre-written QA masking functions.
+You can access commonly used image collections on Earth Engine as a [`hydrafloods.Dataset`](/hydra-floods/datasets/) to quickly filter by space and time as well as apply pre-written QA masking functions.
 
 ```python
 # define a geographic region
@@ -39,12 +39,12 @@ ee_collection = s1.collection
 The `hydrafloods.Dataset` object is a wrapper around an `ee.ImageCollection` by applying the spatial and temporal filtering upon initialization.
 This provides a quick and consistent access to imagery. The `Dataset` class also provides utility functionality to make working with and managing multiple image collections less verbose.
 
-There are many ways to interface with datasets (i.e. ImageCollections) using `hydrafloods`, more examples on merging or joining datasets can be found on the [Using Dataset class](/using-datasets/) page.
+There are many ways to interface with datasets (i.e. ImageCollections) using `hydrafloods`, more examples on merging or joining datasets can be found on the [Using Dataset class](/hydra-floods/using-datasets/) page.
 
 
 ## Image processing
 
-The main purpose of `hydrafloods` is to lower the barrier to creating high-quality surface water maps, this requires image processing. Although the Dataset class wraps an Earth Engine image collection we can apply image processing functions using [`apply_func()`](/datasets/#hydrafloods.datasets.Dataset.apply_func) by passing a function object. 
+The main purpose of `hydrafloods` is to lower the barrier to creating high-quality surface water maps, this requires image processing. Although the Dataset class wraps an Earth Engine image collection we can apply image processing functions using [`apply_func()`](/hydra-floods/datasets/#hydrafloods.datasets.Dataset.apply_func) by passing a function object. 
 
 This method wraps a function that accepts an image as the first argument (which most `hydrafloods` image processing algorithms do) and maps it over the collection. For example, we would like to apply a speckle filter algorithm on SAR imagery. We can easily do this with the following code.
 
@@ -54,7 +54,7 @@ This method wraps a function that accepts an image as the first argument (which 
 filtered = s1.apply_func(hf.gamma_map)
 ```
 
-The previous example is synonymous with using `s1.collection = s1.collection.map(hf.gamma_map)` which access the image collection, applies the function, and sets the results to the `s1.collection` property. Although this technically works, using the `apply_func()` method is advantageous and preferred as it allows us to pass arbitrary keyword parameters to functions which we want to apply. For example, the water mapping algorithms found in [`hydrafloods.thresholding`](/thresholding/) take many keyword parameters and we can customize function as in the following example.
+The previous example is synonymous with using `s1.collection = s1.collection.map(hf.gamma_map)` which access the image collection, applies the function, and sets the results to the `s1.collection` property. Although this technically works, using the `apply_func()` method is advantageous and preferred as it allows us to pass arbitrary keyword parameters to functions which we want to apply. For example, the water mapping algorithms found in [`hydrafloods.thresholding`](/hydra-floods/thresholding/) take many keyword parameters and we can customize function as in the following example.
 
 ```python
 # apply the edge otsu surface water mapping 
@@ -74,12 +74,12 @@ It should be noted that using the `apply_func()` method will return a `hydrafloo
 water_img = water_maps.collection.reduce("mode")
 ```
 
-There are a variety of image processing functions available in `hydrafloods`, more information on specific algorithms can be found on the [Algorithms](/algorithms/) page.
+There are a variety of image processing functions available in `hydrafloods`, more information on specific algorithms can be found on the [Algorithms](/hydra-floods/algorithms/) page.
 
 
 ## Time series processing
 
-In addition to image processing, processing data in time is valuable. Therefore, `hydrafloods` has a specific module for time series processing, [`hydrafloods.timeseries`](/timeseries/), specifically for processing stacks of imagery in time.
+In addition to image processing, processing data in time is valuable. Therefore, `hydrafloods` has a specific module for time series processing, [`hydrafloods.timeseries`](/hydra-floods/timeseries/), specifically for processing stacks of imagery in time.
 
 ```python
 # import in the timeseries module
@@ -108,7 +108,7 @@ harmonics_weights = timeseries.fit_harmonic_trend(
 )
 ```
 
-The result from [`fit_harmonic_trend()`](/timeseries/#hydrafloods.timeseries.fit_harmonic_trend) will be an image with many bands. Some bands are the coefficeint weights for prediction (i.e. cos_1, sin_1, or time), others can be awareness information such as number of valid observations used (i.e. n). So we will filter out the coefficient weight bands we need which are cos_n, sin_n and time which start with either "c", "t", or "s". Then get a dummy image with time information and apply the prediction.
+The result from [`fit_harmonic_trend()`](/hydra-floods/timeseries/#hydrafloods.timeseries.fit_harmonic_trend) will be an image with many bands. Some bands are the coefficeint weights for prediction (i.e. cos_1, sin_1, or time), others can be awareness information such as number of valid observations used (i.e. n). So we will filter out the coefficient weight bands we need which are cos_n, sin_n and time which start with either "c", "t", or "s". Then get a dummy image with time information and apply the prediction.
 
 ```python
 # extract bands needed for prediction
@@ -126,12 +126,12 @@ prediction = (
 )
 ```
 
-Time series functionality in `hydrafloods` is focused around modeling data in time, more information on the functions can be found in the [timeseries module API reference](/timeseries/)
+Time series functionality in `hydrafloods` is focused around modeling data in time, more information on the functions can be found in the [timeseries module API reference](/hydra-floods/timeseries/)
 
 
 ## Machine Learning
 
-`hydrafloods` also has a specific module for machine learning workflows with Earth Engine, [`hydrafloods.ml`](/ml/). 
+`hydrafloods` also has a specific module for machine learning workflows with Earth Engine, [`hydrafloods.ml`](/hydra-floods/ml/). 
 
 ```python
 # import in the ml module
@@ -198,4 +198,4 @@ s1_norm = s1_features.apply_func(
 predicted = s1_norm.apply_func(lambda x: x.classify(rf))
 ```
 
-Again, most of the functionality around the `hydrafloods.ml` module is to make end-to-end machine learning work flows more straightforward. Please see the [ml module](/ml/) documentation for information on functions.
+Again, most of the functionality around the `hydrafloods.ml` module is to make end-to-end machine learning work flows more straightforward. Please see the [ml module](/hydra-floods/ml/) documentation for information on functions.

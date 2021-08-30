@@ -56,12 +56,12 @@ print(isinstance(lc8.collection, ee.ImageCollection))
 
 Really, one can think of the custom `qa()` method as a preprocessing step that you would like to happen on *all* images in the dataset so it is not just restricted to specific sensors as seen in a later section.
 
-- Sentinel 1: [`hydrafloods.Sentinel1`](/datasets/#hydrafloods.datasets.Sentinel1)
-- Sentinel 2: [`hydrafloods.Sentinel2`](/datasets/#hydrafloods.datasets.Sentinel2)
-- Landsat 8: [`hydrafloods.Landsat8`](/datasets/#hydrafloods.datasets.Landsat8)
-- Landsat 7: [`hydrafloods.Landsat7`](/datasets/#hydrafloods.datasets.Landsat7)
-- VIIRS: [`hydrafloods.Viirs`](/datasets/#hydrafloods.datasets.Viirs)
-- MODIS: [`hydrafloods.Modis`](/datasets/#hydrafloods.datasets.Modis)
+- Sentinel 1: [`hydrafloods.Sentinel1`](/hydra-floods/datasets/#hydrafloods.datasets.Sentinel1)
+- Sentinel 2: [`hydrafloods.Sentinel2`](/hydra-floods/datasets/#hydrafloods.datasets.Sentinel2)
+- Landsat 8: [`hydrafloods.Landsat8`](/hydra-floods/datasets/#hydrafloods.datasets.Landsat8)
+- Landsat 7: [`hydrafloods.Landsat7`](/hydra-floods/datasets/#hydrafloods.datasets.Landsat7)
+- VIIRS: [`hydrafloods.Viirs`](/hydra-floods/datasets/#hydrafloods.datasets.Viirs)
+- MODIS: [`hydrafloods.Modis`](/hydra-floods/datasets/#hydrafloods.datasets.Modis)
 
 To provide an example of using the internal `qa()` method and not we can redefine the Landsat 8 collection from before but with setting `use_qa` to `False`
 
@@ -101,7 +101,7 @@ We can clearly see the image on the left has clouds and cloud shadows masked and
 
 ## Creating a Dataset from a computed `ee.ImageCollection`
 
-While HYDRAFloods provides some specialized Dataset classes for users to immediately access, there are often times when a user would like to use their own Image Collection. To this end, a method is available for users to create a dataset directly from an ee.ImageCollection object, [`hf.Dataset.from_imgcollection`](/datasets/#hydrafloods.datasets.Dataset.from_imgcollection). This allows Dataset objects to be created from image collections that have been filtered or with additional computation applied. Here is a quick example grabbing the public Planet SkySat data, filtering to the United States, and calculating NDVI:
+While HYDRAFloods provides some specialized Dataset classes for users to immediately access, there are often times when a user would like to use their own Image Collection. To this end, a method is available for users to create a dataset directly from an ee.ImageCollection object, [`hf.Dataset.from_imgcollection`](/hydra-floods/datasets/#hydrafloods.datasets.Dataset.from_imgcollection). This allows Dataset objects to be created from image collections that have been filtered or with additional computation applied. Here is a quick example grabbing the public Planet SkySat data, filtering to the United States, and calculating NDVI:
 
 ```python
 us = hf.country_bbox("United States")
@@ -124,7 +124,7 @@ It should be noted that hydrafloods will attempt to call `.getInfo()` from the `
 
 ## Applying a function
 
-As we saw in the [Getting Stated](/getting-started/#image-processing) page, we can apply image processing functions using [`apply_func()`](/datasets/#hydrafloods.datasets.Dataset.apply_func) by passing a function object or any keyword parameters. This method wraps a function that accepts an image as the first argument (which most `hydrafloods` image processing algorithms do) and maps it over the collection. For example, if want to create a water map using Landsat 8, we will calculate a water index and then apply a thresholding algorithm: 
+As we saw in the [Getting Stated](/hydra-floods/getting-started/#image-processing) page, we can apply image processing functions using [`apply_func()`](/hydra-floods/datasets/#hydrafloods.datasets.Dataset.apply_func) by passing a function object or any keyword parameters. This method wraps a function that accepts an image as the first argument (which most `hydrafloods` image processing algorithms do) and maps it over the collection. For example, if want to create a water map using Landsat 8, we will calculate a water index and then apply a thresholding algorithm: 
 
 ```python
 region = hf.country_bbox("Cambodia")
@@ -167,7 +167,7 @@ water_img.getThumbURL({
 
 ## Merging Datasets
 
-One of the simpilest ways to combine datasets is to merge. This takes the imagery in one collection and concatenates it with the original collection. We can use the [`merge()`](/datasets/#hydrafloods.datasets.Dataset.merge) method to accomplish this. Additionally, the `merge()` method automatically sorts the image collections by date so we can start using dense time series right away. Here is an example of merging Landat8 and Sentinel2 datasets together:
+One of the simpilest ways to combine datasets is to merge. This takes the imagery in one collection and concatenates it with the original collection. We can use the [`merge()`](/hydra-floods/datasets/#hydrafloods.datasets.Dataset.merge) method to accomplish this. Additionally, the `merge()` method automatically sorts the image collections by date so we can start using dense time series right away. Here is an example of merging Landat8 and Sentinel2 datasets together:
 
 ```python
 lc8 = hf.Landsat8(region,start_time,end_time)
@@ -183,7 +183,7 @@ print(merged.n_images)
 
 ## Joining Datasets
 
-Joining datasets is another way to bring together two datasets but by looking at coincident imagery and combines the bands into one image. Whereas merge combined the two collections irrespective of space time overlap, [`join()`](/datasets/#hydrafloods.datasets.Dataset.join) looks for overlapping data in space and time and will return only data that overlaps with the bands combined. Furthermore, the resulting images will be clipped to the overlapping region. This functionality is really helpful when looking for coincident data from multiple sensors.
+Joining datasets is another way to bring together two datasets but by looking at coincident imagery and combines the bands into one image. Whereas merge combined the two collections irrespective of space time overlap, [`join()`](/hydra-floods/datasets/#hydrafloods.datasets.Dataset.join) looks for overlapping data in space and time and will return only data that overlaps with the bands combined. Furthermore, the resulting images will be clipped to the overlapping region. This functionality is really helpful when looking for coincident data from multiple sensors.
 
 ```python
 lc8 = hf.Landsat8(region,start_time,end_time)
@@ -232,7 +232,7 @@ print(sar_thumb)
 
 ## Temporal aggregation
 
-A common workflow is merging data and make composites for individual dates that data is available. A good example of this is the MODIS sensor that is onboard the Terra and Aqua satellite. We can create daily composites of the imagery by merging the datasets then looping over each day to mosaic the data. `hydrafloods` has a method [`aggregate_time()`](/datasets/#hydrafloods.datasets.Dataset.aggregate_time) to do the mosaicing sequentially in time. Here we create a combined MODIS Terra and Aqua dataset.
+A common workflow is merging data and make composites for individual dates that data is available. A good example of this is the MODIS sensor that is onboard the Terra and Aqua satellite. We can create daily composites of the imagery by merging the datasets then looping over each day to mosaic the data. `hydrafloods` has a method [`aggregate_time()`](/hydra-floods/datasets/#hydrafloods.datasets.Dataset.aggregate_time) to do the mosaicing sequentially in time. Here we create a combined MODIS Terra and Aqua dataset.
 
 ```python
 # define new time range
@@ -287,7 +287,7 @@ As seen, this method allows for customization of when to start aggregations and 
 
 As seen in the ["Applying a function"](#applying-a-function) section, we can easily process imagery by passing individual functions into  `.apply_func()`. While this method of writing the computation is easy to read syntaxually, it is however inefficient for for Earth Engien to apply the computations. This is because each function passed through `.apply_func()` applies the function to all imagery in the Dataset. For example, if there are three functions you want to apply, then it will loop through all of the imagery three times. This can cause computation timeout or memory errors on Earth Engine's side if there is a lot to compute using multiple mapped functions.
 
-The [`.pipe()`](/datasets/#hydrafloods.datasets.Dataset.pipe) method allows for users to apply multiple functions to a Dataset with only one pass through the imagery. This is the preferred method to chain together multiple functions. For example, if we want to create water maps from Landsat 8 we would calculate a water index (e.g. MNDWI) then apply the water mapping algorithm. Here we can tell `.pipe()` the order of functions to apply and the arguments (if any) and it will nest the functions into one to map over.
+The [`.pipe()`](/hydra-floods/datasets/#hydrafloods.datasets.Dataset.pipe) method allows for users to apply multiple functions to a Dataset with only one pass through the imagery. This is the preferred method to chain together multiple functions. For example, if we want to create water maps from Landsat 8 we would calculate a water index (e.g. MNDWI) then apply the water mapping algorithm. Here we can tell `.pipe()` the order of functions to apply and the arguments (if any) and it will nest the functions into one to map over.
 
 ```python
 
@@ -409,4 +409,4 @@ print(first_img.getThumbURL(viz_params))
 
 In this example of a custom dataset class for GOES16 imagery, the `qa()` method definition is more for preprocessing to scale the imagery. A custom cloud/shadow masking workflow can easily be included and applied on the imagery. Now we are ready to use our custom GOES16 imagery with the rest of the `hydrafloods` functions!
 
-More detailed information on the `hydrafloods.Dataset` class along with it's method fucntionality and arguments can be found in the [datasets module](/datasets/) API reference. 
+More detailed information on the `hydrafloods.Dataset` class along with it's method fucntionality and arguments can be found in the [datasets module](/hydra-floods/datasets/) API reference. 
