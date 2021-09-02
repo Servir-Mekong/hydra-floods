@@ -53,7 +53,7 @@ def get_geoms(img):
 def export_image(
     image,
     region,
-    asset_id,
+    asset_id=None,
     description=None,
     scale=1000,
     crs="EPSG:4326",
@@ -208,12 +208,13 @@ def batch_export(
         export_image(
             img,
             region,
-            exportName,
+            assed_id=exportName,
             description=description,
             scale=scale,
             crs=crs,
             pyramiding=pyramiding,
-            export_type=export_type
+            export_type=export_type,
+            folder=folder,
         )
 
     return
