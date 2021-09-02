@@ -43,7 +43,7 @@ def get_geoms(img):
 
     args:
         img (ee.Image): image to get geometry from
-    
+
     returns:
         ee.Geometry: geometry of image
     """
@@ -58,25 +58,45 @@ def export_image(
     scale=1000,
     crs="EPSG:4326",
     pyramiding=None,
+    export_type='toAsset',
+    folder=None,
 ):
     """Function to wrap image export with EE Python API
 
     args:
         image (ee.Image): image to export
         region (ee.Geometry): region to export image
-        asset_id (str): asset ID to export image to
+        asset_id (str | None, optional): asset ID to export image to\
+            if None then asset_id will be a random string. default = None
         description (str | None, optional): description to identify image export/
             if None then description will be random string. default = None
         scale (int, optional): resolution in meters to export image to. default = 1000
         crs (str, optional): epsg code to export image to. default = "EPSG:4326"
         pyramiding (dict | None, optional): dictionary defining band pyramiding scheme.
             if None then "mean" will be used as default for all bands. default = None
+        export_type (str, optional) : method by which to export the image.
+            Default is 'toAsset', can also be 'toDrive'.
+        folder (str | None, optional): target folder to export for 'toDrive'/
+            if None then export should go to root of Drive
 
     """
-    if (description == None) or (type(description) != str):
+    if (asset_id is None) or (type(asset_id) != str):
+        asset_id = "".join(
+            random.SystemRandom().choice(string.ascii_letters) for _ in range(8)
+        ).lower()
+    if (description is None) or (type(description) != str):
         description = "".join(
             random.SystemRandom().choice(string.ascii_letters) for _ in range(8)
         ).lower()
+    if (type(export_type) != str):
+        raise TypeError(f'Input for export_type not a string, was a '
+                        f'{type(export_type)}.')
+    elif (export_type != 'toAsset') and (export_type != 'toDrive'):
+        raise ValueError('Invalid input for export_type, must be '
+                         '"toAsset" or "toDrive".')
+    if (folder is not None) and (type(folder) != str):
+        raise TypeError(f'Input for folder was not a string, was a '
+                        f'{type(folder)}')
     # get serializable geometry for export
     export_region = region.bounds(maxError=10).getInfo()["coordinates"]
 
@@ -84,16 +104,27 @@ def export_image(
         pyramiding = {".default": "mean"}
 
     # set export process
-    export = ee.batch.Export.image.toAsset(
-        image,
-        description=description,
-        assetId=asset_id,
-        scale=scale,
-        region=export_region,
-        maxPixels=1e13,
-        crs=crs,
-        pyramidingPolicy=pyramiding,
-    )
+    if export_type == 'toAsset':
+        export = ee.batch.Export.image.toAsset(
+            image,
+            description=description,
+            assetId=asset_id,
+            scale=scale,
+            region=export_region,
+            maxPixels=1e13,
+            crs=crs,
+            pyramidingPolicy=pyramiding,
+        )
+    elif export_type == 'toDrive':
+        export = ee.batch.Export.image.toDrive(
+            image,
+            description=description,
+            folder=folder,
+            scale=scale,
+            region=export_region,
+            maxPixels=1e13,
+            crs=crs,
+        )
     # start export process
     export.start()
 
@@ -109,6 +140,8 @@ def batch_export(
     scale=1000,
     crs="EPSG:4326",
     pyramiding=None,
+    export_type='toAsset',
+    folder=None,
     metadata=None,
     verbose=False,
 ):
@@ -125,6 +158,10 @@ def batch_export(
         crs (str, optional): epsg code to export image to. default = "EPSG:4326"
         pyramiding (dict | None, optional): dictionary defining band pyramiding scheme.
             if None then "mean" will be used as default for all bands. default = None
+        export_type (str, optional) : method by which to export the image.
+            Default is 'toAsset', can also be 'toDrive'.
+        folder (str | None, optional): target folder to export for 'toDrive'/
+                if None then export should go to root of Drive
         metadata (dict | None, optional):
         verbose (bool, optional):
 
@@ -176,6 +213,7 @@ def batch_export(
             scale=scale,
             crs=crs,
             pyramiding=pyramiding,
+            export_type=export_type
         )
 
     return
@@ -228,7 +266,7 @@ def add_indices(img, indices=["mndwi"]):
 
     args:
         img (ee.Image): image to calculate indices from
-        indices (list[str], optional): list of strings of index names to calculate. 
+        indices (list[str], optional): list of strings of index names to calculate.
             can use any named index function in geeutils. default = ["mndwi"]
 
     returns:
@@ -251,9 +289,9 @@ def tile_region(region, grid_size=0.1, intersect_geom=None, contain_geom=None,ce
     args:
         region (ee.Geometry): region to create tile grid over
         grid_size (float, optional): resolution in decimal degrees to create tiles. default = 0.1
-        intersect_geom (ee.Geometry | None, optional): geometry object to filter tiles that intesect with 
+        intersect_geom (ee.Geometry | None, optional): geometry object to filter tiles that intesect with
             geometry useful for filtering tiles that are created over oceans with no data. default = None
-        contain_geom (ee.Geometry | None, optional): geometry object to filter tiles that are contained within 
+        contain_geom (ee.Geometry | None, optional): geometry object to filter tiles that are contained within
             geometry useful for filtering tiles that are only in an area. default = None
 
     returns:
@@ -336,11 +374,11 @@ def country_bbox(country_name, max_error=1000):
 
     args:
         country_name (str): US-recognized country name
-        max_error (float,optional): The maximum amount of error tolerated when 
+        max_error (float,optional): The maximum amount of error tolerated when
             performing any necessary reprojection. default = 100
 
     returns:
-        ee.Geometry: geometry of country bounding box    
+        ee.Geometry: geometry of country bounding box
     """
 
     all_countries = ee.FeatureCollection("USDOS/LSIB_SIMPLE/2017")
