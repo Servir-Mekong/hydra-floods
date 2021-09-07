@@ -6,7 +6,7 @@ from hydrafloods import decorators
 def apply_fcnn(image, project_name, model_name, model_kwargs=None,output_probas=False,output_names=None):
     """
     args:
-        output_bands (Iterable, optional): list of names to 
+        output_bands (Iterable, optional): list of names to
     """
 
     if model_kwargs is None:
@@ -48,12 +48,12 @@ def apply_fcnn(image, project_name, model_name, model_kwargs=None,output_probas=
 
     return output
 
-    
+
 
 def minmax_scaling_dict(fc, feature_names):
     """Function to calculate the minimum and maximum values of feautures in a collection
     Expects that fc has all feature names
-    
+
     args:
         fc (ee.FeatureCollection): feature collection with the features used to calculate min/max value
         feature_names (list[str]):  names of feature columns to calculat min/max values from
@@ -89,7 +89,7 @@ def minmax_scaling_dict(fc, feature_names):
 def standard_scaling_dict(fc, feature_names):
     """Function to calculate the mean and standard deviation values of feautures in a collection
     Expects that fc has all feature names
-    
+
     args:
         fc (ee.FeatureCollection): feature collection with the features used to calculate mean/std dev value
         feature_names (list[str]): names of feature columns to calculat mean/std dev values from
@@ -279,7 +279,7 @@ def onehot_feature_encoding(fc, column_name, classes, class_names=None):
 
 @decorators.carry_metadata
 def onehot_image_encoding(img,classes,class_names=None,band=None):
-    
+
     if class_names is None:
         class_names = ee.List.sequence(0,classes.length()).map(lambda x: ee.String("b").cat(ee.String(x)))
 
@@ -287,9 +287,9 @@ def onehot_image_encoding(img,classes,class_names=None,band=None):
         img = img.select([0])
     else:
         img = img.select(band)
-        
+
     encoded_imgs = classes.map(lambda x: img.eq(ee.Number(x)))
-    
+
     return ee.ImageCollection.fromImages(ee.List(encoded_imgs)).toBands().rename(class_names)
 
 
@@ -408,7 +408,7 @@ def unsupervised_rf(n_trees,samples,features=None,rank_feature=None,ranking="min
         features (list | ee.List): property names from samples to use for the semi supervised classification, If none then all properties are used. default = None
         rank_feature (str, optional): property name used to rank which unserpervised class is water. If None then first band name in `bands` is used. default = None
         ranking (str, optional): method to rank the classes by `rank_band`. Options are 'min' or 'max'. If 'min', then the lowest class mean is considered water. default = 'min'
-    
+
     returns:
         ee.Classifier.RandomForest: random forest classifier to estimate probability that a pixel is water
     """
@@ -468,15 +468,18 @@ def unsupervised_rf(n_trees,samples,features=None,rank_feature=None,ranking="min
 
 
 
-def calc_image_pca(image, region=None, scale=90, max_pixels=1e9):
+def calc_image_pca(image, region=None, scale=90, max_pixels=1e9, method="svd"):
     """Principal component analysis decomposition of image bands
 
     args:
         image (ee.Image): image to apply pca to
-        region (ee.Geometry | None, optional): region to sample values for covariance matrix, 
+        region (ee.Geometry | None, optional): region to sample values for covariance matrix,
             if set to `None` will use img.geometry(). default = None
         scale (int, optional): scale at which to perform reduction operations, setting higher will prevent OOM errors. default = 90
         max_pixels (int, optional): maximum number of pixels to use in reduction operations. default = 1e9
+        method (str, optional): the decomposition method for obtaining the eigen vectors and values
+            options are 'svd' or 'eigendecomp'. note: svd is usually faster as is does not need to
+            compute the covariance matrix of input features. default = 'svd'
 
     returns:
         ee.Image: principal components scaled by eigen values
@@ -499,25 +502,32 @@ def calc_image_pca(image, region=None, scale=90, max_pixels=1e9):
     # Collapse the bands of the image into a 1D array per pixel.
     arrays = centered.toArray()
 
-    # Compute the covariance of the bands within the region.
-    covar = arrays.reduceRegion(
-        reducer=ee.Reducer.centeredCovariance(),
-        geometry=region,
-        scale=scale,
-        maxPixels=max_pixels,
-    )
+    if method =="svd":
+        svd = arrays.toArray(1).matrixSingularValueDecomposition()
 
-    # Get the 'array' covariance result and cast to an array.
-    # This represents the band-to-band covariance within the region.
-    covarArray = ee.Array(covar.get("array"))
+        eigen_vecs = svd.select("V")#.arrayTranspose()
+        eigen_vals = svd.select("S").matrixDiagonal()
 
-    # Perform an eigen analysis and slice apart the values and vectors.
-    eigens = covarArray.eigen()
+    elif method =="eigendecomp":
+        # Compute the covariance of the bands within the region.
+        covar = arrays.reduceRegion(
+            reducer=ee.Reducer.centeredCovariance(),
+            geometry=region,
+            scale=scale,
+            maxPixels=max_pixels,
+        )
 
-    # This is a P-length vector of Eigenvalues.
-    eigenValues = eigens.slice(1, 0, 1)
-    # This is a PxP matrix with eigenvectors in rows.
-    eigenVectors = eigens.slice(1, 1)
+        # Get the 'array' covariance result and cast to an array.
+        # This represents the band-to-band covariance within the region.
+        covarArray = ee.Array(covar.get("array"))
+
+        # Perform an eigen analysis and slice apart the values and vectors.
+        eigens = covarArray.eigen()
+
+        # This is a P-length vector of Eigenvalues.
+        eigenValues = eigens.slice(1, 0, 1)
+        # This is a PxP matrix with eigenvectors in rows.
+        eigenVectors = eigens.slice(1, 1)
 
     # Convert the array image to 2D arrays for matrix computations.
     arrayImage = arrays.toArray(1)
@@ -542,14 +552,17 @@ def calc_image_pca(image, region=None, scale=90, max_pixels=1e9):
     )
 
 
-def calc_feature_pca(fc,names,is_centered=False):
+def calc_feature_pca(fc,names,is_centered=False,method="svd"):
     """Principal component decomposition of features
 
     args:
         fc (ee.FeatureCollection): feature collection to caluculate PCA from
         names (list[str]): property names to uses as features in PCA
-        is_centered (bool, optional): boolean to identify if features need to be centered before PCA. 
+        is_centered (bool, optional): boolean to identify if features need to be centered before PCA.
             False means apply centering. default = False
+        method (str, optional): the decomposition method for obtaining the eigen vectors and values
+            options are 'svd' or 'eigendecomp'. note: svd is usually faster as is does not need to
+            compute the covariance matrix of input features. default = 'svd'
 
     returns:
         ee.Array: eigen vectors of PCA
@@ -562,17 +575,27 @@ def calc_feature_pca(fc,names,is_centered=False):
         centered = array_.subtract(center)
     else:
         centered = array_
-    
-    # Compute the covariance of the bands within the region.
-    covar = centered.transpose().matrixMultiply(centered)
-    # Perform an eigen analysis and slice apart the values and vectors.
-    eigens = covar.eigen()
-    
+
+    if method == "svd":
+        svd = centered.matrixSingularValueDecomposition()
+
+        eigen_vecs = ee.Array(svd.get("V")).transpose()
+        eigen_vals = ee.Array(svd.get("S")).matrixDiagonal()
+
+    elif method == "eigendecomp":
+        # Compute the covariance of the bands within the region.
+        covar = centered.transpose().matrixMultiply(centered)
+        # Perform an eigen analysis and slice apart the values and vectors.
+        eigens = covar.eigen()
+
+        eigen_vecs = eigens.slice(1, 1)
+        eigen_vals = eigens.slice(1, 0, 1)
+
+    else:
+        raise ValueError("could not understand provided method keyword. Options are 'svd' or 'eigendecomp'")
+
     out_band_names = [f"pc_{i}" for i in range(len(names))]
-    
-    eigen_vecs = eigens.slice(1, 1)
-    eigen_vals = eigens.slice(1, 0, 1)
-    
+
     return eigen_vecs, eigen_vals, center.slice(0,0,1).project([1])
 
 
@@ -594,11 +617,11 @@ def apply_feature_pca(fc, eigen_vecs, names, center=None):
         centered = array_.subtract(ee.Array.cat([center],1).transpose().repeat(0,array_.length().get([0])))
     else:
         centered = array_
-    
+
     pca_arr = eigen_vecs.matrixMultiply(centered.transpose()).transpose()
-    
+
     out_band_names = [f"pc_{i}" for i in range(len(names))]
-    
+
     fc_size = fc.size()
     fc_list = fc.toList(fc_size)
     fc_pca = ee.FeatureCollection(
@@ -609,9 +632,9 @@ def apply_feature_pca(fc, eigen_vecs, names, center=None):
             )
         )
     )
-    
+
     return fc_pca
-    
+
 @decorators.carry_metadata
 def apply_image_pca(img, eigen_vecs, names, center=None):
     """Applies Principal component decomposition on image
@@ -632,18 +655,18 @@ def apply_image_pca(img, eigen_vecs, names, center=None):
         ).toArray().toArray(1)
     else:
         arrayImage = img.select(names).toArray().toArray(1)
-    
+
     principalComponents = ee.Image(eigen_vecs).matrixMultiply(arrayImage)
-    
+
     out_band_names = [f"pc_{i}" for i in range(len(names))]
-    
+
     pcaImage = (principalComponents
         # Throw out an an unneeded dimension, [[]] -> [].
         .arrayProject([0])
         # Make the one band array image a multi-band image, [] -> image.
         .arrayFlatten([out_band_names])
     )
-    
+
     return pcaImage
 
 
@@ -664,14 +687,14 @@ def hist_matching(samples, predictor, target, n_estimators=50):
     def get_cdf(fc,column):
         def array_to_features(l):
             return ee.Feature(None, {
-                column: ee.List(l).get(0), 
+                column: ee.List(l).get(0),
                 "probability": ee.List(l).get(1)
             })
 
         # Histogram equalization start:
         histo = ee.Dictionary(fc.reduceColumns(
             ee.Reducer.histogram(
-                maxBuckets= 2**12, 
+                maxBuckets= 2**12,
             ),
             [column]
         ).get("histogram"))
@@ -683,7 +706,7 @@ def hist_matching(samples, predictor, target, n_estimators=50):
         normalizedCdf = cdfArray.divide(total)
 
         array = ee.Array.cat([valsList, normalizedCdf], 1)
-        
+
         return ee.FeatureCollection(array.toList().map(array_to_features))
 
 
@@ -694,18 +717,18 @@ def hist_matching(samples, predictor, target, n_estimators=50):
         ee.Classifier.smileRandomForest(n_estimators)
         .setOutputMode('REGRESSION')
         .train(
-            features= target_cdf, 
-            classProperty= target, 
+            features= target_cdf,
+            classProperty= target,
             inputProperties= ['probability']
         )
     )
-  
+
     val_to_proba = (
         ee.Classifier.smileRandomForest(n_estimators)
         .setOutputMode('REGRESSION')
         .train(
-            features= pred_cdf, 
-            classProperty= 'probability', 
+            features= pred_cdf,
+            classProperty= 'probability',
             inputProperties= [predictor]
         )
     )
@@ -718,6 +741,3 @@ def apply_image_matching(image, matching_classifiers,output_name="dn"):
         .classify(matching_classifiers[0],'probability')
         .classify(matching_classifiers[1],output_name)
     )
-
-
-
