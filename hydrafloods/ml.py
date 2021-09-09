@@ -6,7 +6,13 @@ from hydrafloods import decorators
 def apply_fcnn(image, project_name, model_name, model_kwargs=None,output_probas=False,output_names=None):
     """
     args:
-        output_bands (Iterable, optional): list of names to
+        image (ee.Image): input image for FCNN model, must have all of the features as bands
+        project_name (str): cloud project name to reference the model
+        model_name (str): ai platform model name
+        model_kwargs (dict, optional): dictionary of keyword arguments to pass to ee.Model. default = None
+        output_probas (bool, optional): flag to set the output image as class probabilities. If False
+            then the ouput will be a one band output of the classification. default = False
+        output_bands (Iterable, optional): list of band names to set for the output image
     """
 
     if model_kwargs is None:
@@ -262,6 +268,21 @@ def standard_image_scaling(image, scaling_dict, feature_names):
     )
 
 def onehot_feature_encoding(fc, column_name, classes, class_names=None):
+    """Function to calculate one-hot encoded columns from categorial columns
+    where each new column equals 1 where the class value is the column index
+
+    args:
+        fc (ee.FeatureCollection): Feature collection with categorial data to encode
+        column_name (str | ee.String): name of column that is categorial to encode
+        classes (list[int] | ee.List): list of class values to encode
+
+    kwargs:
+        class_names (ee.List, optional): list of names to rename output bands.
+            if None then bands will be named b0, b1, ...,bn. default = None
+
+    returns:
+        ee.Image: Feature collection with one-hot encoded columns with n new column as n classes
+    """
 
     def feature_encoding(feature):
         c = ee.Number(feature.get(column_name))
@@ -279,6 +300,24 @@ def onehot_feature_encoding(fc, column_name, classes, class_names=None):
 
 @decorators.carry_metadata
 def onehot_image_encoding(img,classes,class_names=None,band=None):
+    """Function to convert an categorial image image to one-hot encoded image
+    where each new band equals 1 where the class value is the band index
+
+    args:
+        img (ee.Image): categorical image to encode
+        classes (list[int] | ee.List): list of class values to encode
+
+    kwargs:
+        class_names (ee.List, optional): list of names to rename output bands.
+            if None then bands will be named b0, b1, ...,bn. default = None
+        band (str | ee.String, optional): name of band from input image to endcode.
+            if None then the first band is used. default = None
+
+    returns:
+        ee.Image: one-hot encoded image with n bands as n classes
+    """
+
+    classes = ee.List(classes)
 
     if class_names is None:
         class_names = ee.List.sequence(0,classes.length()).map(lambda x: ee.String("b").cat(ee.String(x)))
