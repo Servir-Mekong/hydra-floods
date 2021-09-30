@@ -32,9 +32,9 @@ class TestThresholds:
             .reduceRegion(ee.Reducer.mean(), GEOM, REDUCTION_SCALE)
             .getInfo()
         )
-        threshold = {k: round(v, 6) for k, v in threshold.items()}
+        threshold = {k: round(v, 3) for k, v in threshold.items()}
 
-        thresh_expected = {"constant": -14.205071}
+        thresh_expected = {"constant": -14.205}
 
         kwargs["return_threshold"] = False
         water = (
@@ -54,18 +54,18 @@ class TestThresholds:
             .reduceRegion(ee.Reducer.mean(), GEOM, REDUCTION_SCALE)
             .getInfo()
         )
-        threshold1 = {k: round(v, 6) for k, v in threshold1.items()}
+        threshold1 = {k: round(v, 3) for k, v in threshold1.items()}
 
-        thresh1_expected = {"constant": -13.950876}
+        thresh1_expected = {"constant": -13.951}
 
         threshold2 = (
             hf.bmax_otsu(S1, **{**kwargs,**{"iters":3}})
             .reduceRegion(ee.Reducer.mean(), GEOM, REDUCTION_SCALE)
             .getInfo()
         )
-        threshold2 = {k: round(v, 6) for k, v in threshold1.items()}
+        threshold2 = {k: round(v, 3) for k, v in threshold1.items()}
 
-        thresh2_expected = {"constant": -13.950876}
+        thresh2_expected = {"constant": -13.951}
 
         kwargs["return_threshold"] = False
         water = (
@@ -105,9 +105,9 @@ class TestThresholds:
         water_proba = multidim.reduceRegion(
             ee.Reducer.mean(), GEOM, REDUCTION_SCALE
         ).getInfo()
-        water_proba = {k: round(v, 6) for k, v in water_proba.items()}
+        water_proba = {k: round(v, 3) for k, v in water_proba.items()}
 
-        proba_expected = {"water_proba": 0.006551}
+        proba_expected = {"water_proba": 0.006}
 
         multidim = hf.multidim_semisupervised(
             index_img,
