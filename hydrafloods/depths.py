@@ -126,6 +126,7 @@ def fwdet(
 # Mean Boundary Cell Elevation (MBCE), adapted from NBCE above
 # MBCE function
 def _mbce(i, img, mask=None, resolution=30):
+    """Mean Boundary Cell Elevation (MBCE), unpublished A. Haag (2021)"""
     # obtain mean boundary cell elevation
     new_img = ee.Image(img).focal_mean(resolution, "square", "meters")
     # make sure the original / previous step values are kept intact (comment out for more smoothing)
