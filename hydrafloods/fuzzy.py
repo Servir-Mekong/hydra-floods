@@ -7,15 +7,15 @@ from hydrafloods import decorators
 
 @decorators.carry_metadata
 def fuzzy_gaussian(img, midpoint, spread):
-    """Fuzzy membership function through a Gaussian or normal distribution based around a 
+    """Fuzzy membership function through a Gaussian or normal distribution based around a
     user-specified midpoint (which is assigned a membership of 1) with a defined spread.
     https://desktop.arcgis.com/en/arcmap/10.3/analyze/arcpy-spatial-analyst/fuzzygaussian-class.htm
 
     args:
         img (ee.Image): The input image whose values will be scaled from 0 to 1
         midpoint (float): user-defined value with a fuzzy membership of 1
-        spread (float): the spread of the Gaussian function. The spread generally 
-            ranges from 0.01 to 1, with the larger the value results in a steeper 
+        spread (float): the spread of the Gaussian function. The spread generally
+            ranges from 0.01 to 1, with the larger the value results in a steeper
             distribution around the midpoint
 
     returns:
@@ -43,8 +43,8 @@ def fuzzy_near(img, midpoint, spread):
     args:
         img (ee.Image): The input image whose values will be scaled from 0 to 1
         midpoint (float): user-defined value with a fuzzy membership of 1
-        spread (float): the spread of the Near function. The spread generally 
-            ranges from 0.001 to 1, with the larger the value results in a steeper 
+        spread (float): the spread of the Near function. The spread generally
+            ranges from 0.001 to 1, with the larger the value results in a steeper
             distribution from the midpoint
 
     returns:
@@ -65,16 +65,16 @@ def fuzzy_near(img, midpoint, spread):
 
 @decorators.carry_metadata
 def fuzzy_large(img, midpoint, spread):
-    """Fuzzy membership function where the larger input values have membership closer to 1. 
-    The function is defined by a user-specified midpoint (which is assigned a membership of 0.5) 
+    """Fuzzy membership function where the larger input values have membership closer to 1.
+    The function is defined by a user-specified midpoint (which is assigned a membership of 0.5)
     with a defined spread.
     https://desktop.arcgis.com/en/arcmap/10.3/analyze/arcpy-spatial-analyst/fuzzylarge-class.htm
 
     args:
         img (ee.Image): The input image whose values will be scaled from 0 to 1
         midpoint (float): user-defined value with a fuzzy membership of 0.5
-        spread (float): the spread of the Large function. The spread generally 
-            ranges from 1 to 10, with the larger the value results in a steeper 
+        spread (float): the spread of the Large function. The spread generally
+            ranges from 1 to 10, with the larger the value results in a steeper
             distribution from the midpoint
 
     returns:
@@ -82,8 +82,8 @@ def fuzzy_large(img, midpoint, spread):
     """
     bandNames = img.bandNames()
 
-    spread = ee.Image.constant(spread)
-    midpoint = ee.Image.constant(midpoint)
+    spread = ee.Image(spread)
+    midpoint = ee.Image(midpoint)
     one = ee.Image.constant(1)
 
     large = one.expression(
@@ -96,7 +96,7 @@ def fuzzy_large(img, midpoint, spread):
 
 @decorators.carry_metadata
 def fuzzy_mslarge(img, mean_scaling, std_scaling, region=None, scale=90):
-    """Fuzzy membership through a function based on the mean and standard deviation, 
+    """Fuzzy membership through a function based on the mean and standard deviation,
     with the larger values having a membership closer to 1.
     https://desktop.arcgis.com/en/arcmap/10.3/analyze/arcpy-spatial-analyst/fuzzymslarge-class.htm
 
@@ -104,7 +104,7 @@ def fuzzy_mslarge(img, mean_scaling, std_scaling, region=None, scale=90):
         img (ee.Image): The input image whose values will be scaled from 0 to 1
         mean_scaling (float): multiplier for the mean of the input values in the MSLarge function equation.
         std_scaling (float): multiplier for the standard deviation of the input values in the MSLarge function equation.
-        region (ee.Geometry | None, optional): region to calculate mean/stdDev image statistics, 
+        region (ee.Geometry | None, optional): region to calculate mean/stdDev image statistics,
             if set to None will use img.geometry(). default = None
         scale (int, optional): scale at which to perform reduction operations, setting higher will prevent OOM errors. default = 90
 
@@ -145,16 +145,16 @@ def fuzzy_mslarge(img, mean_scaling, std_scaling, region=None, scale=90):
 
 @decorators.carry_metadata
 def fuzzy_small(img, midpoint, spread):
-    """Fuzzy membership function with the smaller input values having membership closer to 1. 
-    The function is defined by a user-specified midpoint (which is assigned a membership of 0.5) 
+    """Fuzzy membership function with the smaller input values having membership closer to 1.
+    The function is defined by a user-specified midpoint (which is assigned a membership of 0.5)
     with a defined spread.
     https://desktop.arcgis.com/en/arcmap/10.3/analyze/arcpy-spatial-analyst/fuzzysmall-class.htm
 
     args:
         img (ee.Image): The input image whose values will be scaled from 0 to 1
         midpoint (float): user-defined value with a fuzzy membership of 0.5
-        spread (float): the spread of the Small function. The spread generally 
-            ranges from 1 to 10, with the larger the value results in a steeper 
+        spread (float): the spread of the Small function. The spread generally
+            ranges from 1 to 10, with the larger the value results in a steeper
             distribution from the midpoint
 
     returns:
@@ -162,8 +162,8 @@ def fuzzy_small(img, midpoint, spread):
     """
     bandNames = img.bandNames()
 
-    spread = ee.Image.constant(spread)
-    midpoint = ee.Image.constant(midpoint)
+    spread = ee.Image(spread)
+    midpoint = ee.Image(midpoint)
     one = ee.Image.constant(1)
 
     small = one.expression(
@@ -175,7 +175,7 @@ def fuzzy_small(img, midpoint, spread):
 
 @decorators.carry_metadata
 def fuzzy_mssmall(img, mean_scale, std_scale, region=None, scale=90):
-    """Fuzzy membership through a function based on the mean and standard deviation, 
+    """Fuzzy membership through a function based on the mean and standard deviation,
     with the smaller values having a membership closer to 1.
     https://desktop.arcgis.com/en/arcmap/10.3/analyze/arcpy-spatial-analyst/fuzzymssmall-class.htm
 
@@ -183,7 +183,7 @@ def fuzzy_mssmall(img, mean_scale, std_scale, region=None, scale=90):
         img (ee.Image): The input image whose values will be scaled from 0 to 1
         mean_scaling (float): multiplier for the mean of the input values in the MSSmall function equation.
         std_scaling (float): multiplier for the standard deviation of the input values in the MSSmall function equation.
-        region (ee.Geometry | None, optional): region to calculate mean/stdDev image statistics, 
+        region (ee.Geometry | None, optional): region to calculate mean/stdDev image statistics,
             if set to None will use img.geometry(). default = None
         scale (int, optional): scale at which to perform reduction operations, setting higher will prevent OOM errors. default = 90
 
@@ -223,43 +223,87 @@ def fuzzy_mssmall(img, mean_scale, std_scale, region=None, scale=90):
 
 
 @decorators.carry_metadata
-def fuzzy_linear(img, minimum, maximum):
-    """Fuzzy membership function through a linear transformation between the user-specified minimum 
+def fuzzy_linear(img, min_val, max_val):
+    """Fuzzy membership function through a linear transformation between the user-specified minimum
     value, a membership of 0, to the user-defined maximum value, which is assigned a membership of 1.
-    If the minimum value is less than the maximum, the linear function will have a positive slope. 
+    If the minimum value is less than the maximum, the linear function will have a positive slope.
     If the minimum value is greater than the maximum, the linear function will have a negative slope.
     https://desktop.arcgis.com/en/arcmap/10.3/analyze/arcpy-spatial-analyst/fuzzylinear-class.htm
-        
+
     args:
         img (ee.Image): The input image whose values will be scaled linearly from 0 to 1
         minimum (float): The value that will have a membership of 0
         maximum (float): The value that will have a membership of 1
-    
+
     returns:
         ee.Image: output floating-point image with values ranging from 0 to 1
     """
     bandNames = img.bandNames()
 
-    invert = minimum > maximum
+    if ~isinstance(min_val,ee.Number):
+        min_val = ee.Number(min_val)
 
-    if invert:
-        min_val = ee.Number(maximum)
-        max_val = ee.Number(minimum)
-    else:
-        min_val = ee.Number(minimum)
-        max_val = ee.Number(maximum)
+    if ~isinstance(max_val,ee.Number):
+        max_val = ee.Number(max_val)
 
-    linear = img.unitScale(min_val, max_val).clamp(min_val, max_val)
+    invert = min_val.gt(max_val)
 
-    if invert:
-        linear = ee.Image.constant(1).subtract(linear)
+    minimum = ee.Algorithms.If(invert,max_val,min_val)
+    maximum = ee.Algorithms.If(invert,min_val,max_val)
+
+    linear = img.unitScale(minimum, maximum)
+
+    linear = ee.Algorithms.If(invert,ee.Image.constant(1).subtract(linear),linear)
+    linear = ee.Image(linear).clamp(0, 1)
 
     return linear.rename(bandNames)
 
+def fuzzy_zmf(img,min_val,max_val):
+
+    """
+    Z-function fuzzy membership generator.
+    """
+    bandNames = img.bandNames()
+
+    if ~isinstance(min_val,ee.Number):
+        min_val = ee.Number(min_val)
+
+    if ~isinstance(max_val,ee.Number):
+        max_val = ee.Number(max_val)
+
+    invert = min_val.gt(max_val)
+
+
+    a = ee.Image.constant(ee.Algorithms.If(invert,max_val,min_val))
+    b = ee.Image.constant(ee.Algorithms.If(invert,min_val,max_val))
+
+    zmf = ee.Image(1)
+
+    m1 = a.lte(img).And(img.lt(a.add(b).divide(2)))
+    y1 = img.expression("1 - 2 * ((img - a) / (b - a)) ** 2",{
+        "img":img,
+        "a":a,
+        "b":b
+    })
+
+    m2 = a.add(b).divide(2).lte(img).And(img.lte(b))
+    y2 = img.expression("2 * ((img - b) / (b - a)) ** 2",{
+        "img":img,
+        "a":a,
+        "b":b
+    })
+
+    m3 = img.gte(b)
+
+    zmf = zmf.where(m1, y1).where(m2,y2).where(m3,ee.Image(0))
+
+    zmf = ee.Image(ee.Algorithms.If(invert,ee.Image(1).subtract(zmf),zmf))
+
+    return zmf.rename(bandNames)
 
 def fuzzy_or(img_list):
     """Fuzzy Or overlay returning the maximum value of the input images.
-    This technique is useful when you want to identify the highest membership values 
+    This technique is useful when you want to identify the highest membership values
     for any of the input criteria
 
     args:
@@ -313,7 +357,7 @@ def fuzzy_product(img_list):
 
 def fuzzy_sum(img_list):
     """Fuzzy Product overlay add the fuzzy values for all the input images.
-    The resulting sum is an increasing linear combination function that is based on the number of 
+    The resulting sum is an increasing linear combination function that is based on the number of
     criteria entered into the analysis
 
     args:
@@ -332,8 +376,8 @@ def fuzzy_sum(img_list):
 
 
 def fuzzy_gamma(img_list, gamma=0.5):
-    """Fuzzy Gamma is an algebraic product of fuzzy Product and fuzzy Sum, 
-    which are both raised to the power of gamma. If the specified gamma is 1, 
+    """Fuzzy Gamma is an algebraic product of fuzzy Product and fuzzy Sum,
+    which are both raised to the power of gamma. If the specified gamma is 1,
     the output is the same as fuzzy Sum; if gamma is 0, the output is the same as fuzzy Product
 
     args:
