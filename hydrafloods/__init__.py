@@ -5,7 +5,9 @@ from hydrafloods.filtering import *
 from hydrafloods.corrections import *
 from hydrafloods.indices import *
 from hydrafloods.fuzzy import *
+from hydrafloods.depths import *
 from hydrafloods import fetch, utils
+
 # from hydrafloods import *
 
-__version__ = "0.4.2"
+__version__ = "0.4.3"
