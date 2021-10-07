@@ -41,41 +41,41 @@ def lee_sigma(img, window=9, sigma=0.9, looks=4, tk=7, keep_bands=["angle"]):
         {
             1: ee.Dictionary(
                 {
-                    0.5:  ee.Dictionary({"A1": 0.436, "A2": 1.92, "η": 0.4057}),
-                    0.6:  ee.Dictionary({"A1": 0.343, "A2": 2.21, "η": 0.4954}),
-                    0.7:  ee.Dictionary({"A1": 0.254, "A2": 2.582, "η": 0.5911}),
-                    0.8:  ee.Dictionary({"A1": 0.168, "A2": 3.094, "η": 0.6966}),
-                    0.9:  ee.Dictionary({"A1": 0.084, "A2": 3.941, "η": 0.8191}),
+                    0.5: ee.Dictionary({"A1": 0.436, "A2": 1.92, "η": 0.4057}),
+                    0.6: ee.Dictionary({"A1": 0.343, "A2": 2.21, "η": 0.4954}),
+                    0.7: ee.Dictionary({"A1": 0.254, "A2": 2.582, "η": 0.5911}),
+                    0.8: ee.Dictionary({"A1": 0.168, "A2": 3.094, "η": 0.6966}),
+                    0.9: ee.Dictionary({"A1": 0.084, "A2": 3.941, "η": 0.8191}),
                     0.95: ee.Dictionary({"A1": 0.043, "A2": 4.840, "η": 0.8599}),
                 }
             ),
             2: ee.Dictionary(
                 {
-                    0.5:  ee.Dictionary({"A1": 0.582, "A2": 1.584, "η": 0.2763}),
-                    0.6:  ee.Dictionary({"A1": 0.501, "A2": 1.755, "η": 0.3388}),
-                    0.7:  ee.Dictionary({"A1": 0.418, "A2": 1.972, "η": 0.4062}),
-                    0.8:  ee.Dictionary({"A1": 0.327, "A2": 2.260, "η": 0.4819}),
-                    0.9:  ee.Dictionary({"A1": 0.221, "A2": 2.744, "η": 0.5699}),
+                    0.5: ee.Dictionary({"A1": 0.582, "A2": 1.584, "η": 0.2763}),
+                    0.6: ee.Dictionary({"A1": 0.501, "A2": 1.755, "η": 0.3388}),
+                    0.7: ee.Dictionary({"A1": 0.418, "A2": 1.972, "η": 0.4062}),
+                    0.8: ee.Dictionary({"A1": 0.327, "A2": 2.260, "η": 0.4819}),
+                    0.9: ee.Dictionary({"A1": 0.221, "A2": 2.744, "η": 0.5699}),
                     0.95: ee.Dictionary({"A1": 0.152, "A2": 3.206, "η": 0.6254}),
                 }
             ),
             3: ee.Dictionary(
                 {
-                    0.5:  ee.Dictionary({"A1": 0.652, "A2": 1.458, "η": 0.2222}),
-                    0.6:  ee.Dictionary({"A1": 0.580, "A2": 1.586, "η": 0.2736}),
-                    0.7:  ee.Dictionary({"A1": 0.505, "A2": 1.751, "η": 0.3280}),
-                    0.8:  ee.Dictionary({"A1": 0.419, "A2": 1.865, "η": 0.3892}),
-                    0.9:  ee.Dictionary({"A1": 0.313, "A2": 2.320, "η": 0.4624}),
+                    0.5: ee.Dictionary({"A1": 0.652, "A2": 1.458, "η": 0.2222}),
+                    0.6: ee.Dictionary({"A1": 0.580, "A2": 1.586, "η": 0.2736}),
+                    0.7: ee.Dictionary({"A1": 0.505, "A2": 1.751, "η": 0.3280}),
+                    0.8: ee.Dictionary({"A1": 0.419, "A2": 1.865, "η": 0.3892}),
+                    0.9: ee.Dictionary({"A1": 0.313, "A2": 2.320, "η": 0.4624}),
                     0.95: ee.Dictionary({"A1": 0.238, "A2": 2.656, "η": 0.5084}),
                 }
             ),
             4: ee.Dictionary(
                 {
-                    0.5:  ee.Dictionary({"A1": 0.694, "A2": 1.385, "η": 0.1921}),
-                    0.6:  ee.Dictionary({"A1": 0.630, "A2": 1.495, "η": 0.2348}),
-                    0.7:  ee.Dictionary({"A1": 0.560, "A2": 1.627, "η": 0.2825}),
-                    0.8:  ee.Dictionary({"A1": 0.480, "A2": 1.804, "η": 0.3354}),
-                    0.9:  ee.Dictionary({"A1": 0.378, "A2": 2.094, "η": 0.3991}),
+                    0.5: ee.Dictionary({"A1": 0.694, "A2": 1.385, "η": 0.1921}),
+                    0.6: ee.Dictionary({"A1": 0.630, "A2": 1.495, "η": 0.2348}),
+                    0.7: ee.Dictionary({"A1": 0.560, "A2": 1.627, "η": 0.2825}),
+                    0.8: ee.Dictionary({"A1": 0.480, "A2": 1.804, "η": 0.3354}),
+                    0.9: ee.Dictionary({"A1": 0.378, "A2": 2.094, "η": 0.3991}),
                     0.95: ee.Dictionary({"A1": 0.302, "A2": 2.360, "η": 0.4391}),
                 }
             ),
@@ -343,7 +343,7 @@ def refined_lee(image, keep_bands=["angle"]):
 
 
 @decorators.carry_metadata
-def gamma_map(img, window=7, enl=4.9,keep_bands=["angle"]):
+def gamma_map(img, window=7, enl=4.9, keep_bands=["angle"]):
     """Gamma Map speckle filtering algorithm.
     Algorithm adapted from https://groups.google.com/g/google-earth-engine-developers/c/a9W0Nlrhoq0/m/tnGMC45jAgAJ.
 
@@ -406,7 +406,9 @@ def gamma_map(img, window=7, enl=4.9,keep_bands=["angle"]):
         proc_bands, ee.List.repeat("float", proc_bands.length())
     )
     img1 = (
-        geeutils.power_to_db(mean.updateMask(ci.lte(cu))).rename(proc_bands).cast(caster)
+        geeutils.power_to_db(mean.updateMask(ci.lte(cu)))
+        .rename(proc_bands)
+        .cast(caster)
     )
     img2 = (
         geeutils.power_to_db(f.updateMask(ci.gt(cu)).updateMask(ci.lt(cmax)))
@@ -431,7 +433,7 @@ def gamma_map(img, window=7, enl=4.9,keep_bands=["angle"]):
 
 
 @decorators.carry_metadata
-def p_median(img, window=5,keep_bands=["angle"]):
+def p_median(img, window=5, keep_bands=["angle"]):
     """P-Median filter for smoothing imagery.
     Calculates the average from the median along cross and diagnal pixels of a window
 
@@ -556,3 +558,60 @@ def perona_malik(img, n_iters=10, K=3, method=1):
     img = geeutils.power_to_db(power)
 
     return img
+
+
+@decorators.carry_metadata
+def open_binary(img, window=3, neighborhood=None):
+    """Opening morphological filter. Opening is the dilation of the erosion of
+    values greater than 1.
+
+    args:
+        img (ee.Image): binary image to apply opening filter on
+        window (int | ee.Number, optional): distance in pixels to consider for opening process
+        neighborhood (int | ee.Number, optional): size of the neighborhood to perform fast
+            distance trasnform. Smaller values speed up operations however must be greater
+            than window. If no nerighborhood is provided, it will be double the window size.
+            default = None
+
+    returns:
+        ee.Image: the opened binary image
+
+    """
+    if not isinstance(window, ee.Number):
+        window = ee.Number(window)
+
+    if neighborhood is None:
+        neighborhood = window.multiply(2)
+
+    erosion = img.Not().fastDistanceTransform(neighborhood).sqrt().gt(window)
+    opened = erosion.fastDistanceTransform(neighborhood).sqrt().lt(window)
+    return opened
+
+
+@decorators.carry_metadata
+def close_binary(img, window=3, neighborhood=None):
+    """Closing morphological filter. Closing is the erosion of the dialiation of
+    values greater than 1.
+
+    args:
+        img (ee.Image): binary image to apply closing filter on
+        window (int | ee.Number, optional): distance in pixels to consider for closing process
+        neighborhood (int | ee.Number, optional): size of the neighborhood to perform fast
+            distance trasnform. Smaller values speed up operations however must be greater
+            than window. If no neighborhood is provided, it will be double the window size.
+            default = None
+
+    returns:
+        ee.Image: the closed binary image
+
+    """
+    if not isinstance(window, ee.Number):
+        window = ee.Number(window)
+
+    if neighborhood is None:
+        neighborhood = window.multiply(2)
+
+    dialation = img.fastDistanceTransform(neighborhood).sqrt().lt(window)
+    closed = dialation.Not().fastDistanceTransform(neighborhood).sqrt().gt(window)
+
+    return closed
