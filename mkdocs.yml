@@ -7,9 +7,10 @@ nav:
     - Algorithms: algorithms.md
     - Workflow Example: workflow-example.md
     - Command Line Interface: cli.md
-    - API Reference: 
+    - API Reference:
         - corrections module: corrections.md
         - datasets module: datasets.md
+        - depths module: depths.md
         - decorators module: decorators.md
         - fetch module: fetch.md
         - filtering module: filtering.md
@@ -21,7 +22,7 @@ nav:
         - timeseries module: timeseries.md
         - utils module: utils.md
         - workflows.dswfp module: dswfp.md
-theme: 
+theme:
     name: material
     logo: 'img/hydrafloods_logo.png'
     favicon: 'img/favicon.ico'
