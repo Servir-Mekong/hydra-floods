@@ -6,17 +6,38 @@ def fwdet(
     water_img,
     dem,
     iter=10,
-    band="water",
+    band=None,
     pixel_edge=0,
     boundary_definition="mean",
     smooth_depths=True,
 ):
+    """Implementation of the Flood Water Depth Estimation Tool
+    Used to calculate water depth given a water map and elevation data
+    Original paper: https://doi.org/10.5194/nhess-19-2053-2019
+    Earth Engine paper: https://doi.org/10.1109/LGRS.2020.3031190
+
+    args:
+        water_img (ee.Image): earth engine image object representing the water extent.
+        dem (ee.Image): earth engine image object representing elevation
+        iter (int|ee.Number, optional): keyword to set number of iterations to fill up every pixel.
+            The algorithm will calculate minimum iterations needed and use the max between the two.
+            default = 10
+        band (str | None,optional): band name to use for algorithm, if set to `None` will use first band in image. default = None
+        pixel_edge (int): value that represents the boundary/edge of water. Note: must be client-side int object. default = 0
+        boundary_definition (str): method for defining the elevation at water edges. Options are 'mean' or 'nearest'
+            Note: 'nearest' is the FwDET original method, 'mean' is an updated method. default=mean
+        smooth_depths (bool): flag to control if the resulting water depths should be smoothed or not, uses a 3x3 pixel mean. default=True
+    """
     proj = dem.projection()
 
     res = water_img.projection().nominalScale().multiply(1.5)
 
-    # do we need proejction here
-    water_img = water_img.select(band)  # .reproject(proj);
+    # select band to use for algorithm
+    if band is None:
+        water_img = water_img.select([0])
+
+    else:
+        water_img = water_img.select(ee.String(band))
 
     # detect water edge
     watermap_edge = (
@@ -34,18 +55,18 @@ def fwdet(
             .gte(0)
             .unmask(0, False)
             .gt(0)
-            .focal_min(res.multiply(ee.Number(pix_edge).add(1)), "square", "meters")
+            .focal_min(res.multiply(ee.Number(pixel_edge).add(1)), "square", "meters")
             .eq(0)
         )
         outer_edge = outer_edge.updateMask(outer_edge)
-        outer_edge = outer_edge.reproject(water_img.projection())
+        # outer_edge = outer_edge.reproject(water_img.projection())
         # update watermap edge
         watermap_edge = watermap_edge.updateMask(outer_edge.unmask(0).eq(0))
         # watermap_edge = watermap_edge.reproject(water_img.projection());
     else:
         outer_edge = water_img.mask().unmask(0).lt(0)
 
-    DEM = dem
+    DEM = dem  # being super lazy here by setting a variable vs renaming things...
 
     # get elevation at edge
     # DEM_watered_edge = watermap_edge.multiply(DEM); # simply using boundary cell elevations
@@ -84,7 +105,7 @@ def fwdet(
         boundary_algos[boundary_definition], mask=water_img, resolution=res
     )
 
-    # apply MBCE, starting with edge values and filling it up further with each iteration
+    # apply boundary condition algo, starting with edge values and filling it up further with each iteration
     DEM_watered_fill = ee.Image(iter_list.iterate(f_boundary, DEM_watered_edge))
     DEM_watered = DEM_watered_fill.reproject(water_img.projection())
     # derive water depths
