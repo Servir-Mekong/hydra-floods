@@ -1,8 +1,8 @@
 import ee
 import functools
 
-# keep_attrs
-def carry_metadata(func):
+
+def keep_attrs(func):
     """Decorator function to set the properties of an image from computations to that of the input
     Function to decorate should take an ee.Image object and return an ee.Image object
 
