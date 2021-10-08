@@ -27,6 +27,9 @@ def fwdet(
         boundary_definition (str): method for defining the elevation at water edges. Options are 'mean' or 'nearest'
             Note: 'nearest' is the FwDET original method, 'mean' is an updated method. default=mean
         smooth_depths (bool): flag to control if the resulting water depths should be smoothed or not, uses a 3x3 pixel mean. default=True
+
+    returns:
+        ee.Image: image of water depth in meters
     """
     proj = dem.projection()
 
@@ -151,3 +154,28 @@ def _nbce(i, img, mask=None, resolution=30):
     new_img = new_img.where(new_img_1.gt(-999), new_img_1)
     # make sure it does not expand to other side of floodmap (where there is no water)
     return new_img.updateMask(mask.unmask(0))
+
+
+def downscale_wfraction(fraction, dem):
+    """Algorithm to downscale water fraction maps using DEM data
+    Converts fractional water data to higher resolution binary water data
+    Paper: https://doi.org/10.1016/j.rse.2013.03.015
+
+    args:
+        fraction (ee.Image): earth engine image object representing the fractional water extent within each pixel.
+        dem (ee.Image): earth engine image object representing elevation
+
+    returns:
+        ee.Image: downscaled image of water
+    """
+
+    resolution = fraction.projection().nominalScale()
+
+    water_present = fraction.gt(0.0)
+
+    h_min = dem.updateMask(water_present).focal_min(resolution, "square", "meters")
+    h_max = dem.updateMask(water_present).focal_max(resolution, "square", "meters")
+
+    water_high = h_min.add(h_max.subtract(h_min).multiply(fraction))
+
+    return dem.gte(h_min).And(dem.lt(water_high))
