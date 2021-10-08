@@ -6,7 +6,7 @@ from functools import partial
 from hydrafloods import decorators, datasets
 
 
-def add_time_band(img, offset="year",apply_mask=False):
+def add_time_band(img, offset="year", apply_mask=False):
     """Function to add time band to image. Expects image has `system:time_start` property.
     Added band will have name "time"
 
@@ -47,11 +47,11 @@ def prep_inputs(collection, keep_bands=None, apply_mask=False):
 
     if keep_bands is None:
         keep_bands = []
-    
-    prepfunc = None 
+
+    prepfunc = None
 
     if "time" not in keep_bands:
-        prepfunc = partial(add_time_band,apply_mask=apply_mask)
+        prepfunc = partial(add_time_band, apply_mask=apply_mask)
         # outCollection = outCollection.map(tband)
     if "constant" not in keep_bands:
         add_const = lambda x: x.addBands(ee.Image(1))
@@ -59,7 +59,7 @@ def prep_inputs(collection, keep_bands=None, apply_mask=False):
             prepfunc = add_const
         else:
             prepfunc = pipe | prepfunc | add_const
-        
+
     if ("time" not in keep_bands) or ("constant" not in keep_bands):
         outCollection = outCollection.map(prepfunc)
 
@@ -109,11 +109,11 @@ def fit_linear_trend(
         independents (list[str], optional): list of band names to use for fitting regression. default = ["constant", "time"]
         dependent (str | None, optional): band name of values to fit, if None then uses the first band. default = None
         regression_method (str, optional): name of regression reducer to use. options are "simple", "ols", "robust", "ridge", "sen". default = "ols"
-        output_err (bool, optional): switch to output regression x and y errors, if true output will have "mean_x", "residual_x" and "residual_y" bands. 
+        output_err (bool, optional): switch to output regression x and y errors, if true output will have "mean_x", "residual_x" and "residual_y" bands.
             Useful for estimating confidence intervals. default = False
 
     returns:
-        ee.Image: output image with regression coeffients as bands named "offset" and "slope". 
+        ee.Image: output image with regression coeffients as bands named "offset" and "slope".
             Will have "mean_x", "residual_x" and "residual_y" if ouput_err == True
     """
 
@@ -162,7 +162,7 @@ def fit_linear_trend(
             .arrayFlatten([independents])
         )
 
-    if output_err and regression_method is not "sen":
+    if output_err and regression_method != "sen":
         linear_mse = (
             lr_arr.select("residuals").arrayProject([0]).arrayFlatten([["residual_y"]])
         )
@@ -171,10 +171,11 @@ def fit_linear_trend(
         x_err = (
             reduction_coll.select("time")
             .map(lambda x: x.subtract(t_mean).pow(2))
-            .reduce(ee.Reducer.sum(),16).rename("residual_x")
+            .reduce(ee.Reducer.sum(), 16)
+            .rename("residual_x")
         )
 
-        lr = ee.Image.cat([lr,linear_mse,t_mean,x_err])
+        lr = ee.Image.cat([lr, linear_mse, t_mean, x_err])
 
     return lr.addBands(n)
 
@@ -194,11 +195,11 @@ def fit_harmonic_trend(
         n_cycles (int, optional): number of interannual cycles to model. default = 2
         independents (list[str], optional): list of band names to use for fitting regression. default = ["constant", "time"]
         dependent (str | None, optional): band name of values to fit, if None then uses the first band. default = None
-        output_err (bool, optional): switch to output regression x and y errors, if true output will have "mean_x", "residual_x" and "residual_y" bands. 
+        output_err (bool, optional): switch to output regression x and y errors, if true output will have "mean_x", "residual_x" and "residual_y" bands.
             Useful for estimating confidence intervals. default = False
 
     returns:
-        ee.Image: output image with regression coeffients as bands named "constant", "time", "cos_n", and "sin_n" where n is a sequnces of cycles. 
+        ee.Image: output image with regression coeffients as bands named "constant", "time", "cos_n", and "sin_n" where n is a sequnces of cycles.
             Will have "mean_x", "residual_x" and "residual_y" if ouput_err == True
 
     raises:
@@ -208,8 +209,10 @@ def fit_harmonic_trend(
         try:
             collection = collection.collection
         except AttributeError:
-            raise ValueError("collection argument expected type ee.ImageCollection or hydrafloods.Dataset,"+
-                             f"got {type(collection)}")
+            raise ValueError(
+                "collection argument expected type ee.ImageCollection or hydrafloods.Dataset,"
+                + f"got {type(collection)}"
+            )
 
     if dependent is None:
         dependent = ee.String(ee.Image(collection.first()).bandNames().get(0))
@@ -232,7 +235,7 @@ def fit_harmonic_trend(
         ee.Reducer.linearRegression(numX=independents.length(), numY=1), 16
     )
 
-    n = harmonic_collection.select(dependent).reduce(ee.Reducer.count(),16).rename("n")
+    n = harmonic_collection.select(dependent).reduce(ee.Reducer.count(), 16).rename("n")
 
     # Turn the array image into a multi-band image of coefficients
     harmonic_coefficients = (
@@ -248,11 +251,16 @@ def fit_harmonic_trend(
             .arrayFlatten([["residual_y"]])
         )
 
-        t_mean = harmonic_collection.select("time").reduce(ee.Reducer.mean(),16).rename("mean_x")
+        t_mean = (
+            harmonic_collection.select("time")
+            .reduce(ee.Reducer.mean(), 16)
+            .rename("mean_x")
+        )
         x_err = (
             harmonic_collection.select("time")
             .map(lambda x: x.subtract(t_mean).pow(2))
-            .reduce(ee.Reducer.sum(),16).rename("residual_x")
+            .reduce(ee.Reducer.sum(), 16)
+            .rename("residual_x")
         )
 
         harmonic_coefficients = ee.Image.cat(
@@ -260,7 +268,6 @@ def fit_harmonic_trend(
         )
 
     return harmonic_coefficients
-
 
 
 def predict_harmonics(
@@ -271,7 +278,7 @@ def predict_harmonics(
     args:
         collection (ee.ImageCollection): image collection to apply prediction on
         harmonics (ee.Image): harmonic coefficient image with coeffiecient bands
-        n_cycles (int, optional): number of interannual cycles to model, note n_cycles must equal 
+        n_cycles (int, optional): number of interannual cycles to model, note n_cycles must equal
             the number of cycle coefficients in `harmonics`. default = 2
         independents (list[str], optional): list of independent band names to use in model. These are
             other than the harmonic coefficient names. default = ["constant", "time"]
@@ -279,10 +286,10 @@ def predict_harmonics(
     returns
         ee.ImageCollection: image collection with predicted values
     """
-    @decorators.carry_metadata
+
+    @decorators.keep_attrs
     def _apply_prediction(image):
-        """Closure function to apply prediction
-        """
+        """Closure function to apply prediction"""
         return (
             image.select(independents)
             .multiply(harmonics)
@@ -336,6 +343,7 @@ def get_dummy_collection(start_time=None, end_time=None, dates=None):
     returns:
         ee.ImageCollection: image collection with image containing time and constant bands
     """
+
     def _gen_image_seq(i):
         t = start_time.advance(ee.Number(i), "day")
         return ee.Image().rename("blank").set("system:time_start", t.millis())
@@ -360,9 +368,10 @@ def get_dummy_collection(start_time=None, end_time=None, dates=None):
 
     return prep_inputs(coll)
 
-def temporal_smoothing(collection,reducer,days=10):
+
+def temporal_smoothing(collection, reducer, days=10):
     """Function to apply moving window reducer in time on image collection
-    
+
     args:
         collection (ee.ImageCollection): image collection to apply moving window reducer in time on
         reducer (ee.Reducer): earth engine reducer object to apply
@@ -371,37 +380,50 @@ def temporal_smoothing(collection,reducer,days=10):
     returns:
         ee.ImageCollection: image collection with reducer applied in time
     """
-    @decorators.carry_metadata
+
+    @decorators.keep_attrs
     def _smooth(img):
-        """Closure function to apply smoothing in between window
-        """
+        """Closure function to apply smoothing in between window"""
         t = img.date()
         band_names = img.bandNames()
-        t_start = t.advance(-days//2, "day")
-        t_stop = t.advance(days//2, "day")
-        return collection.filterDate(t_start,t_stop).reduce(reducer,8).rename(band_names)
+        t_start = t.advance(-days // 2, "day")
+        t_stop = t.advance(days // 2, "day")
+        return (
+            collection.filterDate(t_start, t_stop).reduce(reducer, 8).rename(band_names)
+        )
 
     return collection.map(_smooth)
 
+
 def temporal_iqr_filter(collection):
     """Function to filter values outside of IQR in time on image collection
-    
+
     args:
         collection (ee.ImageCollection): image collection to apply filter in time on
 
     returns:
-        ee.ImageCollection: image collection with values filtered 
+        ee.ImageCollection: image collection with values filtered
     """
-    @decorators.carry_metadata
+
+    @decorators.keep_attrs
     def _filter(img):
-        """Closure function to apply smoothing in between window
-        """
+        """Closure function to apply smoothing in between window"""
         mask = img.gt(low_bounds).And(img.lt(upper_bounds))
         return img.updateMask(mask)
 
-    percentiles = collection.reduce(ee.Reducer.percentile([25,75]))
+    percentiles = collection.reduce(ee.Reducer.percentile([25, 75]))
     iqr = percentiles.select(1).subtract(percentiles.select(0))
     low_bounds = percentiles.select(0).subtract(iqr.multiply(1.5))
     upper_bounds = percentiles.select(1).add(iqr.multiply(1.5))
 
     return collection.map(_filter)
+
+
+def anomalies(collection, baseline):
+    """Function to calculate anomalies of"""
+
+    @decorators.keep_attrs
+    def img_anomaly(img):
+        return img.subtract(baseline)
+
+    return collection.map(img_anomaly)

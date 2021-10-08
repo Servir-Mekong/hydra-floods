@@ -2,8 +2,16 @@ import ee
 from collections import OrderedDict
 from hydrafloods import decorators
 
-@decorators.carry_metadata
-def apply_fcnn(image, project_name, model_name, model_kwargs=None,output_probas=False,output_names=None):
+
+@decorators.keep_attrs
+def apply_fcnn(
+    image,
+    project_name,
+    model_name,
+    model_kwargs=None,
+    output_probas=False,
+    output_names=None,
+):
     """
     args:
         image (ee.Image): input image for FCNN model, must have all of the features as bands
@@ -16,17 +24,11 @@ def apply_fcnn(image, project_name, model_name, model_kwargs=None,output_probas=
     """
 
     if model_kwargs is None:
-        model_kwargs = OrderedDict(
-            projectName = project_name,
-            modelName =  model_name
-        )
+        model_kwargs = OrderedDict(projectName=project_name, modelName=model_name)
     else:
-        positional = OrderedDict(
-            projectName = project_name,
-            modelName =  model_name
-        )
+        positional = OrderedDict(projectName=project_name, modelName=model_name)
 
-        model_kwargs = OrderedDict({**positional,**model_kwargs})
+        model_kwargs = OrderedDict({**positional, **model_kwargs})
 
     # Load the trained model and use it for prediction.
     model = ee.Model.fromAiPlatformPredictor(**model_kwargs)
@@ -36,24 +38,18 @@ def apply_fcnn(image, project_name, model_name, model_kwargs=None,output_probas=
 
     if output_probas:
         if output_names is None:
-            raise ValueError("please provide `output_names` when `ouput_probas` is set to True")
+            raise ValueError(
+                "please provide `output_names` when `ouput_probas` is set to True"
+            )
 
-        output = (
-            predictions
-            .arrayFlatten([output_names])
-        )
+        output = predictions.arrayFlatten([output_names])
 
     else:
         output_names = "classification" if output_names is None else output_names
         # find highest probability class
-        output = (
-            predictions
-            .arrayArgmax()
-            .arrayFlatten([[output_names]])
-        )
+        output = predictions.arrayArgmax().arrayFlatten([[output_names]])
 
     return output
-
 
 
 def minmax_scaling_dict(fc, feature_names):
@@ -145,12 +141,10 @@ def minmax_feature_scaling(fc, scaling_dict, feature_names):
     """
 
     def feature_scaling(feature):
-        """Nested closure function to apply scaling on each column in each feature
-        """
+        """Nested closure function to apply scaling on each column in each feature"""
 
         def iter_cols(i):
-            """Loops through feature columns
-            """
+            """Loops through feature columns"""
             i = ee.String(i)
             v = ee.Number(feature.get(i))
             minv = ee.Number(scaling_dict.get(i.cat("_min")))
@@ -174,7 +168,7 @@ def minmax_feature_scaling(fc, scaling_dict, feature_names):
     return fc_norm
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def minmax_image_scaling(image, scaling_dict, feature_names):
     """Function to scale image between min/max values
     Expects that scaling_dict keys match bands
@@ -213,12 +207,10 @@ def standard_feature_scaling(fc, scaling_dict, feature_names):
     """
 
     def feature_scaling(feature):
-        """Nested closure function to apply scaling on each column in each feature
-        """
+        """Nested closure function to apply scaling on each column in each feature"""
 
         def iter_cols(i):
-            """Loops through feature columns
-            """
+            """Loops through feature columns"""
             i = ee.String(i)
             v = ee.Number(feature.get(i))
             mean = ee.Number(scaling_dict.get(i.cat("_mean")))
@@ -242,7 +234,7 @@ def standard_feature_scaling(fc, scaling_dict, feature_names):
     return fc_norm
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def standard_image_scaling(image, scaling_dict, feature_names):
     """Function to apply z-score scaling to image
     Expects that scaling_dict keys match bands
@@ -267,6 +259,7 @@ def standard_image_scaling(image, scaling_dict, feature_names):
         .float()
     )
 
+
 def onehot_feature_encoding(fc, column_name, classes, class_names=None):
     """Function to calculate one-hot encoded columns from categorial columns
     where each new column equals 1 where the class value is the column index
@@ -287,19 +280,21 @@ def onehot_feature_encoding(fc, column_name, classes, class_names=None):
     def feature_encoding(feature):
         c = ee.Number(feature.get(column_name))
         encoded = classes.map(lambda x: c.eq(ee.Number(x)))
-        new_cols = ee.Dictionary.fromLists(class_names,encoded)
+        new_cols = ee.Dictionary.fromLists(class_names, encoded)
         return feature.set(new_cols)
 
     if class_names is None:
-        class_names = ee.List.sequence(0,classes.length()).map(lambda x: ee.String("b").cat(ee.String(x)))
+        class_names = ee.List.sequence(0, classes.length()).map(
+            lambda x: ee.String("b").cat(ee.String(x))
+        )
 
     fc_encoded = fc.map(feature_encoding)
 
     return fc_encoded
 
 
-@decorators.carry_metadata
-def onehot_image_encoding(img,classes,class_names=None,band=None):
+@decorators.keep_attrs
+def onehot_image_encoding(img, classes, class_names=None, band=None):
     """Function to convert an categorial image image to one-hot encoded image
     where each new band equals 1 where the class value is the band index
 
@@ -320,7 +315,9 @@ def onehot_image_encoding(img,classes,class_names=None,band=None):
     classes = ee.List(classes)
 
     if class_names is None:
-        class_names = ee.List.sequence(0,classes.length()).map(lambda x: ee.String("b").cat(ee.String(x)))
+        class_names = ee.List.sequence(0, classes.length()).map(
+            lambda x: ee.String("b").cat(ee.String(x))
+        )
 
     if band is None:
         img = img.select([0])
@@ -329,7 +326,11 @@ def onehot_image_encoding(img,classes,class_names=None,band=None):
 
     encoded_imgs = classes.map(lambda x: img.eq(ee.Number(x)))
 
-    return ee.ImageCollection.fromImages(ee.List(encoded_imgs)).toBands().rename(class_names)
+    return (
+        ee.ImageCollection.fromImages(ee.List(encoded_imgs))
+        .toBands()
+        .rename(class_names)
+    )
 
 
 def random_forest_ee(
@@ -339,7 +340,7 @@ def random_forest_ee(
     label,
     scaling=None,
     mode="classification",
-    min_samples_leaf=1
+    min_samples_leaf=1,
 ):
     """Helper function to scale feature collection and train random forest model
 
@@ -376,12 +377,13 @@ def random_forest_ee(
         )
 
     classifier = (
-        ee.Classifier.smileRandomForest(n_trees,minLeafPopulation=min_samples_leaf)
+        ee.Classifier.smileRandomForest(n_trees, minLeafPopulation=min_samples_leaf)
         .setOutputMode(mode.upper())
         .train(fc_norm, label, feature_names)
     )
 
     return classifier, scaling_dict
+
 
 def gradient_boosting_ee(
     n_trees,
@@ -391,7 +393,7 @@ def gradient_boosting_ee(
     scaling=None,
     mode="classification",
     shrinkage=0.01,
-    loss="LeastAbsoluteDeviation"
+    loss="LeastAbsoluteDeviation",
 ):
     """Helper function to scale feature collection and train gradient tree boosting model
 
@@ -430,14 +432,23 @@ def gradient_boosting_ee(
         )
 
     classifier = (
-        ee.Classifier.smileGradientTreeBoost(numberOfTrees=n_trees,shrinkage=shrinkage,loss=loss)
+        ee.Classifier.smileGradientTreeBoost(
+            numberOfTrees=n_trees, shrinkage=shrinkage, loss=loss
+        )
         .setOutputMode(mode.upper())
         .train(fc_norm, label, feature_names)
     )
 
     return classifier, scaling_dict
 
-def unsupervised_rf(n_trees,samples,features=None,rank_feature=None,ranking="min",):
+
+def unsupervised_rf(
+    n_trees,
+    samples,
+    features=None,
+    rank_feature=None,
+    ranking="min",
+):
     """Unserpersived machine learning workflow to classify water
     Methods similar to: https://doi.org/10.1016/j.rse.2020.112209
 
@@ -506,7 +517,6 @@ def unsupervised_rf(n_trees,samples,features=None,rank_feature=None,ranking="min
     return classifier
 
 
-
 def calc_image_pca(image, region=None, scale=90, max_pixels=1e9, method="svd"):
     """Principal component analysis decomposition of image bands
 
@@ -541,13 +551,13 @@ def calc_image_pca(image, region=None, scale=90, max_pixels=1e9, method="svd"):
     # Collapse the bands of the image into a 1D array per pixel.
     arrays = centered.toArray()
 
-    if method =="svd":
+    if method == "svd":
         svd = arrays.toArray(1).matrixSingularValueDecomposition()
 
-        eigen_vecs = svd.select("V")#.arrayTranspose()
+        eigen_vecs = svd.select("V")  # .arrayTranspose()
         eigen_vals = svd.select("S").matrixDiagonal()
 
-    elif method =="eigendecomp":
+    elif method == "eigendecomp":
         # Compute the covariance of the bands within the region.
         covar = arrays.reduceRegion(
             reducer=ee.Reducer.centeredCovariance(),
@@ -591,7 +601,7 @@ def calc_image_pca(image, region=None, scale=90, max_pixels=1e9, method="svd"):
     )
 
 
-def calc_feature_pca(fc,names,is_centered=False,method="svd"):
+def calc_feature_pca(fc, names, is_centered=False, method="svd"):
     """Principal component decomposition of features
 
     args:
@@ -608,8 +618,14 @@ def calc_feature_pca(fc,names,is_centered=False,method="svd"):
         ee.Array: eigen values of PCA
         ee.Array: mean values of each feature
     """
-    array_ = ee.Array(ee.List(fc.makeArray(names).aggregate_array("array").map(lambda x: ee.Array(x).toList())))
-    center = array_.reduce(ee.Reducer.mean(),[0]).repeat(0,array_.length().get([0]))
+    array_ = ee.Array(
+        ee.List(
+            fc.makeArray(names)
+            .aggregate_array("array")
+            .map(lambda x: ee.Array(x).toList())
+        )
+    )
+    center = array_.reduce(ee.Reducer.mean(), [0]).repeat(0, array_.length().get([0]))
     if not is_centered:
         centered = array_.subtract(center)
     else:
@@ -631,11 +647,13 @@ def calc_feature_pca(fc,names,is_centered=False,method="svd"):
         eigen_vals = eigens.slice(1, 0, 1)
 
     else:
-        raise ValueError("could not understand provided method keyword. Options are 'svd' or 'eigendecomp'")
+        raise ValueError(
+            "could not understand provided method keyword. Options are 'svd' or 'eigendecomp'"
+        )
 
     out_band_names = [f"pc_{i}" for i in range(len(names))]
 
-    return eigen_vecs, eigen_vals, center.slice(0,0,1).project([1])
+    return eigen_vecs, eigen_vals, center.slice(0, 0, 1).project([1])
 
 
 def apply_feature_pca(fc, eigen_vecs, names, center=None):
@@ -651,9 +669,17 @@ def apply_feature_pca(fc, eigen_vecs, names, center=None):
     returns:
         ee.FeatureCollection: feacture collection with new properties within each feature being the principal components
     """
-    array_ = ee.Array(ee.List(fc.makeArray(names).aggregate_array("array").map(lambda x: ee.Array(x).toList())))
+    array_ = ee.Array(
+        ee.List(
+            fc.makeArray(names)
+            .aggregate_array("array")
+            .map(lambda x: ee.Array(x).toList())
+        )
+    )
     if center is not None:
-        centered = array_.subtract(ee.Array.cat([center],1).transpose().repeat(0,array_.length().get([0])))
+        centered = array_.subtract(
+            ee.Array.cat([center], 1).transpose().repeat(0, array_.length().get([0]))
+        )
     else:
         centered = array_
 
@@ -664,9 +690,11 @@ def apply_feature_pca(fc, eigen_vecs, names, center=None):
     fc_size = fc.size()
     fc_list = fc.toList(fc_size)
     fc_pca = ee.FeatureCollection(
-        ee.List.sequence(0,fc_size.subtract(1)).map(
-            lambda x: ee.Feature(fc_list.get(x)).set(ee.Dictionary.fromLists(
-                out_band_names, pca_arr.slice(0,x,ee.Number(x).add(1),1).project([1]).toList()
+        ee.List.sequence(0, fc_size.subtract(1)).map(
+            lambda x: ee.Feature(fc_list.get(x)).set(
+                ee.Dictionary.fromLists(
+                    out_band_names,
+                    pca_arr.slice(0, x, ee.Number(x).add(1), 1).project([1]).toList(),
                 )
             )
         )
@@ -674,7 +702,8 @@ def apply_feature_pca(fc, eigen_vecs, names, center=None):
 
     return fc_pca
 
-@decorators.carry_metadata
+
+@decorators.keep_attrs
 def apply_image_pca(img, eigen_vecs, names, center=None):
     """Applies Principal component decomposition on image
 
@@ -689,9 +718,12 @@ def apply_image_pca(img, eigen_vecs, names, center=None):
         ee.Image: principal components calculated from image
     """
     if center is not None:
-        arrayImage = img.select(names).subtract(
-            ee.Image.constant(center.toList())
-        ).toArray().toArray(1)
+        arrayImage = (
+            img.select(names)
+            .subtract(ee.Image.constant(center.toList()))
+            .toArray()
+            .toArray(1)
+        )
     else:
         arrayImage = img.select(names).toArray().toArray(1)
 
@@ -699,7 +731,8 @@ def apply_image_pca(img, eigen_vecs, names, center=None):
 
     out_band_names = [f"pc_{i}" for i in range(len(names))]
 
-    pcaImage = (principalComponents
+    pcaImage = (
+        principalComponents
         # Throw out an an unneeded dimension, [[]] -> [].
         .arrayProject([0])
         # Make the one band array image a multi-band image, [] -> image.
@@ -723,23 +756,24 @@ def hist_matching(samples, predictor, target, n_estimators=50):
 
     """
 
-    def get_cdf(fc,column):
+    def get_cdf(fc, column):
         def array_to_features(l):
-            return ee.Feature(None, {
-                column: ee.List(l).get(0),
-                "probability": ee.List(l).get(1)
-            })
+            return ee.Feature(
+                None, {column: ee.List(l).get(0), "probability": ee.List(l).get(1)}
+            )
 
         # Histogram equalization start:
-        histo = ee.Dictionary(fc.reduceColumns(
-            ee.Reducer.histogram(
-                maxBuckets= 2**12,
-            ),
-            [column]
-        ).get("histogram"))
+        histo = ee.Dictionary(
+            fc.reduceColumns(
+                ee.Reducer.histogram(
+                    maxBuckets=2 ** 12,
+                ),
+                [column],
+            ).get("histogram")
+        )
 
-        valsList = ee.List(histo.get('bucketMeans'))
-        freqsList = ee.List(histo.get('histogram'))
+        valsList = ee.List(histo.get("bucketMeans"))
+        freqsList = ee.List(histo.get("histogram"))
         cdfArray = ee.Array(freqsList).accum(0)
         total = cdfArray.get([-1])
         normalizedCdf = cdfArray.divide(total)
@@ -748,35 +782,30 @@ def hist_matching(samples, predictor, target, n_estimators=50):
 
         return ee.FeatureCollection(array.toList().map(array_to_features))
 
-
-    pred_cdf = get_cdf(samples,predictor)
-    target_cdf = get_cdf(samples,target)
+    pred_cdf = get_cdf(samples, predictor)
+    target_cdf = get_cdf(samples, target)
 
     proba_to_val = (
         ee.Classifier.smileRandomForest(n_estimators)
-        .setOutputMode('REGRESSION')
+        .setOutputMode("REGRESSION")
         .train(
-            features= target_cdf,
-            classProperty= target,
-            inputProperties= ['probability']
+            features=target_cdf, classProperty=target, inputProperties=["probability"]
         )
     )
 
     val_to_proba = (
         ee.Classifier.smileRandomForest(n_estimators)
-        .setOutputMode('REGRESSION')
+        .setOutputMode("REGRESSION")
         .train(
-            features= pred_cdf,
-            classProperty= 'probability',
-            inputProperties= [predictor]
+            features=pred_cdf, classProperty="probability", inputProperties=[predictor]
         )
     )
 
     return val_to_proba, proba_to_val
 
-@decorators.carry_metadata
-def apply_image_matching(image, matching_classifiers,output_name="dn"):
-    return (image
-        .classify(matching_classifiers[0],'probability')
-        .classify(matching_classifiers[1],output_name)
+
+@decorators.keep_attrs
+def apply_image_matching(image, matching_classifiers, output_name="dn"):
+    return image.classify(matching_classifiers[0], "probability").classify(
+        matching_classifiers[1], output_name
     )

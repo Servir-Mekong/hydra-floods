@@ -3,7 +3,7 @@ import math
 from hydrafloods import geeutils, decorators
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def lee_sigma(img, window=9, sigma=0.9, looks=4, tk=7, keep_bands=["angle"]):
     """Lee Sigma speckle filtering algorithm.
     Implemented from interpreting https://doi.org/10.1109/TGRS.2008.2002881
@@ -128,7 +128,7 @@ def lee_sigma(img, window=9, sigma=0.9, looks=4, tk=7, keep_bands=["angle"]):
 
 
 # The RL speckle filter
-@decorators.carry_metadata
+@decorators.keep_attrs
 def refined_lee(image, keep_bands=["angle"]):
     """Refined Lee speckle filtering algorithm.
     Algorithm adapted from https://groups.google.com/g/google-earth-engine-developers/c/ExepnAmP-hQ/m/7e5DnjXXAQAJ
@@ -342,7 +342,7 @@ def refined_lee(image, keep_bands=["angle"]):
     return output
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def gamma_map(img, window=7, enl=4.9, keep_bands=["angle"]):
     """Gamma Map speckle filtering algorithm.
     Algorithm adapted from https://groups.google.com/g/google-earth-engine-developers/c/a9W0Nlrhoq0/m/tnGMC45jAgAJ.
@@ -432,7 +432,7 @@ def gamma_map(img, window=7, enl=4.9, keep_bands=["angle"]):
     return output
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def p_median(img, window=5, keep_bands=["angle"]):
     """P-Median filter for smoothing imagery.
     Calculates the average from the median along cross and diagnal pixels of a window
@@ -483,7 +483,7 @@ def p_median(img, window=5, keep_bands=["angle"]):
     return reduced_bands.rename(band_names)
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def perona_malik(img, n_iters=10, K=3, method=1):
     """Perona-Malik (anisotropic diffusion) convolution
     Developed by Gennadii Donchyts see https://groups.google.com/g/google-earth-engine-developers/c/umGlt5qIN1I/m/PD8lsJ7qBAAJ
@@ -560,7 +560,7 @@ def perona_malik(img, n_iters=10, K=3, method=1):
     return img
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def open_binary(img, window=3, neighborhood=None):
     """Opening morphological filter. Opening is the dilation of the erosion of
     values greater than 1.
@@ -588,7 +588,7 @@ def open_binary(img, window=3, neighborhood=None):
     return opened
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def close_binary(img, window=3, neighborhood=None):
     """Closing morphological filter. Closing is the erosion of the dialiation of
     values greater than 1.

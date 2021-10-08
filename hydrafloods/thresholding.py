@@ -4,7 +4,7 @@ import random
 from hydrafloods import geeutils, decorators, ml, fuzzy
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def bmax_otsu(
     img,
     band=None,
@@ -49,8 +49,7 @@ def bmax_otsu(
     """
 
     def calcBmax(feature):
-        """Closure function to calculate Bmax for each feature covering image
-        """
+        """Closure function to calculate Bmax for each feature covering image"""
         segment = img
         initial = segment.lt(initial_threshold)
         p1 = ee.Number(
@@ -155,7 +154,7 @@ def bmax_otsu(
         return water.rename("water").uint8()
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def edge_otsu(
     img,
     band=None,
@@ -394,7 +393,7 @@ def multidim_semisupervised(
     scale=90,
     proba_threshold=None,
 ):
-    """Implementation of the Automatic water detection from 
+    """Implementation of the Automatic water detection from
     multidimensional hierarchical clustering algorithm.
     Method details: https://doi.org/10.1016/j.rse.2020.112209
     Note: this is a similar method, not exact from the paper
@@ -445,7 +444,7 @@ def multidim_semisupervised(
     return output
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def fuzzy_otsu(
     img,
     band=None,
@@ -459,8 +458,8 @@ def fuzzy_otsu(
     min_bucket_width=0.001,
     max_raw=1e6,
 ):
-    """ Implementation of Otsu thresholding algorithm.
-    Segment the grids into water and land representation using initial threshold and randomly select features to calculate 
+    """Implementation of Otsu thresholding algorithm.
+    Segment the grids into water and land representation using initial threshold and randomly select features to calculate
     minimum and maximum threshold of the image. Calculate Midpoint of min and max threshold using Fuzzy_Gaussian to map water.
 
 
@@ -476,9 +475,9 @@ def fuzzy_otsu(
         max_buckets (int, optional): The maximum number of buckets to use when building a histogram; will be rounded up to a power of 2. default = 255
         min_bucket_width (float, optional): The minimum histogram bucket width to allow any power of 2. default = 0.001
         max_raw (int, optional): The number of values to accumulate before building the initial histogram. default = 1e6
-        
+
     returns:
-        ee.Image: thresholded water image.    
+        ee.Image: thresholded water image.
     """
 
     # Function to Segment Land and Water Grids
@@ -549,7 +548,9 @@ def fuzzy_otsu(
     max_threshold = otsu(histogram2.get(histBand.cat("_histogram")))
 
     # Calculate Midpoint of min and max threshold using Fuzzy_Gaussian
-    midpoint = ee.Number(ee.Number(min_threshold).add(ee.Number(max_threshold))).divide(2)
+    midpoint = ee.Number(ee.Number(min_threshold).add(ee.Number(max_threshold))).divide(
+        2
+    )
     spread = 0.2
 
     gauss = fuzzy.fuzzy_gaussian(img, midpoint, spread).clip(region)
@@ -559,4 +560,3 @@ def fuzzy_otsu(
     waterImg = waterImg.where(waterImg.eq(0), gauss)
 
     return ee.Image(waterImg)
-

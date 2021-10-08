@@ -3,8 +3,16 @@ import math
 from hydrafloods import geeutils, decorators
 
 
-@decorators.carry_metadata
-def slope_correction(image, elevation, model="volume", buffer=0, scale=1000, in_units="db",out_units="same"):
+@decorators.keep_attrs
+def slope_correction(
+    image,
+    elevation,
+    model="volume",
+    buffer=0,
+    scale=1000,
+    in_units="db",
+    out_units="same",
+):
     """This function applies the slope correction on a Sentinel-1 image.
     Function based on https:# doi.org/10.3390/rs12111867.
     Adapted from https:# github.com/ESA-PhiLab/radiometric-slope-correction/blob/master/notebooks/1%20-%20Generate%20Data.ipynb
@@ -70,7 +78,7 @@ def slope_correction(image, elevation, model="volume", buffer=0, scale=1000, in_
 
         returns:
             ee.Image
-      """
+        """
 
         d = (
             image.Not()
@@ -128,11 +136,15 @@ def slope_correction(image, elevation, model="volume", buffer=0, scale=1000, in_
         .get("aspect")
     )
 
-    if in_units not in ["db","power"]:
-        raise ValueError("could not understand input units. needs to be either 'db' or 'power'")
+    if in_units not in ["db", "power"]:
+        raise ValueError(
+            "could not understand input units. needs to be either 'db' or 'power'"
+        )
 
-    if out_units not in ["same","other",None]:
-        raise ValueError("could not understand output units option. needs to be either 'same' or 'other'")
+    if out_units not in ["same", "other", None]:
+        raise ValueError(
+            "could not understand output units option. needs to be either 'same' or 'other'"
+        )
 
     # Sigma0 to Power of input image
     if in_units == "db":
@@ -214,7 +226,7 @@ def slope_correction(image, elevation, model="volume", buffer=0, scale=1000, in_
     )
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def illumination_correction(image, elevation, model="rotation", scale=90, sensor="LC8"):
     """This function applies a terrain correction to optical imagery based on solar and viewing geometry
 

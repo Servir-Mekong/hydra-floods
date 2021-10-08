@@ -5,7 +5,7 @@ import datetime
 from hydrafloods import decorators
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def fuzzy_gaussian(img, midpoint, spread):
     """Fuzzy membership function through a Gaussian or normal distribution based around a
     user-specified midpoint (which is assigned a membership of 1) with a defined spread.
@@ -34,7 +34,7 @@ def fuzzy_gaussian(img, midpoint, spread):
     return gauss.rename(bandNames)
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def fuzzy_near(img, midpoint, spread):
     """Fuzzy membership function around a specific value which is defined by a user-defined midpoint
      (which is assigned a membership of 1), with a defined spread decreasing to zero.
@@ -63,7 +63,7 @@ def fuzzy_near(img, midpoint, spread):
     return near.rename(bandNames)
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def fuzzy_large(img, midpoint, spread):
     """Fuzzy membership function where the larger input values have membership closer to 1.
     The function is defined by a user-specified midpoint (which is assigned a membership of 0.5)
@@ -94,7 +94,7 @@ def fuzzy_large(img, midpoint, spread):
     return large.rename(bandNames)
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def fuzzy_mslarge(img, mean_scaling, std_scaling, region=None, scale=90):
     """Fuzzy membership through a function based on the mean and standard deviation,
     with the larger values having a membership closer to 1.
@@ -143,7 +143,7 @@ def fuzzy_mslarge(img, mean_scaling, std_scaling, region=None, scale=90):
     return mslarge.multiply(mask).rename(bandNames)
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def fuzzy_small(img, midpoint, spread):
     """Fuzzy membership function with the smaller input values having membership closer to 1.
     The function is defined by a user-specified midpoint (which is assigned a membership of 0.5)
@@ -173,7 +173,7 @@ def fuzzy_small(img, midpoint, spread):
     return small.rename(bandNames)
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def fuzzy_mssmall(img, mean_scale, std_scale, region=None, scale=90):
     """Fuzzy membership through a function based on the mean and standard deviation,
     with the smaller values having a membership closer to 1.
@@ -222,7 +222,7 @@ def fuzzy_mssmall(img, mean_scale, std_scale, region=None, scale=90):
     return mssmall.multiply(mask).rename(bandNames)
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def fuzzy_linear(img, min_val, max_val):
     """Fuzzy membership function through a linear transformation between the user-specified minimum
     value, a membership of 0, to the user-defined maximum value, which is assigned a membership of 1.
@@ -240,66 +240,61 @@ def fuzzy_linear(img, min_val, max_val):
     """
     bandNames = img.bandNames()
 
-    if ~isinstance(min_val,ee.Number):
+    if ~isinstance(min_val, ee.Number):
         min_val = ee.Number(min_val)
 
-    if ~isinstance(max_val,ee.Number):
+    if ~isinstance(max_val, ee.Number):
         max_val = ee.Number(max_val)
 
     invert = min_val.gt(max_val)
 
-    minimum = ee.Algorithms.If(invert,max_val,min_val)
-    maximum = ee.Algorithms.If(invert,min_val,max_val)
+    minimum = ee.Algorithms.If(invert, max_val, min_val)
+    maximum = ee.Algorithms.If(invert, min_val, max_val)
 
     linear = img.unitScale(minimum, maximum)
 
-    linear = ee.Algorithms.If(invert,ee.Image.constant(1).subtract(linear),linear)
+    linear = ee.Algorithms.If(invert, ee.Image.constant(1).subtract(linear), linear)
     linear = ee.Image(linear).clamp(0, 1)
 
     return linear.rename(bandNames)
 
-def fuzzy_zmf(img,min_val,max_val):
+
+def fuzzy_zmf(img, min_val, max_val):
 
     """
     Z-function fuzzy membership generator.
     """
     bandNames = img.bandNames()
 
-    if ~isinstance(min_val,ee.Number):
+    if ~isinstance(min_val, ee.Number):
         min_val = ee.Number(min_val)
 
-    if ~isinstance(max_val,ee.Number):
+    if ~isinstance(max_val, ee.Number):
         max_val = ee.Number(max_val)
 
     invert = min_val.gt(max_val)
 
-
-    a = ee.Image.constant(ee.Algorithms.If(invert,max_val,min_val))
-    b = ee.Image.constant(ee.Algorithms.If(invert,min_val,max_val))
+    a = ee.Image.constant(ee.Algorithms.If(invert, max_val, min_val))
+    b = ee.Image.constant(ee.Algorithms.If(invert, min_val, max_val))
 
     zmf = ee.Image(1)
 
     m1 = a.lte(img).And(img.lt(a.add(b).divide(2)))
-    y1 = img.expression("1 - 2 * ((img - a) / (b - a)) ** 2",{
-        "img":img,
-        "a":a,
-        "b":b
-    })
+    y1 = img.expression(
+        "1 - 2 * ((img - a) / (b - a)) ** 2", {"img": img, "a": a, "b": b}
+    )
 
     m2 = a.add(b).divide(2).lte(img).And(img.lte(b))
-    y2 = img.expression("2 * ((img - b) / (b - a)) ** 2",{
-        "img":img,
-        "a":a,
-        "b":b
-    })
+    y2 = img.expression("2 * ((img - b) / (b - a)) ** 2", {"img": img, "a": a, "b": b})
 
     m3 = img.gte(b)
 
-    zmf = zmf.where(m1, y1).where(m2,y2).where(m3,ee.Image(0))
+    zmf = zmf.where(m1, y1).where(m2, y2).where(m3, ee.Image(0))
 
-    zmf = ee.Image(ee.Algorithms.If(invert,ee.Image(1).subtract(zmf),zmf))
+    zmf = ee.Image(ee.Algorithms.If(invert, ee.Image(1).subtract(zmf), zmf))
 
     return zmf.rename(bandNames)
+
 
 def fuzzy_or(img_list):
     """Fuzzy Or overlay returning the maximum value of the input images.

@@ -8,7 +8,7 @@ import datetime
 from hydrafloods import decorators
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def ndvi(img):
     """Function to calculate Normalized Difference Vegetation Index (NDVI).
     Expects image has "nir" and "red" bands.
@@ -22,7 +22,7 @@ def ndvi(img):
     return img.normalizedDifference(["nir", "red"]).rename("ndvi")
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def evi(img):
     """Function to calculate Enhanced Vegetation Index (EVI).
     Expects image has "blue", "red", and "nir" bands.
@@ -43,7 +43,7 @@ def evi(img):
     ).rename("evi")
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def mndwi(img):
     """Function to calculate modified Difference Water Index (MNDWI).
     Expects image has "green" and "swir1" bands.
@@ -57,7 +57,7 @@ def mndwi(img):
     return img.normalizedDifference(["green", "swir1"]).rename("mndwi")
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def nwi(img):
     """Function to calculate new water index (NWI).
     Expects image has "blue", "nir", "swir1" and "swir2" bands.
@@ -79,7 +79,7 @@ def nwi(img):
     ).rename("nwi")
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def gwi(img):
     """Function to calculate general water index (GWI)
     Expects image has "green", "red", "nir", and "swir1" bands.
@@ -101,7 +101,7 @@ def gwi(img):
     ).rename("gwi")
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def aewinsh(img):
     """Function to calculate automated water extraction index (AEWI) no shadow
     Expects image has "green", "nir", "swir1" and "swir2" bands.
@@ -123,7 +123,7 @@ def aewinsh(img):
     ).rename("aewinsh")
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def aewish(img):
     """Function to calculate automated water extraction index (AEWI) shadow
     Expects image has "blue", "green", "nir", "swir1" and "swir2" bands.
@@ -146,7 +146,7 @@ def aewish(img):
     ).rename("aewish")
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def lswi(img):
     """Function to calculate land surface water index (LSWI).
     Expects image has "nir" and "swir1" bands.
@@ -162,7 +162,7 @@ def lswi(img):
     ).rename("lswi")
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def wri(img):
     """Function to calculate water ratio index (WRI).
     Expects image has "green", "red", "nir" and "swir1" bands.
@@ -183,8 +183,9 @@ def wri(img):
         },
     ).rename("wri")
 
-@decorators.carry_metadata
-def mbwi(img,factor=3):
+
+@decorators.keep_attrs
+def mbwi(img, factor=3):
     """Function to calculate multi band water index (MBWI).
     Expects image has "green", "red", "nir", "swir1", and "swir2" bands.
     https://doi.org/10.1016/j.jag.2018.01.018
@@ -204,12 +205,12 @@ def mbwi(img,factor=3):
             "red": img.select("red"),
             "nir": img.select("nir"),
             "swir1": img.select("swir1"),
-            "swir2": img.select("swir2")
+            "swir2": img.select("swir2"),
         },
     ).rename("mbwi")
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def rfi(img):
     """Function to calculate SAR RFI index.
     Expects image has "VV" and "VH" bands.
@@ -225,7 +226,7 @@ def rfi(img):
     ).rename("rfi")
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def vv_vh_ratio(img):
     """Function to calculate ratio between VV and VH bands.
     Expects image has "VV" and "VH" bands.
@@ -241,7 +242,7 @@ def vv_vh_ratio(img):
     ).rename("ratio")
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def vv_vh_abs_sum(img):
     """Function to calculate the absolute value of the sum of VV and VH bands.
     Expects image has "VV" and "VH" bands.
@@ -255,7 +256,7 @@ def vv_vh_abs_sum(img):
     return img.select("VV").add(img.select("VH")).abs().rename("vv_vh_abs_sum")
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def ndpi(img):
     """Function to calculate nomalized difference polarization index (NDPI).
     Expects image has "VV" and "VH" bands.
@@ -271,7 +272,7 @@ def ndpi(img):
     ).rename("ndpi")
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def nvvi(img):
     """Function to calculate nomalized VV index (NVVI).
     Expects image has "VV" and "VH" bands.
@@ -287,7 +288,7 @@ def nvvi(img):
     ).rename("nvvi")
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def nvhi(img):
     """Function to calculate nomalized VH index (NVHI).
     Expects image has "VV" and "VH" bands.

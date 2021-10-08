@@ -42,7 +42,7 @@ def _calc_sar_anomalies(
 ):
     def calc_anomalies_yr(yr):
         """Closure function to loop over each year and calculate stats then"""
-        # @decorators.carry_metadata
+        # @decorators.keep_attrs
         def calc_anomalies_img(img):
             """Closure function to calculate the difference of img from yearly stats"""
             anomalies = (
@@ -161,7 +161,7 @@ def _fuse_dataset(
     s1_anomalies = _calc_sar_anomalies(years, s1)
 
     s1.collection = s1_anomalies.map(
-        decorators.carry_metadata(lambda x: x.classify(fusion_model, target_band))
+        decorators.keep_attrs(lambda x: x.classify(fusion_model, target_band))
     )
 
     fused_ds = optical.merge(s1)
@@ -233,7 +233,10 @@ def export_fusion_samples(
     sar_proc = (
         (
             corrections.slope_correction,
-            dict(elevation=dem, buffer=50,),
+            dict(
+                elevation=dem,
+                buffer=50,
+            ),
         ),
         hf.gamma_map,
         (geeutils.add_indices, dict(indices=["vv_vh_ratio", "ndpi", "nvvi", "nvhi"])),

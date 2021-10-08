@@ -241,7 +241,7 @@ class Dataset:
             Dataset | None: returns dataset with imagery clipped to self.region or none depending on inplace
         """
 
-        @decorators.carry_metadata
+        @decorators.keep_attrs
         def clip(img):
             """Closure function to perform the clipping while carrying metadata"""
             return ee.Image(img.clip(self.region))
@@ -411,7 +411,7 @@ class Dataset:
             outCls.collection = out_coll
             return outCls
 
-    @decorators.carry_metadata
+    @decorators.keep_attrs
     def band_pass_adjustment(self, img):
         """Method to apply linear band transformation to dataset image collection.
         Expects that dataset has properties `self.gain` and `self.bias` set
@@ -427,7 +427,7 @@ class Dataset:
             .set("system:time_start", img.get("system:time_start"))
         )
 
-    def pipe(self, steps, inplace=False, carry_metadata=True):
+    def pipe(self, steps, inplace=False, keep_attrs=True):
         """Method to pipe imagery within dataset through multiple functions at once.
         Assumes the first argument into piped functions are and ee.Image
 
@@ -481,8 +481,8 @@ class Dataset:
             fs.append(pfunc)
 
         # get the piped function
-        if carry_metadata:
-            one_shot = decorators.carry_metadata(_piper(fs))
+        if keep_attrs:
+            one_shot = decorators.keep_attrs(_piper(fs))
         else:
             one_shot = _piper(fs)
 
@@ -522,7 +522,7 @@ class Sentinel1(Dataset):
 
         return
 
-    @decorators.carry_metadata
+    @decorators.keep_attrs
     def qa(self, img):
         """Custom QA masking method for Sentinel1 backscatter based on view angle
         Angle threshold values taken from https://doi.org/10.3390/rs13101954
@@ -586,9 +586,7 @@ class Sentinel1Asc(Sentinel1):
     This Sentinel 1 dataset is in power units
     """
 
-    def __init__(
-        self, *args, asset_id="COPERNICUS/S1_GRD", use_qa=True, **kwargs
-    ):
+    def __init__(self, *args, asset_id="COPERNICUS/S1_GRD", use_qa=True, **kwargs):
         """Initialize Sentinel1 Dataset class
 
         args:
@@ -613,9 +611,7 @@ class Sentinel1Desc(Sentinel1):
     This Sentinel dataset is in power units
     """
 
-    def __init__(
-        self, *args, asset_id="COPERNICUS/S1_GRD", use_qa=True, **kwargs
-    ):
+    def __init__(self, *args, asset_id="COPERNICUS/S1_GRD", use_qa=True, **kwargs):
         """Initialize Sentinel1 Dataset class
 
         args:
@@ -681,7 +677,7 @@ class Viirs(Dataset):
 
         return
 
-    @decorators.carry_metadata
+    @decorators.keep_attrs
     def qa(self, img):
         """Custom QA masking method for VIIRS VNP09GA dataset"""
         cloudMask = geeutils.extract_bits(
@@ -724,7 +720,7 @@ class Modis(Dataset):
 
         return
 
-    @decorators.carry_metadata
+    @decorators.keep_attrs
     def qa(self, img):
         """Custom QA masking method for MODIS MXD09GA dataset"""
         qa = img.select("state_1km")
@@ -768,7 +764,7 @@ class Landsat8(Dataset):
 
         return
 
-    @decorators.carry_metadata
+    @decorators.keep_attrs
     def qa(self, img):
         """Custom QA masking method for Landsat8 surface reflectance dataset"""
         qa_band = img.select("pixel_qa")
@@ -827,7 +823,7 @@ class Landsat7(Dataset):
 
         return
 
-    @decorators.carry_metadata
+    @decorators.keep_attrs
     def qa(self, img):
         """Custom QA masking method for Landsat7 surface reflectance dataset"""
         qa_band = img.select("pixel_qa")
@@ -900,7 +896,7 @@ class Landsat5(Dataset):
 
         return
 
-    @decorators.carry_metadata
+    @decorators.keep_attrs
     def qa(self, img):
         """Custom QA masking method for Landsat7 surface reflectance dataset"""
         qa_band = img.select("pixel_qa")
@@ -958,7 +954,7 @@ class Sentinel2(Dataset):
 
         return
 
-    @decorators.carry_metadata
+    @decorators.keep_attrs
     def qa(self, img):
         """Custom QA masking method for Sentinel2 surface reflectance dataset"""
         CLD_PRB_THRESH = 40

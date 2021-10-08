@@ -6,7 +6,7 @@ from hydrafloods import decorators
 def starfm(
     coarseCollection, fineCollection=None, targetDate="1970-01-01", windowSize=33, A=0.5
 ):
-    @decorators.carry_metadata
+    @decorators.keep_attrs
     def apply_starfm(img):
         t = ee.Date(img.get("system:time_start"))
 

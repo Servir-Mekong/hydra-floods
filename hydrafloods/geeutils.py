@@ -58,7 +58,7 @@ def export_image(
     scale=1000,
     crs="EPSG:4326",
     pyramiding=None,
-    export_type='toAsset',
+    export_type="toAsset",
     folder=None,
 ):
     """Function to wrap image export with EE Python API
@@ -88,15 +88,16 @@ def export_image(
         description = "".join(
             random.SystemRandom().choice(string.ascii_letters) for _ in range(8)
         ).lower()
-    if (type(export_type) != str):
-        raise TypeError(f'Input for export_type not a string, was a '
-                        f'{type(export_type)}.')
-    elif (export_type != 'toAsset') and (export_type != 'toDrive'):
-        raise ValueError('Invalid input for export_type, must be '
-                         '"toAsset" or "toDrive".')
+    if type(export_type) != str:
+        raise TypeError(
+            f"Input for export_type not a string, was a " f"{type(export_type)}."
+        )
+    elif (export_type != "toAsset") and (export_type != "toDrive"):
+        raise ValueError(
+            "Invalid input for export_type, must be " '"toAsset" or "toDrive".'
+        )
     if (folder is not None) and (type(folder) != str):
-        raise TypeError(f'Input for folder was not a string, was a '
-                        f'{type(folder)}')
+        raise TypeError(f"Input for folder was not a string, was a " f"{type(folder)}")
     # get serializable geometry for export
     export_region = region.bounds(maxError=10).getInfo()["coordinates"]
 
@@ -104,7 +105,7 @@ def export_image(
         pyramiding = {".default": "mean"}
 
     # set export process
-    if export_type == 'toAsset':
+    if export_type == "toAsset":
         export = ee.batch.Export.image.toAsset(
             image,
             description=description,
@@ -115,7 +116,7 @@ def export_image(
             crs=crs,
             pyramidingPolicy=pyramiding,
         )
-    elif export_type == 'toDrive':
+    elif export_type == "toDrive":
         export = ee.batch.Export.image.toDrive(
             image,
             description=description,
@@ -140,7 +141,7 @@ def batch_export(
     scale=1000,
     crs="EPSG:4326",
     pyramiding=None,
-    export_type='toAsset',
+    export_type="toAsset",
     folder=None,
     metadata=None,
     verbose=False,
@@ -220,7 +221,8 @@ def batch_export(
     return
 
 
-@decorators.carry_metadata
+@decorators.keep_names
+@decorators.keep_attrs
 def rescale(img, scale=0.0001, offset=0):
     """Function to linearly rescale units using user defined scale and offset
 
@@ -235,7 +237,8 @@ def rescale(img, scale=0.0001, offset=0):
     return img.multiply(scale).add(offset)
 
 
-@decorators.carry_metadata
+@decorators.keep_names
+@decorators.keep_attrs
 def power_to_db(img):
     """Function to convert SAR units from power to dB
 
@@ -248,7 +251,8 @@ def power_to_db(img):
     return ee.Image(10).multiply(img.log10())
 
 
-@decorators.carry_metadata
+@decorators.keep_names
+@decorators.keep_attrs
 def db_to_power(img):
     """Function to convert SAR units from dB to power
 
@@ -261,7 +265,7 @@ def db_to_power(img):
     return ee.Image(10).pow(img.divide(10))
 
 
-@decorators.carry_metadata
+@decorators.keep_attrs
 def add_indices(img, indices=["mndwi"]):
     """Function to calculate multiple band indices and add to image as bands
 
@@ -284,7 +288,9 @@ def add_indices(img, indices=["mndwi"]):
     return ee.Image.cat(cat_bands)
 
 
-def tile_region(region, grid_size=0.1, intersect_geom=None, contain_geom=None,centroid_within=None):
+def tile_region(
+    region, grid_size=0.1, intersect_geom=None, contain_geom=None, centroid_within=None
+):
     """Function to create a feature collection of tiles covering a region
 
     args:
@@ -300,8 +306,7 @@ def tile_region(region, grid_size=0.1, intersect_geom=None, contain_geom=None,ce
     """
     # nesting grid construction along y and then x coordinates
     def constuctGrid(i):
-        """Closure function to contruct grid
-        """
+        """Closure function to contruct grid"""
 
         def contructXGrid(j):
             j = ee.Number(j)
@@ -322,7 +327,9 @@ def tile_region(region, grid_size=0.1, intersect_geom=None, contain_geom=None,ce
                 )
             elif centroid_within is not None:
                 out = ee.Algorithms.If(
-                    box.geometry().centroid().intersects(centroid_within, maxError=500), box, None
+                    box.geometry().centroid().intersects(centroid_within, maxError=500),
+                    box,
+                    None,
                 )
             else:
                 out = box
