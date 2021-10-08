@@ -22,7 +22,7 @@ class TestFilters:
         assert result == expected
 
     def test_gamma_map(self):
-        filtered = hf.gamma_map(IMG,keep_bands=None)
+        filtered = hf.gamma_map(IMG, keep_bands=None)
         result = filtered.reduceRegion(ee.Reducer.mean(), GEOM, SCALE).getInfo()
         result = {k: round(v, 3) for k, v in result.items()}
 
@@ -31,7 +31,7 @@ class TestFilters:
         assert result == expected
 
     def test_refined_lee(self):
-        filtered = hf.refined_lee(IMG, keep_bands= None)
+        filtered = hf.refined_lee(IMG, keep_bands=None)
         result = filtered.reduceRegion(ee.Reducer.mean(), GEOM, SCALE).getInfo()
         result = {k: round(v, 3) for k, v in result.items()}
 
@@ -53,12 +53,12 @@ class TestFilters:
         result1 = filtered1.reduceRegion(ee.Reducer.mean(), GEOM, SCALE).getInfo()
         result1 = {k: round(v, 3) for k, v in result1.items()}
 
-        expected1 = {"constant": -0.253}
+        expected1 = {"b1": -0.253}
 
         filtered2 = hf.perona_malik(IMG, method=2)
         result2 = filtered2.reduceRegion(ee.Reducer.mean(), GEOM, SCALE).getInfo()
         result2 = {k: round(v, 3) for k, v in result2.items()}
 
-        expected2 = {"constant": -0.328}
+        expected2 = {"b1": -0.328}
 
         assert (result1 == expected1) and (result2 == expected2)
