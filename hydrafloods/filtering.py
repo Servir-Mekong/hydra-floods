@@ -3,6 +3,7 @@ import math
 from hydrafloods import geeutils, decorators
 
 
+@decorators.keep_names
 @decorators.keep_attrs
 def lee_sigma(img, window=9, sigma=0.9, looks=4, tk=7, keep_bands=["angle"]):
     """Lee Sigma speckle filtering algorithm.
@@ -128,6 +129,7 @@ def lee_sigma(img, window=9, sigma=0.9, looks=4, tk=7, keep_bands=["angle"]):
 
 
 # The RL speckle filter
+@decorators.keep_names
 @decorators.keep_attrs
 def refined_lee(image, keep_bands=["angle"]):
     """Refined Lee speckle filtering algorithm.
@@ -342,6 +344,7 @@ def refined_lee(image, keep_bands=["angle"]):
     return output
 
 
+@decorators.keep_names
 @decorators.keep_attrs
 def gamma_map(img, window=7, enl=4.9, keep_bands=["angle"]):
     """Gamma Map speckle filtering algorithm.
@@ -432,6 +435,7 @@ def gamma_map(img, window=7, enl=4.9, keep_bands=["angle"]):
     return output
 
 
+@decorators.keep_names
 @decorators.keep_attrs
 def p_median(img, window=5, keep_bands=["angle"]):
     """P-Median filter for smoothing imagery.
@@ -483,6 +487,7 @@ def p_median(img, window=5, keep_bands=["angle"]):
     return reduced_bands.rename(band_names)
 
 
+@decorators.keep_names
 @decorators.keep_attrs
 def perona_malik(img, n_iters=10, K=3, method=1):
     """Perona-Malik (anisotropic diffusion) convolution
@@ -560,6 +565,7 @@ def perona_malik(img, n_iters=10, K=3, method=1):
     return img
 
 
+@decorators.keep_names
 @decorators.keep_attrs
 def open_binary(img, window=3, neighborhood=None):
     """Opening morphological filter. Opening is the dilation of the erosion of
@@ -588,6 +594,7 @@ def open_binary(img, window=3, neighborhood=None):
     return opened
 
 
+@decorators.keep_names
 @decorators.keep_attrs
 def close_binary(img, window=3, neighborhood=None):
     """Closing morphological filter. Closing is the erosion of the dialiation of
