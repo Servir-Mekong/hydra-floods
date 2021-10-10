@@ -200,6 +200,18 @@ class Dataset:
 
         return dummy_ds
 
+    def _inplace_wrapper(self, collection, inplace):
+        """Private helper function to replace the collection info for a class
+        typically used when other class methods have inplace
+        """
+        if inplace:
+            self.collection = collection
+            return
+        else:
+            outCls = self.copy()
+            outCls.collection = collection
+            return outCls
+
     def copy(self):
         """returns a deep copy of the hydrafloods dataset class"""
         return copy.deepcopy(self)
@@ -222,13 +234,9 @@ class Dataset:
         # expects that the first positional arg is an
         func = partial(func, **kwargs)
 
-        if inplace:
-            self.collection = self.collection.map(func)
-            return
-        else:
-            outCls = self.copy()
-            outCls.collection = self.collection.map(func)
-            return outCls
+        out_coll = self.collection.map(func)
+
+        return self._inplace_wrapper(out_coll, inplace)
 
     def clip_to_region(self, inplace=False):
         """Clips all of the images to the geographic extent defined by region.
@@ -246,17 +254,9 @@ class Dataset:
             """Closure function to perform the clipping while carrying metadata"""
             return ee.Image(img.clip(self.region))
 
-        if inplace:
-            self.collection = self.collection.map(clip)
-            return
-        else:
-            outCls = self.copy()
-            outCls.collection = self.collection.map(clip)
-            return outCls
+        out_coll = self.collection.map(clip)
 
-    def filter(self, filter, inplace=False):
-
-        return
+        return self._inplace_wrapper(out_coll, inplace)
 
     def merge(self, dataset, inplace=False):
         """Merge the collection of two datasets into one where self.collection will contain imagery from self and dataset arg.
@@ -272,13 +272,7 @@ class Dataset:
         """
         merged = self.collection.merge(dataset.collection).sort("system:time_start")
 
-        if inplace:
-            self.collection = merged
-            return
-        else:
-            outCls = self.copy()
-            outCls.collection = merged
-            return outCls
+        return self._inplace_wrapper(merged, inplace)
 
     def join(self, dataset, inplace=False):
         """Performs spatiotemporal join between self.collection and dataset.collection.
@@ -330,13 +324,7 @@ class Dataset:
         # map over all filtered imagery, mosaic joined matches, and add bands to imagery
         joined = joined.map(_merge)
 
-        if inplace:
-            self.collection = joined
-            return
-        else:
-            outCls = self.copy()
-            outCls.collection = joined
-            return outCls
+        return self._inplace_wrapper(joined, inplace)
 
     def aggregate_time(
         self,
@@ -403,13 +391,7 @@ class Dataset:
 
         out_coll = ee.ImageCollection.fromImages(dates.map(_aggregation))
 
-        if inplace:
-            self.collection = out_coll
-            return
-        else:
-            outCls = self.copy()
-            outCls.collection = out_coll
-            return outCls
+        return self._inplace_wrapper(out_coll, inplace)
 
     @decorators.keep_attrs
     def band_pass_adjustment(self, img):
@@ -489,13 +471,7 @@ class Dataset:
         # apply pipe to each image
         out_coll = self.collection.map(lambda img: one_shot(img))
 
-        if inplace:
-            self.collection = out_coll
-            return
-        else:
-            outCls = self.copy()
-            outCls.collection = out_coll
-            return outCls
+        return self._inplace_wrapper(out_coll, inplace)
 
 
 class Sentinel1(Dataset):
