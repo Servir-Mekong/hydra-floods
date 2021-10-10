@@ -238,6 +238,20 @@ class Dataset:
 
         return self._inplace_wrapper(out_coll, inplace)
 
+    def apply(self, func, inplace=False, *args, **kwargs):
+        """Alias for the `apply_func` method
+
+        args:
+            func (object): Function to map across image collection. Function must accept ee.Image as first argument
+            inplace (bool, optional): define whether to return another dataset object or update inplace. default = False
+            **kwargs: arbitrary keyword to pass to `func`
+
+        returns:
+            Dataset | None: copy of class with results from `func` as image within collection property
+        """
+
+        return self.apply_func(func, inplace, *args, *kwargs)
+
     def clip_to_region(self, inplace=False):
         """Clips all of the images to the geographic extent defined by region.
         Useful for setting geometries on unbounded imagery in collection (e.g. MODIS or VIIRS imagery)
