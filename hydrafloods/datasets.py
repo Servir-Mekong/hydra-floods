@@ -252,6 +252,35 @@ class Dataset:
 
         return self.apply_func(func, inplace, *args, *kwargs)
 
+    def filter(self, filter, inplace=False):
+        """Wrapper method for applying a filter to a datset collection.
+
+        args:
+            filter (ee.Filter): an `ee.Filter` object to apply to the dataset collection.
+
+        returns:
+            Dataset | None: returns the dataset with the filtered collection.
+        """
+
+        filtered = self.collection.filter(filter)
+
+        return self._inplace_wrapper(filtered, inplace)
+
+    def select(self, *args, inplace=False):
+        """Wrapper method for selecting bands from dataset collection
+
+        args:
+            *args: arbitrary arguments to pass to the `ee.ImageCollection.select()` method
+            inplace (bool, optional): define whether to return another dataset object or update inplace. default = False
+
+        returns:
+            Dataset | None: returns the dataset with the collection with selected bands.
+
+        """
+        selected = self.collection.select(*args)
+
+        return self._inplace_wrapper(selected, inplace)
+
     def clip_to_region(self, inplace=False):
         """Clips all of the images to the geographic extent defined by region.
         Useful for setting geometries on unbounded imagery in collection (e.g. MODIS or VIIRS imagery)
@@ -589,9 +618,7 @@ class Sentinel1Asc(Sentinel1):
             *args, asset_id=asset_id, use_qa=use_qa, **kwargs
         )
 
-        self.collection = self.collection.filter(
-            ee.Filter.eq("orbitProperties_pass", "ASCENDING"),
-        )
+        self.filter(ee.Filter.eq("orbitProperties_pass", "ASCENDING"), inplace=True)
 
         return
 
@@ -614,9 +641,7 @@ class Sentinel1Desc(Sentinel1):
             *args, asset_id=asset_id, use_qa=use_qa, **kwargs
         )
 
-        self.collection = self.collection.filter(
-            ee.Filter.eq("orbitProperties_pass", "DESCENDING"),
-        )
+        self.filter(ee.Filter.eq("orbitProperties_pass", "DESCENDING"), inplace=True)
 
         return
 
