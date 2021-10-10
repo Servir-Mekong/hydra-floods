@@ -1,8 +1,86 @@
 import ee
 from functools import partial
 
+from hydrafloods import filtering
 
-def fwdet(
+
+def fwdet(water_img, dem, band=None, outlier_test=False, force_projection=False):
+    """Implementation of the Flood Water Depth Estimation Tool
+    Used to calculate water depth given a water map and elevation data
+    Original paper: https://doi.org/10.5194/nhess-19-2053-2019
+    Earth Engine paper: https://doi.org/10.1109/LGRS.2020.3031190
+
+    args:
+        water_img (ee.Image): earth engine image object representing the water extent. Assumes values of 1 equal water.
+        dem (ee.Image): earth engine image object representing elevation
+        band (str | None): band name to use for algorithm, if set to `None` will use first band in image. default = None
+        outlier_test (bool): flag used to find and filter outlier dem values around water boundaries. default = False
+        force_projection (bool): flag used to force the output image projection to that of the input dem. default = False
+
+    returns:
+        ee.Image: image of water depth in meters
+    """
+
+    proj = dem.projection()
+
+    # select band to use for algorithm
+    if band is None:
+        water_img = water_img.select([0]).selfMask()
+
+    else:
+        water_img = water_img.select(ee.String(band)).selfMask()
+
+    if outlier_test:
+        filled = filtering.modified_median_zscore(dem)
+
+        expand = water_img.focal_max(
+            kernel=ee.Kernel.square(radius=res, units="meters")
+        )
+
+        dem_mask = dem.updateMask(water_image.gt(0))
+
+        boundary = dem_mask.add(expand)
+
+        filled = hf.modified_median_zscore(boundary, filled)
+
+    else:
+        filled = dem
+
+    # cumulative cost model
+
+    mod = filled.updateMask(water_img.mask().eq(0))
+    source = mod.mask()
+
+    val = 10000
+    push = 5000
+
+    cost0 = ee.Image(val).where(source, 0).cumulativeCost(source, push)
+    cost1 = ee.Image(val).where(source, 1).cumulativeCost(source, push)
+    cost2 = mod.unmask(val).cumulativeCost(source, push)
+
+    costFill = cost2.subtract(cost0).divide(cost1.subtract(cost0))
+
+    costSurface = mod.unmask(0).add(costFill)
+
+    # Kernel for low-pass filter
+    boxcar = ee.Kernel.square(radius=3, units="pixels", normalize=True)
+
+    # Floodwater depth calculation and smoothing using a low-pass filter
+    depths = (
+        costSurface.subtract(filled).convolve(boxcar).updateMask(water_img.mask())
+    ).rename("depth")
+
+    # force min values to be 0
+    depths = depths.max(ee.Image.constant(0))
+
+    # force the output project to be that of the input dem if force_projection is true
+    if force_projection:
+        depths = depths.reproject(proj)
+
+    return depths
+
+
+def fwdet_experimental(
     water_img,
     dem,
     iter=10,
@@ -10,11 +88,12 @@ def fwdet(
     pixel_edge=0,
     boundary_definition="mean",
     smooth_depths=True,
+    force_projection=False,
 ):
-    """Implementation of the Flood Water Depth Estimation Tool
+    """Experimantal changes to the implementation of the Flood Water Depth Estimation Tool
     Used to calculate water depth given a water map and elevation data
-    Original paper: https://doi.org/10.5194/nhess-19-2053-2019
-    Earth Engine paper: https://doi.org/10.1109/LGRS.2020.3031190
+
+    Difference from original FwDET implementation include ...
 
     args:
         water_img (ee.Image): earth engine image object representing the water extent.
@@ -27,6 +106,8 @@ def fwdet(
         boundary_definition (str): method for defining the elevation at water edges. Options are 'mean' or 'nearest'
             Note: 'nearest' is the FwDET original method, 'mean' is an updated method. default=mean
         smooth_depths (bool): flag to control if the resulting water depths should be smoothed or not, uses a 3x3 pixel mean. default=True
+        force_projection (bool): flag used to force the output image projection to that of the input dem. default = False
+
 
     returns:
         ee.Image: image of water depth in meters
@@ -123,6 +204,10 @@ def fwdet(
             optimization="boxcar",  # optimization for mean.
         )
 
+    # force the output project to be that of the input dem if force_projection is true
+    if force_projection:
+        depths = depths.reproject(proj)
+
     return depths.rename("depth").set("depth_iter", iter)
 
 
@@ -166,7 +251,7 @@ def downscale_wfraction(fraction, dem):
         dem (ee.Image): earth engine image object representing elevation
 
     returns:
-        ee.Image: downscaled image of water
+        ee.Image: downscaled binary image of water
     """
 
     resolution = fraction.projection().nominalScale()
