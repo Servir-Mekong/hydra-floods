@@ -567,6 +567,39 @@ def perona_malik(img, n_iters=10, K=3, method=1):
 
 @decorators.keep_names
 @decorators.keep_attrs
+def modified_median_zscore(img, fill_img=None):
+    """Outlier detection and filling on complete DEM using the modified z-score and a median filter
+    Method from  Iglewicz, B. and Hoaglin, D.C., 1993. How to detect and handle outliers (Vol. 16). Asq Press.
+
+    args:
+        img (ee.Image): Earth engine image object to apply filter on
+        fill_img (ee.Image): Earth engine image object to fill values resulting from filter.
+            If None provided, the fill operation will be on the input image. Default = None
+
+    returns:
+        ee.Image: filtered image
+    """
+
+    kernel = ee.Kernel.fixed(3, 3, [[1, 1, 1], [1, 1, 1], [1, 1, 1]])
+    kernel_weighted = ee.Kernel.fixed(3, 3, [[1, 1, 1], [1, 0, 1], [1, 1, 1]])
+
+    median = img.focal_median(kernel=kernel)
+    median_weighted = img.focal_median(kernel=kernel_weighted)
+
+    diff = img.subtract(median)
+
+    mzscore = diff.multiply(0.6745).divide(diff.abs().focal_median(kernel=kernel))
+
+    if fill_img:
+        filled = fill_img.where(mzscore.gt(3.5), median_weighted)
+    else:
+        filled = img.where(mzscore.gt(3.5), median_weighted)
+
+    return filled
+
+
+@decorators.keep_names
+@decorators.keep_attrs
 def open_binary(img, window=3, neighborhood=None):
     """Opening morphological filter. Opening is the dilation of the erosion of
     values greater than 1.
