@@ -13,6 +13,7 @@ nav:
         - depths module: depths.md
         - decorators module: decorators.md
         - fetch module: fetch.md
+        - floods module: floods.md
         - filtering module: filtering.md
         - fuzzy module: fuzzy.md
         - geeutils module: geeutils.md
