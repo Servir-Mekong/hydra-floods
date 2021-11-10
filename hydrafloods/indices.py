@@ -211,6 +211,21 @@ def mbwi(img, factor=3):
 
 
 @decorators.keep_attrs
+def mwi(img):
+    """Function to calculate the Modified Water Index (MWI)
+    Expect image has "green", "red", "nir", and "swir1" bands
+    https://doi.org/10.1007/978-3-662-45737-5_51 , https://ieeexplore.ieee.org/document/9011209
+    """
+    # calculate ndvi
+    ndvi_img = ndvi(img)
+    # calculate mndwi
+    mndwi_img = mndwi(img)
+
+    # mwi = 1 - (ndvi - mndwi)
+    return ee.Image.constant(1).subtract(ndvi_img.subtract(mndwi_img)).rename("mwi")
+
+
+@decorators.keep_attrs
 def rfi(img):
     """Function to calculate SAR RFI index.
     Expects image has "VV" and "VH" bands.
