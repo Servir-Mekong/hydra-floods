@@ -11,4 +11,4 @@ from hydrafloods import fetch, utils
 
 # from hydrafloods import *
 
-__version__ = "2021.10.11"
+__version__ = "2021.11.10"
