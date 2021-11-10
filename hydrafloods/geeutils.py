@@ -209,7 +209,7 @@ def batch_export(
         export_image(
             img,
             region,
-            assed_id=exportName,
+            asset_id=exportName,
             description=description,
             scale=scale,
             crs=crs,
