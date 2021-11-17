@@ -186,7 +186,7 @@ def batch_export(
             img = img.set(metadata)
 
         t = img.get("system:time_start").getInfo()
-        date = datetime.datetime.utcfromtimestamp(t / 1e3).strftime("%Y%m%d%H%M:%S")
+        date = datetime.datetime.utcfromtimestamp(t / 1e3).strftime("%Y%m%d%H%M%S")
 
         if region is None:
             region = img.geometry()
