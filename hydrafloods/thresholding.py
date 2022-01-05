@@ -37,7 +37,7 @@ def bmax_otsu(
         grid_size (float, optional): size in decimal degrees to tile image/region to check for bimodality. default = 0.1
         bmax_threshold (float, optional): value 0-1 to determine if a value of bmax is bimodal or not. default = 0.75
         iters (int, optional): number of iterations to successively shrink the bmax tiles to refine threshold. 1 uses defined grid_size. default = 1
-        max_boxes (int, optional): maximum number of tiles/boxes to use when determining threshold. default = None
+        max_boxes (int, optional): maximum number of tiles/boxes to use when determining threshold, will select based on maximum bmax ordering. default = None
         seed (int, optional): random number generator seed for randomly selected max_boxes. default = 7
         max_buckets (int, optional): The maximum number of buckets to use when building a histogram; will be rounded up to a power of 2. default = 255
         min_bucket_width (float, optional): The minimum histogram bucket width to allow any power of 2. default = 0.001
@@ -120,7 +120,7 @@ def bmax_otsu(
             bmaxes = grid.map(calcBmax).filter(ee.Filter.gt("bmax", bmax_threshold))
 
     if max_boxes is not None:
-        selection = bmaxes.randomColumn("random", seed).limit(max_boxes, "random")
+        selection = bmaxes.limit(max_boxes, "bmax")
     else:
         selection = bmaxes
 
