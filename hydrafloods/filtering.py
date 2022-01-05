@@ -624,7 +624,7 @@ def open_binary(img, window=3, neighborhood=None):
 
     erosion = img.Not().fastDistanceTransform(neighborhood).sqrt().gt(window)
     opened = erosion.fastDistanceTransform(neighborhood).sqrt().lt(window)
-    return opened
+    return opened.updateMask(img.mask())
 
 
 @decorators.keep_names
@@ -654,4 +654,4 @@ def close_binary(img, window=3, neighborhood=None):
     dialation = img.fastDistanceTransform(neighborhood).sqrt().lt(window)
     closed = dialation.Not().fastDistanceTransform(neighborhood).sqrt().gt(window)
 
-    return closed
+    return closed.updateMask(img.mask())
