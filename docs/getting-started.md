@@ -44,7 +44,7 @@ There are many ways to interface with datasets (i.e. ImageCollections) using `hy
 
 ## Image processing
 
-The main purpose of `hydrafloods` is to lower the barrier to creating high-quality surface water maps, this requires image processing. Although the Dataset class wraps an Earth Engine image collection we can apply image processing functions using [`apply_func()`](/hydra-floods/datasets/#hydrafloods.datasets.Dataset.apply_func) by passing a function object. 
+The main purpose of `hydrafloods` is to lower the barrier to creating high-quality surface water maps, this requires image processing. Although the Dataset class wraps an Earth Engine image collection we can apply image processing functions using [`apply_func()`](/hydra-floods/datasets/#hydrafloods.datasets.Dataset.apply_func) by passing a function object.
 
 This method wraps a function that accepts an image as the first argument (which most `hydrafloods` image processing algorithms do) and maps it over the collection. For example, we would like to apply a speckle filter algorithm on SAR imagery. We can easily do this with the following code.
 
@@ -57,9 +57,9 @@ filtered = s1.apply_func(hf.gamma_map)
 The previous example is synonymous with using `s1.collection = s1.collection.map(hf.gamma_map)` which access the image collection, applies the function, and sets the results to the `s1.collection` property. Although this technically works, using the `apply_func()` method is advantageous and preferred as it allows us to pass arbitrary keyword parameters to functions which we want to apply. For example, the water mapping algorithms found in [`hydrafloods.thresholding`](/hydra-floods/thresholding/) take many keyword parameters and we can customize function as in the following example.
 
 ```python
-# apply the edge otsu surface water mapping 
+# apply the edge otsu surface water mapping
 # we apply this on the speckle filtered SAR data
-water_maps = filtered.apply_func(hf.edge_otsu, 
+water_maps = filtered.apply_func(hf.edge_otsu,
     initial_threshold=-16,
     thresh_no_data=-20,
     edge_buffer=300,
@@ -131,7 +131,7 @@ Time series functionality in `hydrafloods` is focused around modeling data in ti
 
 ## Machine Learning
 
-`hydrafloods` also has a specific module for machine learning workflows with Earth Engine, [`hydrafloods.ml`](/hydra-floods/ml/). 
+`hydrafloods` also has a specific module for machine learning workflows with Earth Engine, [`hydrafloods.ml`](/hydra-floods/ml/).
 
 ```python
 # import in the ml module
@@ -143,17 +143,17 @@ The aim with this module is to make high-quality machine learning workflows easi
 ```python
 # define some parameters for the ml workflow we will use
 # define feature columns to use for training/prediction
-feature_names = ['VV','VH','ratio','ndpi'] 
+feature_names = ['VV','VH','ratio','ndpi']
 
 # get a feature collection for training/testing
 fc = (
     ee.FeatureCollection("projects/servir-ee/assets/sar_wi_samples_20200825104400")
-    .randomColumn("random") 
+    .randomColumn("random")
 )
 
 # split the feature collection into training/testing datasets
 # good practice to do this
-training = fc.filter(ee.Filter.lte("random",0.7)) 
+training = fc.filter(ee.Filter.lte("random",0.7))
 testing = fc.filter(ee.Filter.gt("random",0.7))
 ```
 
@@ -182,16 +182,17 @@ testing_norm = ml.standard_feature_scaling(testing,scaling_dict,feature_names)
 y_test = testing_norm.classify(rf,"predicted")
 ```
 
-Majority of the time we would like to apply the predictions on imagery and the `ml` module has functionality to perfrom the scaling for imagery easily. First we have to add the bands to dataset collection which the `Sentinel1` dataset class has a custom method to add the VV/VH ratio and VV-VH normalized difference bands.
+Majority of the time we would like to apply the predictions on imagery and the `ml` module has functionality to perform the scaling for imagery easily. First we have to add the bands to dataset collection which the `Sentinel1` dataset class has a custom method to add the VV/VH ratio and VV-VH normalized difference bands.
 
 ```python
 # add bands for features used in RF model
-s1_features = s1.add_fusion_features()
+s1_features = s1.apply_func(hf.add_indices, ["vv_vh_ratio", "ndpi"])
 
 # scale the bands using the scaling_dict
 s1_norm = s1_features.apply_func(
-    ml.standard_image_scaling, 
+    ml.standard_image_scaling,
     scaling_dict=scaling_dict,
+    feature_names=feature_names
 )
 
 # apply the prediction on the dataset
