@@ -1,6 +1,6 @@
 import ee
 
-from hydrafloods import decorators
+from hydrafloods import timeseries, decorators
 
 
 @decorators.keep_attrs
@@ -83,3 +83,26 @@ def discrete_difference(observation, reference):
     og_mask = observation.mask()
     floods = observation.unmask(0).add(reference.unmask(0).multiply(2)).eq(1)
     return floods.updateMask(og_mask).rename("flood")
+
+
+def flood_duration(collection, is_masked=True):
+
+    if not isinstance(collection, ee.ImageCollection):
+        collection = collection.collection
+
+    max_extent = collection.max().selfMask()
+
+    if is_masked == True:
+        f = lambda x: timeseries.add_time_band(
+            x.selfMask(), apply_mask=True, offset="day"
+        )
+
+    else:
+        f = lambda x: timeseries.add_time_band(x, apply_mask=True, offset="day")
+
+    time_coll = collection.map(f)
+
+    min_time = time_coll.select("time").min()
+    max_time = time_coll.select("time").max()
+
+    return max_time.subtract(min_time).updateMask(max_extent)
