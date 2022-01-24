@@ -112,7 +112,7 @@ The result from [`fit_harmonic_trend()`](/hydra-floods/timeseries/#hydrafloods.t
 
 ```python
 # extract bands needed for prediction
-harmonic_weights = harmonics.select("^(c|t|s).*")
+harmonic_weights = harmonics_weights.select("^c|t|s).*") 
 
 # get a dummy image with just time information for prediction
 # for flooding date in Oct 2019
