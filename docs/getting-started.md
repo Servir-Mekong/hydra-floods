@@ -112,7 +112,7 @@ The result from [`fit_harmonic_trend()`](/hydra-floods/timeseries/#hydrafloods.t
 
 ```python
 # extract bands needed for prediction
-harmonic_weights = harmonics_weights.select("^c|t|s).*") 
+harmonic_weights = harmonics_weights.select("^c|t|s).*")
 
 # get a dummy image with just time information for prediction
 # for flooding date in Oct 2019
@@ -186,7 +186,7 @@ Majority of the time we would like to apply the predictions on imagery and the `
 
 ```python
 # add bands for features used in RF model
-s1_features = s1.apply_func(hf.add_indices, ["vv_vh_ratio", "ndpi"])
+s1_features = s1.apply_func(hf.add_indices, indices=["vv_vh_ratio", "ndpi"])
 
 # scale the bands using the scaling_dict
 s1_norm = s1_features.apply_func(
