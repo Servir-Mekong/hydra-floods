@@ -382,7 +382,7 @@ class Goes16(hf.Dataset):
     # define a qa method and wrap in the carry_metadata decorator
     # retains metadata for each image
     # qa() will get called on super() if use_qa==True
-    @hf.decorators.carry_metadata
+    @hf.decorators.keep_attrs
     def qa(self, img):
         """Custom QA masking method for Goes17 data
         Scales data to reflectance and finds poor quality images
