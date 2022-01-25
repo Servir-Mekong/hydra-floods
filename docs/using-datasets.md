@@ -16,7 +16,7 @@ end_time = "2019-07-01"
 # get a Landsat 8 collection
 lc8 = hf.Landsat8(region,start_time,end_time)
 print(lc8)
-# should look like 
+# should look like
 # HYDRAFloods Dataset:
 # {'asset_id': 'LANDSAT/LC08/C01/T1_SR',
 #  'end_time': '2019-07-01',
@@ -38,7 +38,7 @@ print(lc8.n_images)
 # should equal 197
 
 print(lc8.dates)
-# should look something like 
+# should look something like
 # ['2019-01-12 03:06:42.950',
 #  '2019-01-28 03:06:38.990',
 #  ... ,
@@ -93,9 +93,9 @@ print(qa_thumb)
 print(noqa_thumb)
 ```
 
-`use_qa = True`             |  `use_qa = False` 
+`use_qa = True`             |  `use_qa = False`
 :-------------------------:|:-------------------------:
-![](img/datasets_lc8_qa.png)  |  ![](img/datasets_lc8_noqa.png) 
+![](img/datasets_lc8_qa.png)  |  ![](img/datasets_lc8_noqa.png)
 
 We can clearly see the image on the left has clouds and cloud shadows masked and can therefore be used directly in analysis with minimal effort. More information on the internals of these specialized datasets and how you can write your own can be found at the [Writing your own dataset class](#writing-your-own-dataset-class) section.
 
@@ -124,7 +124,7 @@ It should be noted that hydrafloods will attempt to call `.getInfo()` from the `
 
 ## Applying a function
 
-As we saw in the [Getting Stated](/hydra-floods/getting-started/#image-processing) page, we can apply image processing functions using [`apply_func()`](/hydra-floods/datasets/#hydrafloods.datasets.Dataset.apply_func) by passing a function object or any keyword parameters. This method wraps a function that accepts an image as the first argument (which most `hydrafloods` image processing algorithms do) and maps it over the collection. For example, if want to create a water map using Landsat 8, we will calculate a water index and then apply a thresholding algorithm: 
+As we saw in the [Getting Stated](/hydra-floods/getting-started/#image-processing) page, we can apply image processing functions using [`apply_func()`](/hydra-floods/datasets/#hydrafloods.datasets.Dataset.apply_func) by passing a function object or any keyword parameters. This method wraps a function that accepts an image as the first argument (which most `hydrafloods` image processing algorithms do) and maps it over the collection. For example, if want to create a water map using Landsat 8, we will calculate a water index and then apply a thresholding algorithm:
 
 ```python
 region = hf.country_bbox("Cambodia")
@@ -163,7 +163,7 @@ water_img.getThumbURL({
 
  Landsat 8 Water Index            | Landsat 8 Water Map
 :-------------------------------:|:-------------------------------:
-![](img/datasets_lc8_func_index.png) | ![](img/datasets_lc8_pipe.png) 
+![](img/datasets_lc8_func_index.png) | ![](img/datasets_lc8_pipe.png)
 
 ## Merging Datasets
 
@@ -196,7 +196,7 @@ joined = lc8.join(s1)
 # has 131 coincident images
 
 # grab the first image in the collection
-# will have optical and sar bands 
+# will have optical and sar bands
 first = joined.collection.first()
 
 print(first.bandNames().getInfo())
@@ -226,7 +226,7 @@ print(sar_thumb)
 
  Landsat 8 2019-01-28            | Sentinel 1 2019-01-28
 :-------------------------------:|:-------------------------------:
-![](img/datasets_lc8_joined.png) | ![](img/datasets_s1_joined.png) 
+![](img/datasets_lc8_joined.png) | ![](img/datasets_s1_joined.png)
 
 
 
@@ -237,10 +237,10 @@ A common workflow is merging data and make composites for individual dates that 
 ```python
 # define new time range
 start_time = "2018-11-03"  
-end_time = "2018-11-15" 
+end_time = "2018-11-15"
 
 # get the terra MODIS dataset
-terra = hf.Modis(region,start_time,end_time) 
+terra = hf.Modis(region,start_time,end_time)
 # get the aqua MODIS dataset
 # note calling the asset_id explicitly
 aqua = hf.Modis(region,start_time,end_time,asset_id="MODIS/006/MYD09GA")
@@ -249,11 +249,44 @@ aqua = hf.Modis(region,start_time,end_time,asset_id="MODIS/006/MYD09GA")
 merged = terra.merge(aqua)
 # aggregate in time
 agg = merged.aggregate_time(reducer="median")
+
+# get thumb for first image in terra dataset
+terra.collection.first().getThumbURL({
+    "min": 50,
+    "max": 5500,
+    "bands": "swir2,nir,green",
+    "gamma": 1.5,
+    "region": region,
+    "dimensions": 1024,
+    "crs": "EPSG:4326"
+})
+
+# get thumb for first image in aqua dataset
+aqua.collection.first().getThumbURL({
+    "min": 50,
+    "max": 5500,
+    "bands": "swir2,nir,green",
+    "gamma": 1.5,
+    "region": region,
+    "dimensions": 1024,
+    "crs": "EPSG:4326"
+})
+
+# get thumb for first image in merged dataset
+agg.collection.first().getThumbURL({
+    "min": 50,
+    "max": 5500,
+    "bands": "swir2,nir,green",
+    "gamma": 1.5,
+    "region": region,
+    "dimensions": 1024,
+    "crs": "EPSG:4326"
+})
 ```
 
 MODIS Terra 2018-11-03            | MODIS Aqua 2018-11-03            | Aggregated
 :--------------------------------:|:--------------------------------:|:------------------------------------:
-![](img/datasets_terra_noagg.png) | ![](img/datasets_aqua_noagg.png) | ![](img/datasets_terra_aqua_agg.png) 
+![](img/datasets_terra_noagg.png) | ![](img/datasets_aqua_noagg.png) | ![](img/datasets_terra_aqua_agg.png)
 
 By doing this we can fill in gaps where some data is missing with other sensors. We see in the above example that combining the MODIS data from Terra and Aqua we can get more coverage in the event of flooding. By default the method will take unique dates within the dataset and aggregate by one day as seen in the above example.
 
@@ -262,14 +295,14 @@ We can also use this functionality to make monthly or yearly composites of data 
 ```python
 # define new time range
 start_time = "2015-01-01"  
-end_time = "2020-01-01" 
+end_time = "2020-01-01"
 
 # define the dates in which to start aggregation
 year_starts = ["2015-01-01","2016-01-01","2017-01-01","2018-01-01","2019-01-01"]
 
 # get the terra MODIS dataset
-terra = hf.Modis(region,start_time,end_time) 
-# apply the aggregation 
+terra = hf.Modis(region,start_time,end_time)
+# apply the aggregation
 yearly = terra.aggregate_time(dates=year_starts,period=365)
 
 print(yearly.dates)
@@ -365,7 +398,7 @@ class Goes16(hf.Dataset):
         # convert scale/offset values to image
         scale_img = img.toDictionary(scale_properties).toImage()
         offset_img = img.toDictionary(offset_properties).toImage()
-        
+
         # get qa bands and set 0 to 1 and everything else to 0
         qa_img = img.select("^(DQF).*").Not()
 
@@ -388,7 +421,7 @@ class Goes16(hf.Dataset):
 
 
 # get a GOES collection over the United States
-us = hf.country_bbox("United States") 
+us = hf.country_bbox("United States")
 goes = Goes16(us,"2020-07-28T18:40:18","2020-07-29T00:00:00")
 
 # view the results from the GOES16 collection
@@ -402,11 +435,11 @@ viz_params = {
     "dimensions":1024,
     "crs":"epsg:5070"
 }
-print(first_img.getThumbURL(viz_params)) 
+print(first_img.getThumbURL(viz_params))
 ```
 
 ![](img/datasets_goes_class.png)
 
 In this example of a custom dataset class for GOES16 imagery, the `qa()` method definition is more for preprocessing to scale the imagery. A custom cloud/shadow masking workflow can easily be included and applied on the imagery. Now we are ready to use our custom GOES16 imagery with the rest of the `hydrafloods` functions!
 
-More detailed information on the `hydrafloods.Dataset` class along with it's method fucntionality and arguments can be found in the [datasets module](/hydra-floods/datasets/) API reference. 
+More detailed information on the `hydrafloods.Dataset` class along with it's method fucntionality and arguments can be found in the [datasets module](/hydra-floods/datasets/) API reference.
