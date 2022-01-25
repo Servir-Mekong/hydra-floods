@@ -171,14 +171,14 @@ One of the simpilest ways to combine datasets is to merge. This takes the imager
 
 ```python
 lc8 = hf.Landsat8(region,start_time,end_time)
-# has 197 image
+# has 71 images
 
 s2 = hf.Sentinel2(region,start_time,end_time)
-# has 2400 images
+# has 798 images
 
 merged = lc8.merge(s2)
 print(merged.n_images)
-# now has 2597 images!
+# now has 869 images!
 ```
 
 ## Joining Datasets
