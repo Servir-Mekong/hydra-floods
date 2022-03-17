@@ -1,6 +1,11 @@
 import ee
 
-from hydrafloods import timeseries, decorators
+from hydrafloods import (
+    timeseries,
+    decorators,
+    geeutils,
+    thresholding
+)
 
 
 @decorators.keep_attrs
@@ -83,6 +88,76 @@ def discrete_difference(observation, reference):
     og_mask = observation.mask()
     floods = observation.unmask(0).add(reference.unmask(0).multiply(2)).eq(1)
     return floods.updateMask(og_mask).rename("flood")
+
+
+@decorators.keep_attrs
+def lar_change_detection(
+    observation, reference, band=None, in_units="dB", segmentation="edgeotsu", **kwargs
+):
+    """Log Amplitude Ratio change detection method. https://doi.org/10.1080/014311698215649
+    Note: This method only works for SAR imagery.
+
+    args:
+        observation (ee.Image):
+        reference (ee.Image):
+        band (str | None,optional): band name to use for thresholding, if set to `None` will use first band in image. default = None
+        in_units (str, optional): string specifying the input units for the imagery. Options are 'dB' or 'power'. If in_units = 'dB',
+            then the data is converted to power units. default = dB
+        segmentation (str | None, optional): segmentation method to use to . Options are 'edgeotsu', 'bmaxotsu', or None. If none
+            is provided then no segmentation is applied and the raw log amplitude ratio is returned. default = edgeotsu
+        **kwargs: optional keywords to pass to segmentation method, not required if segmentation = None
+
+
+    returns:
+        ee.Image:
+    """
+    if band is None:
+        band = observation.bandNames().get(0)
+    # convert the db data to amplitude units
+    # amplitude = sqrt(power)
+    # then divide post/pre and take the log
+    if in_units == "dB":
+        lar = (
+            geeutils.db_to_power(observation).sqrt().select(band)
+            .divide(geeutils.db_to_power(reference).sqrt().select(band))
+            .log10()
+        )
+
+    elif in_units == "power":
+        lar = observation.sqrt().select(band).divide(reference.sqrt().select(band)).log10()
+
+    else:
+        raise NotImplementedError(
+            f"input units could not be infered from {in_units}, please select either 'dB' or 'power'"
+        )
+
+    if segmentation == "edgeotsu":
+        floods_lar = thresholding.edge_otsu(lar, band=band, **kwargs)
+
+    elif segmentation == "bmaxotsu":
+        floods_lar = thresholding.bmax_otsu(lar, band=band, **kwargs)
+
+    elif segmentation == None:
+        floods_lar = lar
+
+    else:
+        raise NotImplementedError(
+            f"selected segmentation method {segmentation} is not valid, please select 'edgeotsu', 'bmaxotsu', or None"
+        )
+
+    return floods_lar
+
+
+# def temporal_zscore_change_detection(
+#     collection,
+#     reference_period,
+# ):
+#     """Flood dectection method from https://doi.org/10.1016/j.rse.2020.111664
+#     Calculates the per-pixel z_score from an dryseason composite and determines
+#     flooded pixels using a decision tree
+#     """
+#
+#     return
 
 
 def flood_duration(collection, is_masked=True):
