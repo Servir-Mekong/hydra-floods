@@ -64,8 +64,8 @@ class Dataset:
         # dictionary mapping of band names used to harmonized optical datasets to same names
         self.BANDREMAP = ee.Dictionary(
             {
-                "landsat7": ee.List(["B1", "B2", "B3", "B4", "B5", "B7"]),
-                "landsat8": ee.List(["B2", "B3", "B4", "B5", "B6", "B7"]),
+                "landsat7": ee.List(["SR_B1", "SR_B2", "SR_B3", "SR_B4", "SR_B5", "SR_B7"]),
+                "landsat8": ee.List(["SR_B2", "SR_B3", "SR_B4", "SR_B5", "SR_B6", "SR_B7"]),
                 "viirs": ee.List(["M2", "M4", "I1", "I2", "I3", "M11"]),
                 "sen2": ee.List(["B2", "B3", "B4", "B8", "B11", "B12"]),
                 "modis": ee.List(
@@ -199,6 +199,11 @@ class Dataset:
         dummy_ds.collection = img_collection
 
         return dummy_ds
+
+    def qa(
+        self,
+    ):
+        return
 
     def _inplace_wrapper(self, collection, inplace):
         """Private helper function to replace the collection info for a class
@@ -653,7 +658,6 @@ class Viirs(Dataset):
         asset_id="NOAA/VIIRS/001/VNP09GA",
         use_qa=True,
         apply_band_adjustment=False,
-        rescale=False,
         **kwargs,
     ):
         """Initialize VIIRS Dataset class
@@ -685,9 +689,6 @@ class Viirs(Dataset):
             ).multiply(10000)
             coll = coll.map(self.band_pass_adjustment)
 
-        if rescale:
-            coll = coll.map(geeutils.rescale)
-
         self.collection = coll
 
         return
@@ -705,12 +706,15 @@ class Viirs(Dataset):
         sensorZenith = img.select("SensorZenith").abs().lt(6000)
 
         mask = cloudMask.And(shadowMask).And(sensorZenith)
-        return img.updateMask(mask)
+
+        # mask_clean = mask.focal_min().focal_max()
+
+        return geeutils.rescale(img).updateMask(mask)
 
 
 class Modis(Dataset):
     def __init__(
-        self, *args, asset_id="MODIS/006/MOD09GA", use_qa=True, rescale=False, **kwargs
+        self, *args, asset_id="MODIS/006/MOD09GA", use_qa=True, **kwargs
     ):
         """Initialize MODIS Dataset class
         Can be used with MOD09GA and MYD09GA
@@ -728,9 +732,6 @@ class Modis(Dataset):
             self.BANDREMAP.get("modis"), self.BANDREMAP.get("new")
         )
 
-        if rescale:
-            self.collection = self.collection.map(geeutils.rescale)
-
         self.clip_to_region(inplace=True)
 
         return
@@ -744,16 +745,51 @@ class Modis(Dataset):
         snowMask = geeutils.extract_bits(qa, 12, new_name="snow_qa").Not()
         sensorZenith = img.select("SensorZenith").abs().lt(6000)
         mask = cloudMask.And(shadowMask).And(snowMask).And(sensorZenith)
-        return img.updateMask(mask)
+        return geeutils.rescale(img).updateMask(mask)
+
+class Landsat9(Dataset):
+    def __init__(
+        self,
+        *args,
+        asset_id="LANDSAT/LC09/C02/T1_L2",
+        use_qa=True,
+        **kwargs,
+    ):
+        """Initialize Landsat9 Dataset class
+        Can theoretically be useds with any Landsat collection 2 surface reflectance collection (e.g. LANDSAT/LT05/C01/T1_SR)
+
+        args:
+            *args: positional arguments to pass to `Dataset` (i.e. `region`, `start_time`, `end_time`)
+            asset_id (str): asset id of the Landsat earth engine collection. default="LANDSAT/LC08/C01/T1_SR"
+            use_qa (bool, optional): boolean to determine to use a private `self.qa()` function. default=True
+            rescale (bool, optional): boolean switch to convert units from scaled int (0-10000) to float (0-1). If false values will be scaled int. default = False
+            **kwargs (optional): addtional arbitrary keywords to pass to `Dataset`
+        """
+        super(Landsat9, self).__init__(
+            *args, asset_id=asset_id, use_qa=use_qa, **kwargs
+        )
+
+        self.collection = self.collection.select(
+            self.BANDREMAP.get("landsat8"), self.BANDREMAP.get("new")
+        )
+
+        return
+
+    @decorators.keep_attrs
+    def qa(self, img):
+        """Custom QA masking method for Landsat9 surface reflectance dataset"""
+        qa_band = img.select("QA_PIXEL")
+        qa_flag = int('111111',2)
+        mask = qa_band.bitwiseAnd(qa_flag).eq(0)
+        return geeutils.rescale(img, scale = 0.0000275, offset = -0.2).updateMask(mask)
 
 
 class Landsat8(Dataset):
     def __init__(
         self,
         *args,
-        asset_id="LANDSAT/LC08/C01/T1_SR",
+        asset_id="LANDSAT/LC08/C02/T1_L2",
         use_qa=True,
-        rescale=False,
         **kwargs,
     ):
         """Initialize Landsat8 Dataset class
@@ -774,30 +810,24 @@ class Landsat8(Dataset):
             self.BANDREMAP.get("landsat8"), self.BANDREMAP.get("new")
         )
 
-        if rescale:
-            self.collection = self.collection.map(geeutils.rescale)
-
         return
 
     @decorators.keep_attrs
     def qa(self, img):
         """Custom QA masking method for Landsat8 surface reflectance dataset"""
-        qa_band = img.select("pixel_qa")
-        qaCloud = geeutils.extract_bits(qa_band, start=5, new_name="cloud_mask").eq(0)
-        qaShadow = geeutils.extract_bits(qa_band, start=3, new_name="shadow_mask").eq(0)
-        qaSnow = geeutils.extract_bits(qa_band, start=4, new_name="snow_mask").eq(0)
-        mask = qaCloud.And(qaShadow).And(qaSnow)
-        return img.updateMask(mask)
+        qa_band = img.select("QA_PIXEL")
+        qa_flag = int('111111',2)
+        mask = qa_band.bitwiseAnd(qa_flag).eq(0)
+        return geeutils.rescale(img, scale = 0.0000275, offset = -0.2).updateMask(mask)
 
 
 class Landsat7(Dataset):
     def __init__(
         self,
         *args,
-        asset_id="LANDSAT/LE07/C01/T1_SR",
+        asset_id="LANDSAT/LE07/C02/T1_L2",
         use_qa=True,
         apply_band_adjustment=False,
-        rescale=False,
         **kwargs,
     ):
         """Initialize Landsat7 Dataset class
@@ -831,9 +861,6 @@ class Landsat7(Dataset):
             ).multiply(10000)
             coll = coll.map(self.band_pass_adjustment)
 
-        if rescale:
-            coll = coll.map(geeutils.rescale)
-
         self.collection = coll
 
         return
@@ -841,22 +868,19 @@ class Landsat7(Dataset):
     @decorators.keep_attrs
     def qa(self, img):
         """Custom QA masking method for Landsat7 surface reflectance dataset"""
-        qa_band = img.select("pixel_qa")
-        qaCloud = geeutils.extract_bits(qa_band, start=5, new_name="cloud_mask").eq(0)
-        qaShadow = geeutils.extract_bits(qa_band, start=3, new_name="shadow_mask").eq(0)
-        qaSnow = geeutils.extract_bits(qa_band, start=4, new_name="snow_mask").eq(0)
-        mask = qaCloud.And(qaShadow).And(qaSnow)
-        return img.updateMask(mask)
+        qa_band = img.select("QA_PIXEL")
+        qa_flag = int('111111',2)
+        mask = qa_band.bitwiseAnd(qa_flag).eq(0)
+        return geeutils.rescale(img, scale = 0.0000275, offset = -0.2).updateMask(mask)
 
 
 class Landsat5(Dataset):
     def __init__(
         self,
         *args,
-        asset_id="LANDSAT/LT05/C01/T1_SR",
+        asset_id="LANDSAT/LT05/C02/T1_L2",
         use_qa=True,
         apply_band_adjustment=False,
-        rescale=False,
         **kwargs,
     ):
         """Initialize Landsat7 Dataset class
@@ -904,9 +928,6 @@ class Landsat5(Dataset):
             ).multiply(10000)
             coll = coll.map(self.band_pass_adjustment)
 
-        if rescale:
-            coll = coll.map(geeutils.rescale)
-
         self.collection = coll
 
         return
@@ -914,12 +935,10 @@ class Landsat5(Dataset):
     @decorators.keep_attrs
     def qa(self, img):
         """Custom QA masking method for Landsat7 surface reflectance dataset"""
-        qa_band = img.select("pixel_qa")
-        qaCloud = geeutils.extract_bits(qa_band, start=5, new_name="cloud_mask").eq(0)
-        qaShadow = geeutils.extract_bits(qa_band, start=3, new_name="shadow_mask").eq(0)
-        qaSnow = geeutils.extract_bits(qa_band, start=4, new_name="snow_mask").eq(0)
-        mask = qaCloud.And(qaShadow).And(qaSnow)
-        return img.updateMask(mask)
+        qa_band = img.select("QA_PIXEL")
+        qa_flag = int('111111',2)
+        mask = qa_band.bitwiseAnd(qa_flag).eq(0)
+        return geeutils.rescale(img, scale = 0.0000275, offset = -0.2).updateMask(mask)
 
 
 class Sentinel2(Dataset):
@@ -929,7 +948,6 @@ class Sentinel2(Dataset):
         asset_id="COPERNICUS/S2_SR",
         use_qa=True,
         apply_band_adjustment=False,
-        rescale=False,
         **kwargs,
     ):
         """Initialize Sentinel2 Dataset class
@@ -961,9 +979,6 @@ class Sentinel2(Dataset):
                 [-0.00411, -0.00093, 0.00094, -0.0001, -0.0015, -0.0012]
             ).multiply(10000)
             coll = coll.map(self.band_pass_adjustment)
-
-        if rescale:
-            coll = coll.map(geeutils.rescale)
 
         self.collection = coll
 
@@ -1023,4 +1038,4 @@ class Sentinel2(Dataset):
         )
 
         # Subset reflectance bands and update their masks, return the result.
-        return img.select("B.*").updateMask(is_cld_shdw.Not())
+        return geeutils.rescale(img).select("B.*").updateMask(is_cld_shdw.Not())
