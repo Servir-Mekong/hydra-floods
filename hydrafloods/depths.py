@@ -22,6 +22,7 @@ def fwdet(water_img, dem, band=None, outlier_test=False, force_projection=False)
     """
 
     proj = dem.projection()
+    res = proj.nominalScale().multiply(1.5)
 
     # select band to use for algorithm
     if band is None:
@@ -37,11 +38,11 @@ def fwdet(water_img, dem, band=None, outlier_test=False, force_projection=False)
             kernel=ee.Kernel.square(radius=res, units="meters")
         )
 
-        dem_mask = dem.updateMask(water_image.gt(0))
+        dem_mask = dem.updateMask(water_img.gt(0))
 
         boundary = dem_mask.add(expand)
 
-        filled = hf.modified_median_zscore(boundary, filled)
+        filled = filtering.modified_median_zscore(boundary, filled)
 
     else:
         filled = dem
