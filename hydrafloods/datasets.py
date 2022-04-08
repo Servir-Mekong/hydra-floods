@@ -705,9 +705,21 @@ class Viirs(Dataset):
         snowMask = geeutils.extract_bits(img.select("QF2"), 5, new_name="snow_qa").Not()
         sensorZenith = img.select("SensorZenith").abs().lt(6000)
 
-        mask = cloudMask.And(shadowMask).And(sensorZenith)
+        env_mask = cloudMask.And(shadowMask).And(sensorZenith)
 
-        # mask_clean = mask.focal_min().focal_max()
+        # internal pixel quality masks
+        pixal_quality_3 = img.select("QF3")
+        pixal_quality_4 = img.select("QF4")
+        m2_qual = geeutils.extract_bits(pixal_quality_3, 1, new_name="m2_quality").eq(0)
+        m4_qual = geeutils.extract_bits(pixal_quality_3, 3, new_name="m4_quality").eq(0)
+        m11_qual = geeutils.extract_bits(pixal_quality_4, 0, new_name="m11_quality").eq(0)
+        i1_qual = geeutils.extract_bits(pixal_quality_4, 1, new_name="i1_quality").eq(0)
+        i2_qual = geeutils.extract_bits(pixal_quality_4, 2, new_name="i2_quality").eq(0)
+        i3_qual = geeutils.extract_bits(pixal_quality_4, 3, new_name="i3_quality").eq(0)
+
+        qual_mask = m2_qual.And(m4_qual).And(m11_qual).And(i1_qual).And(i2_qual).And(i3_qual)
+
+        mask = env_mask.And(qual_mask)
 
         return geeutils.rescale(img).updateMask(mask)
 
@@ -732,19 +744,32 @@ class Modis(Dataset):
             self.BANDREMAP.get("modis"), self.BANDREMAP.get("new")
         )
 
-        self.clip_to_region(inplace=True)
-
         return
 
     @decorators.keep_attrs
     def qa(self, img):
         """Custom QA masking method for MODIS MXD09GA dataset"""
+        # internal env masks
         qa = img.select("state_1km")
         cloudMask = geeutils.extract_bits(qa, 10, end=11, new_name="cloud_qa").lt(1)
         shadowMask = geeutils.extract_bits(qa, 2, new_name="shadow_qa").Not()
         snowMask = geeutils.extract_bits(qa, 12, new_name="snow_qa").Not()
+        cloudAdjMask = geeutils.extract_bits(qa, 13, new_name="cloud_adjacency_qa").Not()
         sensorZenith = img.select("SensorZenith").abs().lt(6000)
-        mask = cloudMask.And(shadowMask).And(snowMask).And(sensorZenith)
+        env_mask = cloudMask.And(shadowMask).And(snowMask).And(sensorZenith).And(cloudAdjMask)
+
+        # internal pixel quality masks
+        pixal_quality = img.select("QC_500m")
+        b1_qual = geeutils.extract_bits(pixal_quality, 2, end=5, new_name="b1_quality").eq(0)
+        b2_qual = geeutils.extract_bits(pixal_quality, 6, end=9, new_name="b1_quality").eq(0)
+        b3_qual = geeutils.extract_bits(pixal_quality, 10, end=13, new_name="b1_quality").eq(0)
+        b4_qual = geeutils.extract_bits(pixal_quality, 14, end=17, new_name="b1_quality").eq(0)
+        b6_qual = geeutils.extract_bits(pixal_quality, 22, end=25, new_name="b1_quality").eq(0)
+        b7_qual = geeutils.extract_bits(pixal_quality, 26, end=29, new_name="b1_quality").eq(0)
+
+        qual_mask = b1_qual.And(b2_qual).And(b3_qual).And(b4_qual).And(b6_qual).And(b7_qual)
+
+        mask = env_mask.And(qual_mask)
         return geeutils.rescale(img).updateMask(mask)
 
 class Landsat9(Dataset):
@@ -780,7 +805,8 @@ class Landsat9(Dataset):
         """Custom QA masking method for Landsat9 surface reflectance dataset"""
         qa_band = img.select("QA_PIXEL")
         qa_flag = int('111111',2)
-        mask = qa_band.bitwiseAnd(qa_flag).eq(0)
+        sat_mask = img.select('QA_RADSAT').eq(0);
+        mask = qa_band.bitwiseAnd(qa_flag).eq(0).And(sat_mask)
         return geeutils.rescale(img, scale = 0.0000275, offset = -0.2).updateMask(mask)
 
 
@@ -817,7 +843,8 @@ class Landsat8(Dataset):
         """Custom QA masking method for Landsat8 surface reflectance dataset"""
         qa_band = img.select("QA_PIXEL")
         qa_flag = int('111111',2)
-        mask = qa_band.bitwiseAnd(qa_flag).eq(0)
+        sat_mask = img.select('QA_RADSAT').eq(0);
+        mask = qa_band.bitwiseAnd(qa_flag).eq(0).And(sat_mask)
         return geeutils.rescale(img, scale = 0.0000275, offset = -0.2).updateMask(mask)
 
 
@@ -870,7 +897,8 @@ class Landsat7(Dataset):
         """Custom QA masking method for Landsat7 surface reflectance dataset"""
         qa_band = img.select("QA_PIXEL")
         qa_flag = int('111111',2)
-        mask = qa_band.bitwiseAnd(qa_flag).eq(0)
+        sat_mask = img.select('QA_RADSAT').eq(0);
+        mask = qa_band.bitwiseAnd(qa_flag).eq(0).And(sat_mask)
         return geeutils.rescale(img, scale = 0.0000275, offset = -0.2).updateMask(mask)
 
 
@@ -937,7 +965,8 @@ class Landsat5(Dataset):
         """Custom QA masking method for Landsat7 surface reflectance dataset"""
         qa_band = img.select("QA_PIXEL")
         qa_flag = int('111111',2)
-        mask = qa_band.bitwiseAnd(qa_flag).eq(0)
+        sat_mask = img.select('QA_RADSAT').eq(0);
+        mask = qa_band.bitwiseAnd(qa_flag).eq(0).And(sat_mask)
         return geeutils.rescale(img, scale = 0.0000275, offset = -0.2).updateMask(mask)
 
 
