@@ -1,0 +1,2009 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      <link rel="icon" href="../img/favicon.ico">
+      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.8">
+    
+    
+      
+        <title>timeseries module - HYDRAFloods Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.644de097.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.e6a45f82.min.css">
+        
+      
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#hydrafloods.timeseries" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="HYDRAFloods Documentation" class="md-header__button md-logo" aria-label="HYDRAFloods Documentation" data-md-component="logo">
+      
+  <img src="../img/hydrafloods_logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            HYDRAFloods Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              timeseries module
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="HYDRAFloods Documentation" class="md-nav__button md-logo" aria-label="HYDRAFloods Documentation" data-md-component="logo">
+      
+  <img src="../img/hydrafloods_logo.png" alt="logo">
+
+    </a>
+    HYDRAFloods Documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        Installation
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        Getting Started
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-datasets/" class="md-nav__link">
+        Using the Dataset class
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../algorithms/" class="md-nav__link">
+        Algorithms
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../workflow-example/" class="md-nav__link">
+        Workflow Example
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli/" class="md-nav__link">
+        Command Line Interface
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8" type="checkbox" id="__nav_8" checked>
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_8">
+          API Reference
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="API Reference" data-md-level="1">
+        <label class="md-nav__title" for="__nav_8">
+          <span class="md-nav__icon md-icon"></span>
+          API Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../corrections/" class="md-nav__link">
+        corrections module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datasets/" class="md-nav__link">
+        datasets module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../depths/" class="md-nav__link">
+        depths module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decorators/" class="md-nav__link">
+        decorators module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fetch/" class="md-nav__link">
+        fetch module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../floods/" class="md-nav__link">
+        floods module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filtering/" class="md-nav__link">
+        filtering module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fuzzy/" class="md-nav__link">
+        fuzzy module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../geeutils/" class="md-nav__link">
+        geeutils module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../indices/" class="md-nav__link">
+        indices module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ml/" class="md-nav__link">
+        ml module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../thresholding/" class="md-nav__link">
+        thresholding module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          timeseries module
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        timeseries module
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#hydrafloods.timeseries" class="md-nav__link">
+    timeseries
+  </a>
+  
+    <nav class="md-nav" aria-label="timeseries">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.timeseries.add_harmonic_coefs" class="md-nav__link">
+    add_harmonic_coefs()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.timeseries.add_time_band" class="md-nav__link">
+    add_time_band()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.timeseries.anomalies" class="md-nav__link">
+    anomalies()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.timeseries.fit_harmonic_trend" class="md-nav__link">
+    fit_harmonic_trend()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.timeseries.fit_linear_trend" class="md-nav__link">
+    fit_linear_trend()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.timeseries.get_dummy_collection" class="md-nav__link">
+    get_dummy_collection()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.timeseries.get_dummy_img" class="md-nav__link">
+    get_dummy_img()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.timeseries.predict_harmonics" class="md-nav__link">
+    predict_harmonics()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.timeseries.prep_inputs" class="md-nav__link">
+    prep_inputs()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.timeseries.temporal_iqr_filter" class="md-nav__link">
+    temporal_iqr_filter()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.timeseries.temporal_smoothing" class="md-nav__link">
+    temporal_smoothing()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../utils/" class="md-nav__link">
+        utils module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dswfp/" class="md-nav__link">
+        workflows.dswfp module
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#hydrafloods.timeseries" class="md-nav__link">
+    timeseries
+  </a>
+  
+    <nav class="md-nav" aria-label="timeseries">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.timeseries.add_harmonic_coefs" class="md-nav__link">
+    add_harmonic_coefs()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.timeseries.add_time_band" class="md-nav__link">
+    add_time_band()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.timeseries.anomalies" class="md-nav__link">
+    anomalies()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.timeseries.fit_harmonic_trend" class="md-nav__link">
+    fit_harmonic_trend()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.timeseries.fit_linear_trend" class="md-nav__link">
+    fit_linear_trend()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.timeseries.get_dummy_collection" class="md-nav__link">
+    get_dummy_collection()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.timeseries.get_dummy_img" class="md-nav__link">
+    get_dummy_img()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.timeseries.predict_harmonics" class="md-nav__link">
+    predict_harmonics()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.timeseries.prep_inputs" class="md-nav__link">
+    prep_inputs()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.timeseries.temporal_iqr_filter" class="md-nav__link">
+    temporal_iqr_filter()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.timeseries.temporal_smoothing" class="md-nav__link">
+    temporal_smoothing()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+
+
+  <h1>timeseries module</h1>
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 class="doc doc-heading" id="hydrafloods.timeseries">
+        <code>hydrafloods.timeseries</code>
+
+
+
+</h2>
+
+    <div class="doc doc-contents first">
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.timeseries.add_harmonic_coefs">
+<code class="codehilite language-python"><span class="n">add_harmonic_coefs</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">n_cycles</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Function to add harmonic coefficients as bands to images
+Harmonic coefficients are calculated as sin and cos of frequency within year</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>image</code></td>
+        <td><code>ee.Image</code></td>
+        <td><p>image object to add harmonic coefficiencts to. Expects that image has time band</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>n_cycles</code></td>
+        <td><code>int</code></td>
+        <td><p>number of interannual cycles to include. default = 2</p></td>
+        <td><code>2</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ee.Image</code></td>
+      <td><p>image with harmonic coefficient bands added</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/timeseries.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">add_harmonic_coefs</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">n_cycles</span><span class="o">=</span><span class="mi">2</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function to add harmonic coefficients as bands to images</span>
+<span class="sd">    Harmonic coefficients are calculated as sin and cos of frequency within year</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        image (ee.Image): image object to add harmonic coefficiencts to. Expects that image has time band</span>
+<span class="sd">        n_cycles (int, optional): number of interannual cycles to include. default = 2</span>
+
+<span class="sd">    returns:</span>
+<span class="sd">        ee.Image: image with harmonic coefficient bands added</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cosNames</span> <span class="o">=</span> <span class="n">_get_names</span><span class="p">(</span><span class="s2">&quot;cos&quot;</span><span class="p">,</span> <span class="n">n_cycles</span><span class="p">)</span>
+    <span class="n">sinNames</span> <span class="o">=</span> <span class="n">_get_names</span><span class="p">(</span><span class="s2">&quot;sin&quot;</span><span class="p">,</span> <span class="n">n_cycles</span><span class="p">)</span>
+    <span class="n">frequencyImg</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">ee</span><span class="o">.</span><span class="n">List</span><span class="o">.</span><span class="n">sequence</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_cycles</span><span class="p">))</span>
+    <span class="n">timeRadians</span> <span class="o">=</span> <span class="n">image</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">math</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span>
+    <span class="n">cosines</span> <span class="o">=</span> <span class="n">timeRadians</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">frequencyImg</span><span class="p">)</span><span class="o">.</span><span class="n">cos</span><span class="p">()</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">cosNames</span><span class="p">)</span>
+    <span class="n">sines</span> <span class="o">=</span> <span class="n">timeRadians</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">frequencyImg</span><span class="p">)</span><span class="o">.</span><span class="n">sin</span><span class="p">()</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">sinNames</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">image</span><span class="o">.</span><span class="n">addBands</span><span class="p">(</span><span class="n">cosines</span><span class="p">)</span><span class="o">.</span><span class="n">addBands</span><span class="p">(</span><span class="n">sines</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.timeseries.add_time_band">
+<code class="codehilite language-python"><span class="n">add_time_band</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="s1">&#39;year&#39;</span><span class="p">,</span> <span class="n">apply_mask</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Function to add time band to image. Expects image has <code>system:time_start</code> property.
+Added band will have name "time"</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>img</code></td>
+        <td><code>ee.Image</code></td>
+        <td><p>image with <code>system:time_start</code> to add time band too</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>offset</code></td>
+        <td><code>str</code></td>
+        <td><p>units to calculate from 1970-01-01. default = "year"</p></td>
+        <td><code>&#39;year&#39;</code></td>
+      </tr>
+      <tr>
+        <td><code>apply_mask</code></td>
+        <td><code>bool</code></td>
+        <td><p>boolean switch to apply image mask to time band. if False, then time band will have full coverage</p></td>
+        <td><code>False</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ee.Image</code></td>
+      <td><p>image object with time band added</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/timeseries.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">add_time_band</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="s2">&quot;year&quot;</span><span class="p">,</span> <span class="n">apply_mask</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function to add time band to image. Expects image has `system:time_start` property.</span>
+<span class="sd">    Added band will have name &quot;time&quot;</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        img (ee.Image): image with `system:time_start` to add time band too</span>
+<span class="sd">        offset (str, optional): units to calculate from 1970-01-01. default = &quot;year&quot;</span>
+<span class="sd">        apply_mask (bool, optional): boolean switch to apply image mask to time band. if False, then time band will have full coverage</span>
+
+<span class="sd">    returns:</span>
+<span class="sd">        ee.Image: image object with time band added</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">date</span><span class="p">()</span>
+    <span class="n">tDiff</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">ee</span><span class="o">.</span><span class="n">Date</span><span class="p">(</span><span class="s2">&quot;1970-01-01&quot;</span><span class="p">),</span> <span class="n">offset</span><span class="p">)</span>
+    <span class="n">time</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">tDiff</span><span class="p">)</span><span class="o">.</span><span class="n">float</span><span class="p">()</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">apply_mask</span><span class="p">:</span>
+        <span class="n">time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">updateMask</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">mask</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">addBands</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.timeseries.anomalies">
+<code class="codehilite language-python"><span class="n">anomalies</span><span class="p">(</span><span class="n">collection</span><span class="p">,</span> <span class="n">baseline</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Function to calculate anomalies of</p>
+
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/timeseries.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">anomalies</span><span class="p">(</span><span class="n">collection</span><span class="p">,</span> <span class="n">baseline</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function to calculate anomalies of&quot;&quot;&quot;</span>
+
+    <span class="nd">@decorators</span><span class="o">.</span><span class="n">keep_attrs</span>
+    <span class="k">def</span> <span class="nf">img_anomaly</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">baseline</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">collection</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">img_anomaly</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.timeseries.fit_harmonic_trend">
+<code class="codehilite language-python"><span class="n">fit_harmonic_trend</span><span class="p">(</span><span class="n">collection</span><span class="p">,</span> <span class="n">n_cycles</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">independents</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;constant&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">],</span> <span class="n">dependent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_err</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Function to fit a harmonic trend on image collection along the time dimension.
+Uses ee.Reducer.linearRegression to solve for coefficients</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>collection</code></td>
+        <td><code>ee.ImageCollection | hydrafloods.Dataset</code></td>
+        <td><p>image collection to fit trend line for</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>n_cycles</code></td>
+        <td><code>int</code></td>
+        <td><p>number of interannual cycles to model. default = 2</p></td>
+        <td><code>2</code></td>
+      </tr>
+      <tr>
+        <td><code>independents</code></td>
+        <td><code>list[str]</code></td>
+        <td><p>list of band names to use for fitting regression. default = ["constant", "time"]</p></td>
+        <td><code>[&#39;constant&#39;, &#39;time&#39;]</code></td>
+      </tr>
+      <tr>
+        <td><code>dependent</code></td>
+        <td><code>str | None</code></td>
+        <td><p>band name of values to fit, if None then uses the first band. default = None</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>output_err</code></td>
+        <td><code>bool</code></td>
+        <td><p>switch to output regression x and y errors, if true output will have "mean_x", "residual_x" and "residual_y" bands.
+Useful for estimating confidence intervals. default = False</p></td>
+        <td><code>False</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ee.Image</code></td>
+      <td><p>output image with regression coeffients as bands named "constant", "time", "cos_n", and "sin_n" where n is a sequnces of cycles.
+    Will have "mean_x", "residual_x" and "residual_y" if ouput_err == True</p></td>
+    </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>ValueError</code></td>
+        <td><p>if collection is not of type ee.ImageCollection or hydrafloods.Dataset</p></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/timeseries.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">fit_harmonic_trend</span><span class="p">(</span>
+    <span class="n">collection</span><span class="p">,</span>
+    <span class="n">n_cycles</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">independents</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;constant&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">],</span>
+    <span class="n">dependent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">output_err</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function to fit a harmonic trend on image collection along the time dimension.</span>
+<span class="sd">    Uses ee.Reducer.linearRegression to solve for coefficients</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        collection (ee.ImageCollection | hydrafloods.Dataset): image collection to fit trend line for</span>
+<span class="sd">        n_cycles (int, optional): number of interannual cycles to model. default = 2</span>
+<span class="sd">        independents (list[str], optional): list of band names to use for fitting regression. default = [&quot;constant&quot;, &quot;time&quot;]</span>
+<span class="sd">        dependent (str | None, optional): band name of values to fit, if None then uses the first band. default = None</span>
+<span class="sd">        output_err (bool, optional): switch to output regression x and y errors, if true output will have &quot;mean_x&quot;, &quot;residual_x&quot; and &quot;residual_y&quot; bands.</span>
+<span class="sd">            Useful for estimating confidence intervals. default = False</span>
+
+<span class="sd">    returns:</span>
+<span class="sd">        ee.Image: output image with regression coeffients as bands named &quot;constant&quot;, &quot;time&quot;, &quot;cos_n&quot;, and &quot;sin_n&quot; where n is a sequnces of cycles.</span>
+<span class="sd">            Will have &quot;mean_x&quot;, &quot;residual_x&quot; and &quot;residual_y&quot; if ouput_err == True</span>
+
+<span class="sd">    raises:</span>
+<span class="sd">        ValueError: if collection is not of type ee.ImageCollection or hydrafloods.Dataset</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">collection</span><span class="p">,</span> <span class="n">ee</span><span class="o">.</span><span class="n">ImageCollection</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">collection</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">collection</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;collection argument expected type ee.ImageCollection or hydrafloods.Dataset,&quot;</span>
+                <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;got </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">collection</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">dependent</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dependent</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">collection</span><span class="o">.</span><span class="n">first</span><span class="p">())</span><span class="o">.</span><span class="n">bandNames</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">dependent</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="n">dependent</span><span class="p">)</span>
+
+    <span class="n">independents</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">ee</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">independents</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">_get_names</span><span class="p">(</span><span class="s2">&quot;cos&quot;</span><span class="p">,</span> <span class="n">n_cycles</span><span class="p">))</span>
+        <span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">_get_names</span><span class="p">(</span><span class="s2">&quot;sin&quot;</span><span class="p">,</span> <span class="n">n_cycles</span><span class="p">))</span>
+    <span class="p">)</span>
+
+    <span class="n">_add_coefs</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">add_harmonic_coefs</span><span class="p">,</span> <span class="n">n_cycles</span><span class="o">=</span><span class="n">n_cycles</span><span class="p">)</span>
+
+    <span class="n">harmonic_collection</span> <span class="o">=</span> <span class="n">prep_inputs</span><span class="p">(</span>
+        <span class="n">collection</span><span class="p">,</span> <span class="n">keep_bands</span><span class="o">=</span><span class="p">[</span><span class="n">dependent</span><span class="p">],</span> <span class="n">apply_mask</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">_add_coefs</span><span class="p">)</span>
+
+    <span class="n">harmonic_trend</span> <span class="o">=</span> <span class="n">harmonic_collection</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">independents</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">dependent</span><span class="p">))</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span>
+        <span class="n">ee</span><span class="o">.</span><span class="n">Reducer</span><span class="o">.</span><span class="n">linearRegression</span><span class="p">(</span><span class="n">numX</span><span class="o">=</span><span class="n">independents</span><span class="o">.</span><span class="n">length</span><span class="p">(),</span> <span class="n">numY</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="mi">16</span>
+    <span class="p">)</span>
+
+    <span class="n">n</span> <span class="o">=</span> <span class="n">harmonic_collection</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">dependent</span><span class="p">)</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">ee</span><span class="o">.</span><span class="n">Reducer</span><span class="o">.</span><span class="n">count</span><span class="p">(),</span> <span class="mi">16</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;n&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Turn the array image into a multi-band image of coefficients</span>
+    <span class="n">harmonic_coefficients</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">harmonic_trend</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;coefficients&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">arrayProject</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
+        <span class="o">.</span><span class="n">arrayFlatten</span><span class="p">([</span><span class="n">independents</span><span class="p">])</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">addBands</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">output_err</span><span class="p">:</span>
+        <span class="n">harmonic_mse</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">harmonic_trend</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;residuals&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">arrayProject</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
+            <span class="o">.</span><span class="n">arrayFlatten</span><span class="p">([[</span><span class="s2">&quot;residual_y&quot;</span><span class="p">]])</span>
+        <span class="p">)</span>
+
+        <span class="n">t_mean</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">harmonic_collection</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">ee</span><span class="o">.</span><span class="n">Reducer</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="mi">16</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;mean_x&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">x_err</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">harmonic_collection</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">t_mean</span><span class="p">)</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+            <span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">ee</span><span class="o">.</span><span class="n">Reducer</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="mi">16</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;residual_x&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">harmonic_coefficients</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">harmonic_coefficients</span><span class="p">,</span> <span class="n">harmonic_mse</span><span class="p">,</span> <span class="n">t_mean</span><span class="p">,</span> <span class="n">x_err</span><span class="p">]</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">harmonic_coefficients</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.timeseries.fit_linear_trend">
+<code class="codehilite language-python"><span class="n">fit_linear_trend</span><span class="p">(</span><span class="n">collection</span><span class="p">,</span> <span class="n">independents</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;constant&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">],</span> <span class="n">dependent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">regression_method</span><span class="o">=</span><span class="s1">&#39;ols&#39;</span><span class="p">,</span> <span class="n">output_err</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Function to fit a linear reducer on image collection along the time dimension.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>collection</code></td>
+        <td><code>ee.ImageCollection</code></td>
+        <td><p>image collection to fit trend line for</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>independents</code></td>
+        <td><code>list[str]</code></td>
+        <td><p>list of band names to use for fitting regression. default = ["constant", "time"]</p></td>
+        <td><code>[&#39;constant&#39;, &#39;time&#39;]</code></td>
+      </tr>
+      <tr>
+        <td><code>dependent</code></td>
+        <td><code>str | None</code></td>
+        <td><p>band name of values to fit, if None then uses the first band. default = None</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>regression_method</code></td>
+        <td><code>str</code></td>
+        <td><p>name of regression reducer to use. options are "simple", "ols", "robust", "ridge", "sen". default = "ols"</p></td>
+        <td><code>&#39;ols&#39;</code></td>
+      </tr>
+      <tr>
+        <td><code>output_err</code></td>
+        <td><code>bool</code></td>
+        <td><p>switch to output regression x and y errors, if true output will have "mean_x", "residual_x" and "residual_y" bands.
+Useful for estimating confidence intervals. default = False</p></td>
+        <td><code>False</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ee.Image</code></td>
+      <td><p>output image with regression coeffients as bands named "offset" and "slope".
+    Will have "mean_x", "residual_x" and "residual_y" if ouput_err == True</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/timeseries.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">fit_linear_trend</span><span class="p">(</span>
+    <span class="n">collection</span><span class="p">,</span>
+    <span class="n">independents</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;constant&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">],</span>
+    <span class="n">dependent</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">regression_method</span><span class="o">=</span><span class="s2">&quot;ols&quot;</span><span class="p">,</span>
+    <span class="n">output_err</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function to fit a linear reducer on image collection along the time dimension.</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        collection (ee.ImageCollection): image collection to fit trend line for</span>
+<span class="sd">        independents (list[str], optional): list of band names to use for fitting regression. default = [&quot;constant&quot;, &quot;time&quot;]</span>
+<span class="sd">        dependent (str | None, optional): band name of values to fit, if None then uses the first band. default = None</span>
+<span class="sd">        regression_method (str, optional): name of regression reducer to use. options are &quot;simple&quot;, &quot;ols&quot;, &quot;robust&quot;, &quot;ridge&quot;, &quot;sen&quot;. default = &quot;ols&quot;</span>
+<span class="sd">        output_err (bool, optional): switch to output regression x and y errors, if true output will have &quot;mean_x&quot;, &quot;residual_x&quot; and &quot;residual_y&quot; bands.</span>
+<span class="sd">            Useful for estimating confidence intervals. default = False</span>
+
+<span class="sd">    returns:</span>
+<span class="sd">        ee.Image: output image with regression coeffients as bands named &quot;offset&quot; and &quot;slope&quot;.</span>
+<span class="sd">            Will have &quot;mean_x&quot;, &quot;residual_x&quot; and &quot;residual_y&quot; if ouput_err == True</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">independents</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">independents</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">dependent</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">dependent</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">collection</span><span class="o">.</span><span class="n">first</span><span class="p">())</span><span class="o">.</span><span class="n">bandNames</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">dependent</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">String</span><span class="p">(</span><span class="n">dependent</span><span class="p">)</span>
+
+    <span class="n">methods</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;simple&quot;</span><span class="p">,</span> <span class="s2">&quot;ols&quot;</span><span class="p">,</span> <span class="s2">&quot;robust&quot;</span><span class="p">,</span> <span class="s2">&quot;ridge&quot;</span><span class="p">,</span> <span class="s2">&quot;sen&quot;</span><span class="p">]</span>
+    <span class="n">reducers</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">ee</span><span class="o">.</span><span class="n">Reducer</span><span class="o">.</span><span class="n">linearFit</span><span class="p">(),</span>
+        <span class="n">ee</span><span class="o">.</span><span class="n">Reducer</span><span class="o">.</span><span class="n">linearRegression</span><span class="p">(</span><span class="n">independents</span><span class="o">.</span><span class="n">length</span><span class="p">(),</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="n">ee</span><span class="o">.</span><span class="n">Reducer</span><span class="o">.</span><span class="n">robustLinearRegression</span><span class="p">(</span><span class="n">independents</span><span class="o">.</span><span class="n">length</span><span class="p">(),</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="n">ee</span><span class="o">.</span><span class="n">Reducer</span><span class="o">.</span><span class="n">ridgeRegression</span><span class="p">(</span><span class="n">independents</span><span class="o">.</span><span class="n">length</span><span class="p">(),</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="n">ee</span><span class="o">.</span><span class="n">Reducer</span><span class="o">.</span><span class="n">sensSlope</span><span class="p">(),</span>
+    <span class="p">]</span>
+    <span class="n">method_lookup</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span> <span class="n">reducers</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">methods</span><span class="p">)}</span>
+    <span class="k">if</span> <span class="n">regression_method</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">methods</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">lin_reducer</span> <span class="o">=</span> <span class="n">method_lookup</span><span class="p">[</span><span class="n">regression_method</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">collection</span><span class="p">,</span> <span class="n">ee</span><span class="o">.</span><span class="n">ImageCollection</span><span class="p">):</span>
+        <span class="n">collection</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">collection</span>
+
+    <span class="n">reduction_coll</span> <span class="o">=</span> <span class="n">prep_inputs</span><span class="p">(</span>
+        <span class="n">collection</span><span class="p">,</span> <span class="n">keep_bands</span><span class="o">=</span><span class="p">[</span><span class="n">dependent</span><span class="p">],</span> <span class="n">apply_mask</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">independents</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">dependent</span><span class="p">))</span>
+
+    <span class="n">n</span> <span class="o">=</span> <span class="n">reduction_coll</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">dependent</span><span class="p">)</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="s2">&quot;count&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;n&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">regression_method</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;sen&quot;</span><span class="p">,</span> <span class="s2">&quot;ridge&quot;</span><span class="p">]:</span>
+        <span class="n">independents</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">List</span><span class="p">([</span><span class="s2">&quot;constant&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">independents</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">regression_method</span> <span class="o">==</span> <span class="s2">&quot;sen&quot;</span><span class="p">:</span>
+        <span class="n">lr</span> <span class="o">=</span> <span class="n">reduction_coll</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">lin_reducer</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span><span class="o">.</span><span class="n">select</span><span class="p">(</span>
+            <span class="p">[</span><span class="s2">&quot;offset&quot;</span><span class="p">,</span> <span class="s2">&quot;slope&quot;</span><span class="p">],</span> <span class="n">independents</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">lr_arr</span> <span class="o">=</span> <span class="n">reduction_coll</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">lin_reducer</span><span class="p">,</span> <span class="mi">16</span><span class="p">)</span>
+        <span class="n">lr</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">lr_arr</span><span class="o">.</span><span class="n">select</span><span class="p">([</span><span class="s2">&quot;coefficients&quot;</span><span class="p">])</span>
+            <span class="o">.</span><span class="n">arrayProject</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span>
+            <span class="o">.</span><span class="n">arrayFlatten</span><span class="p">([</span><span class="n">independents</span><span class="p">])</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">output_err</span> <span class="ow">and</span> <span class="n">regression_method</span> <span class="o">!=</span> <span class="s2">&quot;sen&quot;</span><span class="p">:</span>
+        <span class="n">linear_mse</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">lr_arr</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;residuals&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">arrayProject</span><span class="p">([</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">arrayFlatten</span><span class="p">([[</span><span class="s2">&quot;residual_y&quot;</span><span class="p">]])</span>
+        <span class="p">)</span>
+
+        <span class="n">t_mean</span> <span class="o">=</span> <span class="n">reduction_coll</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;mean_x&quot;</span><span class="p">)</span>
+        <span class="n">x_err</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">reduction_coll</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">t_mean</span><span class="p">)</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+            <span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">ee</span><span class="o">.</span><span class="n">Reducer</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="mi">16</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;residual_x&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">lr</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="o">.</span><span class="n">cat</span><span class="p">([</span><span class="n">lr</span><span class="p">,</span> <span class="n">linear_mse</span><span class="p">,</span> <span class="n">t_mean</span><span class="p">,</span> <span class="n">x_err</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="n">lr</span><span class="o">.</span><span class="n">addBands</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.timeseries.get_dummy_collection">
+<code class="codehilite language-python"><span class="n">get_dummy_collection</span><span class="p">(</span><span class="n">start_time</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">end_time</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dates</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Helper function to create image collection of images to apply time series prediction on
+Creates daily imagery between start_time and end_time</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>start_time</code></td>
+        <td><code>str | ee.Date</code></td>
+        <td><p>string or ee.Date string to start creating images on (inclusive)</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>end_time</code></td>
+        <td><code>str | ee.Date</code></td>
+        <td><p>string or ee.Date string to end creating images on (exclusive)</p></td>
+        <td><code>None</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ee.ImageCollection</code></td>
+      <td><p>image collection with image containing time and constant bands</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/timeseries.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">get_dummy_collection</span><span class="p">(</span><span class="n">start_time</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">end_time</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dates</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper function to create image collection of images to apply time series prediction on</span>
+<span class="sd">    Creates daily imagery between start_time and end_time</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        start_time (str | ee.Date): string or ee.Date string to start creating images on (inclusive)</span>
+<span class="sd">        end_time (str | ee.Date): string or ee.Date string to end creating images on (exclusive)</span>
+
+<span class="sd">    returns:</span>
+<span class="sd">        ee.ImageCollection: image collection with image containing time and constant bands</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_gen_image_seq</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">start_time</span><span class="o">.</span><span class="n">advance</span><span class="p">(</span><span class="n">ee</span><span class="o">.</span><span class="n">Number</span><span class="p">(</span><span class="n">i</span><span class="p">),</span> <span class="s2">&quot;day&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">()</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;blank&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;system:time_start&quot;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">millis</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">_gen_image</span><span class="p">(</span><span class="n">d</span><span class="p">):</span>
+        <span class="n">d</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Date</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">()</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;blank&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;system:time_start&quot;</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">millis</span><span class="p">())</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">start_time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">end_time</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">start_time</span><span class="p">,</span> <span class="n">ee</span><span class="o">.</span><span class="n">Date</span><span class="p">):</span>
+            <span class="n">start_time</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Date</span><span class="p">(</span><span class="n">start_time</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">end_time</span><span class="p">,</span> <span class="n">ee</span><span class="o">.</span><span class="n">Date</span><span class="p">):</span>
+            <span class="n">end_time</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Date</span><span class="p">(</span><span class="n">end_time</span><span class="p">)</span>
+
+        <span class="n">n</span> <span class="o">=</span> <span class="n">end_time</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">start_time</span><span class="p">,</span> <span class="s2">&quot;day&quot;</span><span class="p">)</span>
+        <span class="n">coll</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">ImageCollection</span><span class="p">(</span><span class="n">ee</span><span class="o">.</span><span class="n">List</span><span class="o">.</span><span class="n">sequence</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">_gen_image_seq</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="n">dates</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">coll</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">ImageCollection</span><span class="p">(</span><span class="n">dates</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">_gen_image</span><span class="p">))</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Either &#39;dates&#39; or &#39;start_time&#39;/&#39;end_time&#39; need to be defined&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">prep_inputs</span><span class="p">(</span><span class="n">coll</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.timeseries.get_dummy_img">
+<code class="codehilite language-python"><span class="n">get_dummy_img</span><span class="p">(</span><span class="n">t</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Helper function to get an image readily available to use for predictions
+Resulting image will include time based on year and constant band of 1</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>t</code></td>
+        <td><code>str | ee.Date</code></td>
+        <td><p>string or ee.Date string to create dummy image for</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ee.Image</code></td>
+      <td><p>image object with time and constant bands</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/timeseries.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">get_dummy_img</span><span class="p">(</span><span class="n">t</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper function to get an image readily available to use for predictions</span>
+<span class="sd">    Resulting image will include time based on year and constant band of 1</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        t (str | ee.Date): string or ee.Date string to create dummy image for</span>
+
+<span class="sd">    returns:</span>
+<span class="sd">        ee.Image: image object with time and constant bands</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">ee</span><span class="o">.</span><span class="n">Date</span><span class="p">):</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Date</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+    <span class="n">img</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;system:time_start&quot;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">millis</span><span class="p">())</span>
+    <span class="n">time_band</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">difference</span><span class="p">(</span><span class="n">ee</span><span class="o">.</span><span class="n">Date</span><span class="p">(</span><span class="s2">&quot;1970-01-01&quot;</span><span class="p">),</span> <span class="s2">&quot;year&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">float</span><span class="p">()</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">addBands</span><span class="p">(</span><span class="n">time_band</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.timeseries.predict_harmonics">
+<code class="codehilite language-python"><span class="n">predict_harmonics</span><span class="p">(</span><span class="n">collection</span><span class="p">,</span> <span class="n">harmonics</span><span class="p">,</span> <span class="n">n_cycles</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">independents</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;constant&#39;</span><span class="p">,</span> <span class="s1">&#39;time&#39;</span><span class="p">])</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Helper function to apply harmonic trend prediction</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>collection</code></td>
+        <td><code>ee.ImageCollection</code></td>
+        <td><p>image collection to apply prediction on</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>harmonics</code></td>
+        <td><code>ee.Image</code></td>
+        <td><p>harmonic coefficient image with coeffiecient bands</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>n_cycles</code></td>
+        <td><code>int</code></td>
+        <td><p>number of interannual cycles to model, note n_cycles must equal
+the number of cycle coefficients in <code>harmonics</code>. default = 2</p></td>
+        <td><code>2</code></td>
+      </tr>
+      <tr>
+        <td><code>independents</code></td>
+        <td><code>list[str]</code></td>
+        <td><p>list of independent band names to use in model. These are
+other than the harmonic coefficient names. default = ["constant", "time"]</p></td>
+        <td><code>[&#39;constant&#39;, &#39;time&#39;]</code></td>
+      </tr>
+  </tbody>
+</table>      <p>returns
+    ee.ImageCollection: image collection with predicted values</p>
+
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/timeseries.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">predict_harmonics</span><span class="p">(</span>
+    <span class="n">collection</span><span class="p">,</span> <span class="n">harmonics</span><span class="p">,</span> <span class="n">n_cycles</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">independents</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;constant&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">]</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper function to apply harmonic trend prediction</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        collection (ee.ImageCollection): image collection to apply prediction on</span>
+<span class="sd">        harmonics (ee.Image): harmonic coefficient image with coeffiecient bands</span>
+<span class="sd">        n_cycles (int, optional): number of interannual cycles to model, note n_cycles must equal</span>
+<span class="sd">            the number of cycle coefficients in `harmonics`. default = 2</span>
+<span class="sd">        independents (list[str], optional): list of independent band names to use in model. These are</span>
+<span class="sd">            other than the harmonic coefficient names. default = [&quot;constant&quot;, &quot;time&quot;]</span>
+
+<span class="sd">    returns</span>
+<span class="sd">        ee.ImageCollection: image collection with predicted values</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@decorators</span><span class="o">.</span><span class="n">keep_attrs</span>
+    <span class="k">def</span> <span class="nf">_apply_prediction</span><span class="p">(</span><span class="n">image</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Closure function to apply prediction&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">image</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">independents</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">harmonics</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="s2">&quot;sum&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;predicted&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="n">independents</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">ee</span><span class="o">.</span><span class="n">List</span><span class="p">(</span><span class="n">independents</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">_get_names</span><span class="p">(</span><span class="s2">&quot;cos&quot;</span><span class="p">,</span> <span class="n">n_cycles</span><span class="p">))</span>
+        <span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">_get_names</span><span class="p">(</span><span class="s2">&quot;sin&quot;</span><span class="p">,</span> <span class="n">n_cycles</span><span class="p">))</span>
+    <span class="p">)</span>
+
+    <span class="n">_add_coefs</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">add_harmonic_coefs</span><span class="p">,</span> <span class="n">n_cycles</span><span class="o">=</span><span class="n">n_cycles</span><span class="p">)</span>
+
+    <span class="n">harmonic_collection</span> <span class="o">=</span> <span class="n">prep_inputs</span><span class="p">(</span><span class="n">collection</span><span class="p">)</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">_add_coefs</span><span class="p">)</span>
+
+    <span class="c1"># Compute fitted values.</span>
+    <span class="n">predicted</span> <span class="o">=</span> <span class="n">harmonic_collection</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">_apply_prediction</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">predicted</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.timeseries.prep_inputs">
+<code class="codehilite language-python"><span class="n">prep_inputs</span><span class="p">(</span><span class="n">collection</span><span class="p">,</span> <span class="n">keep_bands</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">apply_mask</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Helper function to prepare inputs into time series algorithms.
+Will check if each image in collection has a time and constant band, if not it will add to collection
+Wraps <code>add_time_band()</code> for adding the time band</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>collection</code></td>
+        <td><code>ee.ImageCollection</code></td>
+        <td><p>image collection to check and add time/constant band too</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>keep_bands</code></td>
+        <td><code>list[str] | None</code></td>
+        <td><p>regex name or list of band names to drop during prep and include in the result
+Will check if "time" or "constant" in list, if not then add to collection. default = None</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>apply_mask</code></td>
+        <td><code>bool</code></td>
+        <td><p>boolean switch to apply image mask to time band. if False, then time band will have full coverage</p></td>
+        <td><code>False</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ee.ImageCollection</code></td>
+      <td><p>collection with time and constant bands included</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/timeseries.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">prep_inputs</span><span class="p">(</span><span class="n">collection</span><span class="p">,</span> <span class="n">keep_bands</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">apply_mask</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper function to prepare inputs into time series algorithms.</span>
+<span class="sd">    Will check if each image in collection has a time and constant band, if not it will add to collection</span>
+<span class="sd">    Wraps `add_time_band()` for adding the time band</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        collection (ee.ImageCollection): image collection to check and add time/constant band too</span>
+<span class="sd">        keep_bands (list[str] | None, optional): regex name or list of band names to drop during prep and include in the result</span>
+<span class="sd">            Will check if &quot;time&quot; or &quot;constant&quot; in list, if not then add to collection. default = None</span>
+<span class="sd">        apply_mask (bool, optional): boolean switch to apply image mask to time band. if False, then time band will have full coverage</span>
+
+<span class="sd">    returns:</span>
+<span class="sd">        ee.ImageCollection: collection with time and constant bands included</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">collection</span><span class="p">,</span> <span class="n">ee</span><span class="o">.</span><span class="n">ImageCollection</span><span class="p">):</span>
+        <span class="n">collection</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">collection</span>
+    <span class="n">first</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">collection</span><span class="o">.</span><span class="n">first</span><span class="p">())</span>
+    <span class="n">outCollection</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">collection</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">keep_bands</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">keep_bands</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">prepfunc</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="s2">&quot;time&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">keep_bands</span><span class="p">:</span>
+        <span class="n">prepfunc</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">add_time_band</span><span class="p">,</span> <span class="n">apply_mask</span><span class="o">=</span><span class="n">apply_mask</span><span class="p">)</span>
+        <span class="c1"># outCollection = outCollection.map(tband)</span>
+    <span class="k">if</span> <span class="s2">&quot;constant&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">keep_bands</span><span class="p">:</span>
+        <span class="n">add_const</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">addBands</span><span class="p">(</span><span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+        <span class="k">if</span> <span class="s2">&quot;time&quot;</span> <span class="ow">in</span> <span class="n">keep_bands</span><span class="p">:</span>
+            <span class="n">prepfunc</span> <span class="o">=</span> <span class="n">add_const</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">prepfunc</span> <span class="o">=</span> <span class="n">pipe</span> <span class="o">|</span> <span class="n">prepfunc</span> <span class="o">|</span> <span class="n">add_const</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="s2">&quot;time&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">keep_bands</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="s2">&quot;constant&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">keep_bands</span><span class="p">):</span>
+        <span class="n">outCollection</span> <span class="o">=</span> <span class="n">outCollection</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">prepfunc</span><span class="p">)</span>
+
+    <span class="n">out_band_order</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">List</span><span class="p">([</span><span class="s2">&quot;constant&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">keep_bands</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">outCollection</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">out_band_order</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.timeseries.temporal_iqr_filter">
+<code class="codehilite language-python"><span class="n">temporal_iqr_filter</span><span class="p">(</span><span class="n">collection</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Function to filter values outside of IQR in time on image collection</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>collection</code></td>
+        <td><code>ee.ImageCollection</code></td>
+        <td><p>image collection to apply filter in time on</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ee.ImageCollection</code></td>
+      <td><p>image collection with values filtered</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/timeseries.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">temporal_iqr_filter</span><span class="p">(</span><span class="n">collection</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function to filter values outside of IQR in time on image collection</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        collection (ee.ImageCollection): image collection to apply filter in time on</span>
+
+<span class="sd">    returns:</span>
+<span class="sd">        ee.ImageCollection: image collection with values filtered</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@decorators</span><span class="o">.</span><span class="n">keep_attrs</span>
+    <span class="k">def</span> <span class="nf">_filter</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Closure function to apply smoothing in between window&quot;&quot;&quot;</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">gt</span><span class="p">(</span><span class="n">low_bounds</span><span class="p">)</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">lt</span><span class="p">(</span><span class="n">upper_bounds</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">updateMask</span><span class="p">(</span><span class="n">mask</span><span class="p">)</span>
+
+    <span class="n">percentiles</span> <span class="o">=</span> <span class="n">collection</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">ee</span><span class="o">.</span><span class="n">Reducer</span><span class="o">.</span><span class="n">percentile</span><span class="p">([</span><span class="mi">25</span><span class="p">,</span> <span class="mi">75</span><span class="p">]))</span>
+    <span class="n">iqr</span> <span class="o">=</span> <span class="n">percentiles</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">percentiles</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+    <span class="n">low_bounds</span> <span class="o">=</span> <span class="n">percentiles</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">iqr</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="mf">1.5</span><span class="p">))</span>
+    <span class="n">upper_bounds</span> <span class="o">=</span> <span class="n">percentiles</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">iqr</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="mf">1.5</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">collection</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">_filter</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.timeseries.temporal_smoothing">
+<code class="codehilite language-python"><span class="n">temporal_smoothing</span><span class="p">(</span><span class="n">collection</span><span class="p">,</span> <span class="n">reducer</span><span class="p">,</span> <span class="n">days</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Function to apply moving window reducer in time on image collection</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>collection</code></td>
+        <td><code>ee.ImageCollection</code></td>
+        <td><p>image collection to apply moving window reducer in time on</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>reducer</code></td>
+        <td><code>ee.Reducer</code></td>
+        <td><p>earth engine reducer object to apply</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>days</code></td>
+        <td><code>int,optional</code></td>
+        <td><p>size of moving time window in days to apply reducer. default = 10</p></td>
+        <td><code>10</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ee.ImageCollection</code></td>
+      <td><p>image collection with reducer applied in time</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/timeseries.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">temporal_smoothing</span><span class="p">(</span><span class="n">collection</span><span class="p">,</span> <span class="n">reducer</span><span class="p">,</span> <span class="n">days</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function to apply moving window reducer in time on image collection</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        collection (ee.ImageCollection): image collection to apply moving window reducer in time on</span>
+<span class="sd">        reducer (ee.Reducer): earth engine reducer object to apply</span>
+<span class="sd">        days (int,optional): size of moving time window in days to apply reducer. default = 10</span>
+
+<span class="sd">    returns:</span>
+<span class="sd">        ee.ImageCollection: image collection with reducer applied in time</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nd">@decorators</span><span class="o">.</span><span class="n">keep_attrs</span>
+    <span class="k">def</span> <span class="nf">_smooth</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Closure function to apply smoothing in between window&quot;&quot;&quot;</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">date</span><span class="p">()</span>
+        <span class="n">band_names</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">bandNames</span><span class="p">()</span>
+        <span class="n">t_start</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">advance</span><span class="p">(</span><span class="o">-</span><span class="n">days</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;day&quot;</span><span class="p">)</span>
+        <span class="n">t_stop</span> <span class="o">=</span> <span class="n">t</span><span class="o">.</span><span class="n">advance</span><span class="p">(</span><span class="n">days</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;day&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="n">collection</span><span class="o">.</span><span class="n">filterDate</span><span class="p">(</span><span class="n">t_start</span><span class="p">,</span> <span class="n">t_stop</span><span class="p">)</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">reducer</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">band_names</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">collection</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">_smooth</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../thresholding/" class="md-footer__link md-footer__link--prev" aria-label="Previous: thresholding module" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              thresholding module
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../utils/" class="md-footer__link md-footer__link--next" aria-label="Next: utils module" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              utils module
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.5e67fbfe.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.c44cc438.min.js"></script>
+      
+    
+  </body>
+</html>

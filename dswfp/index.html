@@ -1,0 +1,2097 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      <link rel="icon" href="../img/favicon.ico">
+      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.8">
+    
+    
+      
+        <title>workflows.dswfp module - HYDRAFloods Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.644de097.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.e6a45f82.min.css">
+        
+      
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#hydrafloods.workflows.dswfp" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="HYDRAFloods Documentation" class="md-header__button md-logo" aria-label="HYDRAFloods Documentation" data-md-component="logo">
+      
+  <img src="../img/hydrafloods_logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            HYDRAFloods Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              workflows.dswfp module
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="HYDRAFloods Documentation" class="md-nav__button md-logo" aria-label="HYDRAFloods Documentation" data-md-component="logo">
+      
+  <img src="../img/hydrafloods_logo.png" alt="logo">
+
+    </a>
+    HYDRAFloods Documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        Installation
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        Getting Started
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-datasets/" class="md-nav__link">
+        Using the Dataset class
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../algorithms/" class="md-nav__link">
+        Algorithms
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../workflow-example/" class="md-nav__link">
+        Workflow Example
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli/" class="md-nav__link">
+        Command Line Interface
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8" type="checkbox" id="__nav_8" checked>
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_8">
+          API Reference
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="API Reference" data-md-level="1">
+        <label class="md-nav__title" for="__nav_8">
+          <span class="md-nav__icon md-icon"></span>
+          API Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../corrections/" class="md-nav__link">
+        corrections module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datasets/" class="md-nav__link">
+        datasets module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../depths/" class="md-nav__link">
+        depths module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decorators/" class="md-nav__link">
+        decorators module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fetch/" class="md-nav__link">
+        fetch module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../floods/" class="md-nav__link">
+        floods module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filtering/" class="md-nav__link">
+        filtering module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fuzzy/" class="md-nav__link">
+        fuzzy module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../geeutils/" class="md-nav__link">
+        geeutils module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../indices/" class="md-nav__link">
+        indices module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ml/" class="md-nav__link">
+        ml module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../thresholding/" class="md-nav__link">
+        thresholding module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../timeseries/" class="md-nav__link">
+        timeseries module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../utils/" class="md-nav__link">
+        utils module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          workflows.dswfp module
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        workflows.dswfp module
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#hydrafloods.workflows.dswfp" class="md-nav__link">
+    dswfp
+  </a>
+  
+    <nav class="md-nav" aria-label="dswfp">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.workflows.dswfp.export_daily_surface_water" class="md-nav__link">
+    export_daily_surface_water()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.workflows.dswfp.export_fusion_samples" class="md-nav__link">
+    export_fusion_samples()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.workflows.dswfp.export_surface_water_harmonics" class="md-nav__link">
+    export_surface_water_harmonics()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.workflows.dswfp.merge_gcp_tiled_results" class="md-nav__link">
+    merge_gcp_tiled_results()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#hydrafloods.workflows.dswfp" class="md-nav__link">
+    dswfp
+  </a>
+  
+    <nav class="md-nav" aria-label="dswfp">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.workflows.dswfp.export_daily_surface_water" class="md-nav__link">
+    export_daily_surface_water()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.workflows.dswfp.export_fusion_samples" class="md-nav__link">
+    export_fusion_samples()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.workflows.dswfp.export_surface_water_harmonics" class="md-nav__link">
+    export_surface_water_harmonics()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.workflows.dswfp.merge_gcp_tiled_results" class="md-nav__link">
+    merge_gcp_tiled_results()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+
+
+  <h1>workflows.dswfp module</h1>
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 class="doc doc-heading" id="hydrafloods.workflows.dswfp">
+        <code>hydrafloods.workflows.dswfp</code>
+
+
+
+</h2>
+
+    <div class="doc doc-contents first">
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.workflows.dswfp.export_daily_surface_water">
+<code class="codehilite language-python"><span class="n">export_daily_surface_water</span><span class="p">(</span><span class="n">region</span><span class="p">,</span> <span class="n">target_date</span><span class="p">,</span> <span class="n">harmonic_image</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">harmonic_collection</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">feature_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">look_back</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">lag</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">n_cycles</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">include_confidence</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">include_flood</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">fusion_samples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_asset_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_bucket_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">initial_threshold</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">thresh_no_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tile_size</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">tile_buffer</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span> <span class="n">output_scale</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Last and repeated step of the daily surface water fusion process.
+This procedure uses the results from <code>export_fusion_samples</code> and
+<code>export_surface_water_harmonics</code> to build a random forest model to predict
+a water index from SAR imagery and predict water using the harmonic model.
+This process will correct the harmonic estimate using observed data and export
+the resulting imagery.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>region</code></td>
+        <td><code>ee.Geometry</code></td>
+        <td><p>geographic region to look for coincident data and sample from</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>target_date</code></td>
+        <td><code>str | datetime.datetime</code></td>
+        <td><p>date to estimate surface water extent for</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>harmonic_image</code></td>
+        <td><code>str</code></td>
+        <td><p>Earth Engine Image asset id of the harmonic model weights
+exported by <code>export_surface_water_harmonics</code>. If left as None then <code>harmonic_collection</code>
+must be defined. default = None</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>harmonic_collection</code></td>
+        <td><code>str</code></td>
+        <td><p>Earth Engine ImageCollection asset id of the harmonic
+model weights from tile <code>export_surface_water_harmonics</code>. If left as None then
+<code>harmonic_image</code> must be defined. default = None</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>feature_names</code></td>
+        <td><code>list[str],</code></td>
+        <td><p>names of feature columns used to calculate <code>label</code> from</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>label</code></td>
+        <td><code>str</code></td>
+        <td><p>name of feature column to predict using <code>feature_names</code></p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>look_back</code></td>
+        <td><code>int,optional</code></td>
+        <td><p>number of days used to estimate short-term trend in water. default = 30</p></td>
+        <td><code>30</code></td>
+      </tr>
+      <tr>
+        <td><code>lag</code></td>
+        <td><code>int</code></td>
+        <td><p>number of days after <code>target_date</code> to begin <code>look_back</code>. default=4</p></td>
+        <td><code>4</code></td>
+      </tr>
+      <tr>
+        <td><code>n_cycles</code></td>
+        <td><code>int</code></td>
+        <td><p>number of interannual cycles to model. default = 2</p></td>
+        <td><code>2</code></td>
+      </tr>
+      <tr>
+        <td><code>include_confidence</code></td>
+        <td><code>bool</code></td>
+        <td><p>boolean keyword to specify if a confidence band will
+be exported with surface water image. If True then confidence will be calculated. default = False</p></td>
+        <td><code>False</code></td>
+      </tr>
+      <tr>
+        <td><code>include_flood</code></td>
+        <td><code>bool</code></td>
+        <td><p>boolean keyword to specify if a flood band will
+be exported with surface water image. If True then flood will be calculated based on JRC
+ permanent water data. default = False</p></td>
+        <td><code>False</code></td>
+      </tr>
+      <tr>
+        <td><code>export_fusion</code></td>
+        <td><code>bool</code></td>
+        <td><p>boolean keyword to specify if the fusion image used to calculate
+water should be exported as a seperated task. If True then run fusion export task. default = False</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>fusion_samples</code></td>
+        <td><code>str</code></td>
+        <td><p>Earth Engine FeatureCollection asset id of samples to get a data
+fusion model from. Should be the asset output from <code>export_fusion_samples</code></p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>output_asset_path</code></td>
+        <td><code>str</code></td>
+        <td><p>Earth Engine asset id to save estimate water and fusion results to as image.
+If tile==True, then output_asset_path much be a precreated ImageCollection asset. If left
+as None then <code>output_bucket_path</code> must be specified. default = None</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>output_bucket_path</code></td>
+        <td><code>str</code></td>
+        <td><p>GCP cloud bucket path to save estimate water and fusion results to
+cloud optimized geotiffs. If tile==True, then multiple file will be created. If left
+as None then <code>output_asset_path</code> must be specified. default = None</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>initial_threshold</code></td>
+        <td><code>float</code></td>
+        <td><p>initial threshold value used in <code>edge_otsu</code> thresholding
+algorithm to segment water from fusion image. default = 0.1</p></td>
+        <td><code>0.1</code></td>
+      </tr>
+      <tr>
+        <td><code>tile</code></td>
+        <td><code>bool</code></td>
+        <td><p>boolean keyword to tile exports. If false will try to calculate
+harmonic weights as image. If true, it will tile area and recusively call to export
+smaller areas. If true then expects that <code>output_asset_path</code> is an ImageCollection.
+default = False</p></td>
+        <td><code>False</code></td>
+      </tr>
+      <tr>
+        <td><code>tile_size</code></td>
+        <td><code>float</code></td>
+        <td><p>resolution in decimal degrees to create tiles over region
+for smaller exports. Only used if tile==True. default = 1.0</p></td>
+        <td><code>1.0</code></td>
+      </tr>
+      <tr>
+        <td><code>tile_buffer</code></td>
+        <td><code>float,optional</code></td>
+        <td><p>buffer size in meters to buffer tiles to calculate threshold. This
+is used to ensure running tiled exports produces consistent results at tile seams. default = 100000</p></td>
+        <td><code>100000</code></td>
+      </tr>
+      <tr>
+        <td><code>output_scale</code></td>
+        <td><code>float</code></td>
+        <td><p>output resolution of harmonic weight image. default = 30</p></td>
+        <td><code>30</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Exceptions:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>ValueError</code></td>
+        <td><p>if <code>fusion_samples</code> is None</p></td>
+      </tr>
+      <tr>
+        <td><code>ValueError</code></td>
+        <td><p>if both<code>harmonic_image</code> and <code>harmonic_collection</code> is None</p></td>
+      </tr>
+      <tr>
+        <td><code>ValueError</code></td>
+        <td><p>if both 'output_asset_path' and 'output_bucket_path' is None</p></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/workflows/dswfp.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">export_daily_surface_water</span><span class="p">(</span>
+    <span class="n">region</span><span class="p">,</span>
+    <span class="n">target_date</span><span class="p">,</span>
+    <span class="n">harmonic_image</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">harmonic_collection</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">feature_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">look_back</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+    <span class="n">lag</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="n">n_cycles</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">include_confidence</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">include_flood</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">fusion_samples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">output_asset_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">output_bucket_path</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">initial_threshold</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+    <span class="n">thresh_no_data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">tile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">tile_size</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">tile_buffer</span><span class="o">=</span><span class="mi">100000</span><span class="p">,</span>
+    <span class="n">output_scale</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Last and repeated step of the daily surface water fusion process.</span>
+<span class="sd">    This procedure uses the results from `export_fusion_samples` and</span>
+<span class="sd">    `export_surface_water_harmonics` to build a random forest model to predict</span>
+<span class="sd">    a water index from SAR imagery and predict water using the harmonic model.</span>
+<span class="sd">    This process will correct the harmonic estimate using observed data and export</span>
+<span class="sd">    the resulting imagery.</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        region (ee.Geometry): geographic region to look for coincident data and sample from</span>
+<span class="sd">        target_date (str | datetime.datetime): date to estimate surface water extent for</span>
+<span class="sd">        harmonic_image (str, optional): Earth Engine Image asset id of the harmonic model weights</span>
+<span class="sd">            exported by `export_surface_water_harmonics`. If left as None then `harmonic_collection`</span>
+<span class="sd">            must be defined. default = None</span>
+<span class="sd">        harmonic_collection (str, optional): Earth Engine ImageCollection asset id of the harmonic</span>
+<span class="sd">            model weights from tile `export_surface_water_harmonics`. If left as None then</span>
+<span class="sd">            `harmonic_image` must be defined. default = None</span>
+<span class="sd">        feature_names (list[str],):  names of feature columns used to calculate `label` from</span>
+<span class="sd">        label (str): name of feature column to predict using `feature_names`</span>
+<span class="sd">        look_back (int,optional): number of days used to estimate short-term trend in water. default = 30</span>
+<span class="sd">        lag (int, optional): number of days after `target_date` to begin `look_back`. default=4</span>
+<span class="sd">        n_cycles (int, optional): number of interannual cycles to model. default = 2</span>
+<span class="sd">        include_confidence (bool, optional): boolean keyword to specify if a confidence band will</span>
+<span class="sd">            be exported with surface water image. If True then confidence will be calculated. default = False</span>
+<span class="sd">        include_flood (bool, optional): boolean keyword to specify if a flood band will</span>
+<span class="sd">            be exported with surface water image. If True then flood will be calculated based on JRC</span>
+<span class="sd">             permanent water data. default = False</span>
+<span class="sd">        export_fusion (bool, optional): boolean keyword to specify if the fusion image used to calculate</span>
+<span class="sd">            water should be exported as a seperated task. If True then run fusion export task. default = False</span>
+<span class="sd">        fusion_samples (str): Earth Engine FeatureCollection asset id of samples to get a data</span>
+<span class="sd">            fusion model from. Should be the asset output from `export_fusion_samples`</span>
+<span class="sd">        output_asset_path (str): Earth Engine asset id to save estimate water and fusion results to as image.</span>
+<span class="sd">            If tile==True, then output_asset_path much be a precreated ImageCollection asset. If left</span>
+<span class="sd">            as None then `output_bucket_path` must be specified. default = None</span>
+<span class="sd">        output_bucket_path (str): GCP cloud bucket path to save estimate water and fusion results to</span>
+<span class="sd">            cloud optimized geotiffs. If tile==True, then multiple file will be created. If left</span>
+<span class="sd">            as None then `output_asset_path` must be specified. default = None</span>
+<span class="sd">        initial_threshold (float, optional): initial threshold value used in `edge_otsu` thresholding</span>
+<span class="sd">            algorithm to segment water from fusion image. default = 0.1</span>
+<span class="sd">        tile (bool, optional): boolean keyword to tile exports. If false will try to calculate</span>
+<span class="sd">            harmonic weights as image. If true, it will tile area and recusively call to export</span>
+<span class="sd">            smaller areas. If true then expects that `output_asset_path` is an ImageCollection.</span>
+<span class="sd">            default = False</span>
+<span class="sd">        tile_size (float, optional): resolution in decimal degrees to create tiles over region</span>
+<span class="sd">            for smaller exports. Only used if tile==True. default = 1.0</span>
+<span class="sd">        tile_buffer (float,optional): buffer size in meters to buffer tiles to calculate threshold. This</span>
+<span class="sd">            is used to ensure running tiled exports produces consistent results at tile seams. default = 100000</span>
+<span class="sd">        output_scale (float, optional): output resolution of harmonic weight image. default = 30</span>
+
+<span class="sd">    raises:</span>
+<span class="sd">        ValueError: if `fusion_samples` is None</span>
+<span class="sd">        ValueError: if both`harmonic_image` and `harmonic_collection` is None</span>
+<span class="sd">        ValueError: if both &#39;output_asset_path&#39; and &#39;output_bucket_path&#39; is None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">get_residuals</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Closure function to calculate residuals of harmonic water estimate</span>
+<span class="sd">        compared to observed data.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Number</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="n">t_diff</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">ee</span><span class="o">.</span><span class="n">Number</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">lag</span><span class="p">)</span>
+        <span class="p">)</span>  <span class="c1"># calc how many days to adjust ini date</span>
+        <span class="n">new_date</span> <span class="o">=</span> <span class="n">target_date</span><span class="o">.</span><span class="n">advance</span><span class="p">(</span><span class="n">t_diff</span><span class="p">,</span> <span class="s2">&quot;day&quot;</span><span class="p">)</span>  <span class="c1"># calculate new date</span>
+
+        <span class="n">corr_img</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">ds</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">filterDate</span><span class="p">(</span><span class="n">new_date</span><span class="p">,</span> <span class="n">new_date</span><span class="o">.</span><span class="n">advance</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;day&quot;</span><span class="p">))</span>
+            <span class="o">.</span><span class="n">median</span><span class="p">()</span>
+        <span class="p">)</span>
+
+        <span class="n">time_img</span> <span class="o">=</span> <span class="n">timeseries</span><span class="o">.</span><span class="n">get_dummy_img</span><span class="p">(</span><span class="n">new_date</span><span class="p">)</span>
+
+        <span class="n">harmon_pred</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">timeseries</span><span class="o">.</span><span class="n">add_harmonic_coefs</span><span class="p">(</span><span class="n">time_img</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">harmonic_coefs</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="s2">&quot;sum&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">harmon_diff</span> <span class="o">=</span> <span class="n">harmon_pred</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">corr_img</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;residual&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">harmon_diff</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;system:time_start&quot;</span><span class="p">,</span> <span class="n">new_date</span><span class="o">.</span><span class="n">millis</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">calc_confidence</span><span class="p">(</span><span class="n">i</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Closure function to calculate confidence in water estimate using</span>
+<span class="sd">        monte carlo methods and simulating errors in long- and short-term water</span>
+<span class="sd">        dynamics</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Number</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+        <span class="c1"># uniform sampling of std dev at 95% confidence interval</span>
+        <span class="n">long_term_seed</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="mi">500</span><span class="p">)</span>
+        <span class="n">short_term_seed</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
+        <span class="n">long_term_random</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">long_term_seed</span><span class="p">)</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="mf">3.92</span><span class="p">)</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="mf">1.96</span><span class="p">)</span>
+        <span class="n">short_term_random</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="n">short_term_seed</span><span class="p">)</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="mf">3.92</span><span class="p">)</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="mf">1.96</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">lin_sim</span> <span class="o">=</span> <span class="n">lin_pred</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">short_term_random</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">linCi</span><span class="p">))</span>
+        <span class="n">har_sim</span> <span class="o">=</span> <span class="n">har_pred</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">long_term_random</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">harCi</span><span class="p">))</span>
+
+        <span class="n">sim_pred</span> <span class="o">=</span> <span class="n">har_sim</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">lin_sim</span><span class="p">)</span>
+        <span class="c1"># random_water = thresholding.bmax_otsu(random_combination,invert=True)</span>
+        <span class="c1"># naive estimate of water (&gt;0)</span>
+        <span class="k">return</span> <span class="n">sim_pred</span><span class="o">.</span><span class="n">gt</span><span class="p">(</span><span class="n">ci_threshold</span><span class="p">)</span><span class="o">.</span><span class="n">uint8</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">tile</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">tile</span><span class="p">:</span>
+            <span class="n">land_area</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">ee</span><span class="o">.</span><span class="n">FeatureCollection</span><span class="p">(</span><span class="s2">&quot;USDOS/LSIB_SIMPLE/2017&quot;</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">filterBounds</span><span class="p">(</span><span class="n">region</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">geometry</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">buffer</span><span class="p">(</span><span class="mi">2500</span><span class="p">,</span> <span class="n">maxError</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+            <span class="p">)</span>
+            <span class="n">grid</span> <span class="o">=</span> <span class="n">geeutils</span><span class="o">.</span><span class="n">tile_region</span><span class="p">(</span>
+                <span class="n">region</span><span class="p">,</span> <span class="n">intersect_geom</span><span class="o">=</span><span class="n">land_area</span><span class="p">,</span> <span class="n">grid_size</span><span class="o">=</span><span class="n">tile_size</span>
+            <span class="p">)</span>
+
+            <span class="n">n</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">size</span><span class="p">()</span><span class="o">.</span><span class="n">getInfo</span><span class="p">()</span>
+            <span class="n">grid_list</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">toList</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">output_asset_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">output_asset_tile</span> <span class="o">=</span> <span class="n">output_asset_path</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;daily_tile</span><span class="si">{</span><span class="n">i</span><span class="si">:</span><span class="s2">05d</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">output_asset_tile</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="k">if</span> <span class="n">output_bucket_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">output_bucket_tile</span> <span class="o">=</span> <span class="n">output_bucket_path</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;_tile</span><span class="si">{</span><span class="n">i</span><span class="si">:</span><span class="s2">05d</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">output_bucket_tile</span> <span class="o">=</span> <span class="kc">None</span>
+
+                <span class="n">grid_tile</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Feature</span><span class="p">(</span><span class="n">grid_list</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">i</span><span class="p">))</span><span class="o">.</span><span class="n">geometry</span><span class="p">()</span>
+                <span class="n">export_daily_surface_water</span><span class="p">(</span>
+                    <span class="n">region</span><span class="o">=</span><span class="n">grid_tile</span><span class="p">,</span>
+                    <span class="n">target_date</span><span class="o">=</span><span class="n">target_date</span><span class="p">,</span>
+                    <span class="n">harmonic_image</span><span class="o">=</span><span class="n">harmonic_image</span><span class="p">,</span>
+                    <span class="n">harmonic_collection</span><span class="o">=</span><span class="n">harmonic_collection</span><span class="p">,</span>
+                    <span class="n">feature_names</span><span class="o">=</span><span class="n">feature_names</span><span class="p">,</span>
+                    <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span>
+                    <span class="n">look_back</span><span class="o">=</span><span class="n">look_back</span><span class="p">,</span>
+                    <span class="n">lag</span><span class="o">=</span><span class="n">lag</span><span class="p">,</span>
+                    <span class="n">n_cycles</span><span class="o">=</span><span class="n">n_cycles</span><span class="p">,</span>
+                    <span class="n">include_confidence</span><span class="o">=</span><span class="n">include_confidence</span><span class="p">,</span>
+                    <span class="n">include_flood</span><span class="o">=</span><span class="n">include_flood</span><span class="p">,</span>
+                    <span class="n">fusion_samples</span><span class="o">=</span><span class="n">fusion_samples</span><span class="p">,</span>
+                    <span class="n">output_asset_path</span><span class="o">=</span><span class="n">output_asset_tile</span><span class="p">,</span>
+                    <span class="n">output_bucket_path</span><span class="o">=</span><span class="n">output_bucket_tile</span><span class="p">,</span>
+                    <span class="n">initial_threshold</span><span class="o">=</span><span class="n">initial_threshold</span><span class="p">,</span>
+                    <span class="n">thresh_no_data</span><span class="o">=</span><span class="n">thresh_no_data</span><span class="p">,</span>
+                    <span class="n">tile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">tile_buffer</span><span class="o">=</span><span class="n">tile_buffer</span><span class="p">,</span>
+                    <span class="n">output_scale</span><span class="o">=</span><span class="n">output_scale</span><span class="p">,</span>
+                <span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">target_date</span><span class="p">,</span> <span class="n">ee</span><span class="o">.</span><span class="n">Date</span><span class="p">):</span>
+            <span class="n">target_date</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Date</span><span class="p">(</span><span class="n">target_date</span><span class="p">)</span>
+
+        <span class="n">end_time</span> <span class="o">=</span> <span class="n">target_date</span><span class="o">.</span><span class="n">advance</span><span class="p">(</span><span class="o">-</span><span class="p">(</span><span class="n">lag</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="s2">&quot;day&quot;</span><span class="p">)</span>
+        <span class="n">start_time</span> <span class="o">=</span> <span class="n">end_time</span><span class="o">.</span><span class="n">advance</span><span class="p">(</span><span class="o">-</span><span class="n">look_back</span><span class="p">,</span> <span class="s2">&quot;day&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">fusion_samples</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fusion_model</span><span class="p">,</span> <span class="n">scaling_dict</span> <span class="o">=</span> <span class="n">ml</span><span class="o">.</span><span class="n">random_forest_ee</span><span class="p">(</span>
+                <span class="mi">30</span><span class="p">,</span>
+                <span class="n">fusion_samples</span><span class="p">,</span>
+                <span class="n">feature_names</span><span class="p">,</span>
+                <span class="n">label</span><span class="p">,</span>
+                <span class="n">scaling</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;regression&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;&#39;fusion_samples&#39; needs to be defined to run fusion process&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+        <span class="n">time_id</span> <span class="o">=</span> <span class="n">now</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">%H%M</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">time_str</span> <span class="o">=</span> <span class="n">now</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">harmonic_image</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">harmonic_coefs</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">harmonic_image</span><span class="p">)</span>
+            <span class="n">harmonic_coefs</span> <span class="o">=</span> <span class="n">harmonic_coefs</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span>
+                <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">ee</span><span class="o">.</span><span class="n">Number</span><span class="p">(</span><span class="n">harmonic_coefs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;scale_factor&quot;</span><span class="p">)))</span>
+            <span class="p">)</span>
+        <span class="k">elif</span> <span class="n">harmonic_collection</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">harmonic_collection</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">ImageCollection</span><span class="p">(</span><span class="n">harmonic_collection</span><span class="p">)</span>
+            <span class="n">first</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">harmonic_collection</span><span class="o">.</span><span class="n">first</span><span class="p">())</span>
+            <span class="n">harmonic_coefs</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">harmonic_collection</span><span class="o">.</span><span class="n">mosaic</span><span class="p">())</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span>
+                <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="n">ee</span><span class="o">.</span><span class="n">Number</span><span class="p">(</span><span class="n">first</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;scale_factor&quot;</span><span class="p">)))</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Either &#39;harmonic_image&#39; or &#39;harmonic_collection&#39; needs to be defined to run fusion process&quot;</span>
+            <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">include_confidence</span><span class="p">:</span>
+            <span class="n">harmonic_err</span> <span class="o">=</span> <span class="n">harmonic_coefs</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;.*(x|y|n)$&quot;</span><span class="p">)</span>
+            <span class="n">harmonic_coefs</span> <span class="o">=</span> <span class="n">harmonic_coefs</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;^(c|t|s).*&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">harmonic_coefs</span> <span class="o">=</span> <span class="n">harmonic_coefs</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;^(c|t|s).*&quot;</span><span class="p">)</span>
+
+        <span class="n">prod_region</span> <span class="o">=</span> <span class="n">region</span><span class="o">.</span><span class="n">buffer</span><span class="p">(</span><span class="n">tile_buffer</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+
+        <span class="n">ds</span> <span class="o">=</span> <span class="n">_fuse_dataset</span><span class="p">(</span>
+            <span class="n">region</span><span class="p">,</span>
+            <span class="n">start_time</span><span class="p">,</span>
+            <span class="n">end_time</span><span class="p">,</span>
+            <span class="n">fusion_model</span><span class="p">,</span>
+            <span class="n">scaling_dict</span><span class="p">,</span>
+            <span class="n">feature_names</span><span class="p">,</span>
+            <span class="n">target_band</span><span class="o">=</span><span class="n">label</span><span class="p">,</span>
+            <span class="n">use_viirs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">dummy_target</span> <span class="o">=</span> <span class="n">timeseries</span><span class="o">.</span><span class="n">get_dummy_img</span><span class="p">(</span><span class="n">target_date</span><span class="p">)</span>
+
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">ImageCollection</span><span class="o">.</span><span class="n">fromImages</span><span class="p">(</span>
+            <span class="n">ee</span><span class="o">.</span><span class="n">List</span><span class="o">.</span><span class="n">sequence</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">look_back</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">get_residuals</span><span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="s2">&quot;system:time_start&quot;</span><span class="p">)</span>
+
+        <span class="n">weights_lr</span> <span class="o">=</span> <span class="n">timeseries</span><span class="o">.</span><span class="n">fit_linear_trend</span><span class="p">(</span>
+            <span class="n">weights</span><span class="p">,</span> <span class="n">dependent</span><span class="o">=</span><span class="s2">&quot;residual&quot;</span><span class="p">,</span> <span class="n">output_err</span><span class="o">=</span><span class="n">include_confidence</span>
+        <span class="p">)</span>
+
+        <span class="n">weights_coefs</span> <span class="o">=</span> <span class="n">weights_lr</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;^(c|t).*&quot;</span><span class="p">)</span>
+
+        <span class="n">lin_pred</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">dummy_target</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">weights_coefs</span><span class="p">)</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="s2">&quot;sum&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;residual_est&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">har_pred</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">timeseries</span><span class="o">.</span><span class="n">add_harmonic_coefs</span><span class="p">(</span><span class="n">dummy_target</span><span class="p">,</span> <span class="n">n_cycles</span><span class="o">=</span><span class="n">n_cycles</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">harmonic_coefs</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="s2">&quot;sum&quot;</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">fused_pred</span> <span class="o">=</span> <span class="p">(</span><span class="n">har_pred</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">lin_pred</span><span class="p">))</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;fused_product&quot;</span><span class="p">)</span>
+
+        <span class="n">ci_threshold</span> <span class="o">=</span> <span class="n">thresholding</span><span class="o">.</span><span class="n">edge_otsu</span><span class="p">(</span>
+            <span class="n">fused_pred</span><span class="p">,</span>
+            <span class="n">initial_threshold</span><span class="o">=</span><span class="n">initial_threshold</span><span class="p">,</span>
+            <span class="n">thresh_no_data</span><span class="o">=</span><span class="n">thresh_no_data</span><span class="p">,</span>
+            <span class="n">edge_buffer</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
+            <span class="n">region</span><span class="o">=</span><span class="n">prod_region</span><span class="p">,</span>
+            <span class="n">invert</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">scale</span><span class="o">=</span><span class="mi">150</span><span class="p">,</span>
+            <span class="n">return_threshold</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">permanent_water</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">ee</span><span class="o">.</span><span class="n">ImageCollection</span><span class="p">(</span><span class="s2">&quot;JRC/GSW1_2/YearlyHistory&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">filterDate</span><span class="p">(</span><span class="s2">&quot;1985-01-01&quot;</span><span class="p">,</span> <span class="n">end_time</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">limit</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;system:time_start&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;waterClass&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+            <span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">unmask</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">gt</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">water</span> <span class="o">=</span> <span class="n">fused_pred</span><span class="o">.</span><span class="n">gt</span><span class="p">(</span><span class="n">ci_threshold</span><span class="p">)</span><span class="o">.</span><span class="n">Or</span><span class="p">(</span><span class="n">permanent_water</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;water&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">uint8</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">include_flood</span><span class="p">:</span>
+            <span class="n">flood</span> <span class="o">=</span> <span class="n">water</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;water&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">And</span><span class="p">(</span><span class="n">permanent_water</span><span class="o">.</span><span class="n">Not</span><span class="p">())</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;flood&quot;</span><span class="p">)</span>
+            <span class="n">water</span> <span class="o">=</span> <span class="n">water</span><span class="o">.</span><span class="n">addBands</span><span class="p">(</span><span class="n">flood</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">include_confidence</span><span class="p">:</span>
+            <span class="n">weights_err</span> <span class="o">=</span> <span class="n">weights_lr</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;.*(x|y|n)$&quot;</span><span class="p">)</span>
+
+            <span class="n">linCi</span> <span class="o">=</span> <span class="n">weights_err</span><span class="o">.</span><span class="n">expression</span><span class="p">(</span>
+                <span class="s2">&quot;mse * (1 + (1/n) + ((t-xmean)**2/xr))**(1/2)&quot;</span><span class="p">,</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;mse&quot;</span><span class="p">:</span> <span class="n">weights_err</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;residual_y&quot;</span><span class="p">),</span>
+                    <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="n">weights_err</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;n&quot;</span><span class="p">),</span>
+                    <span class="s2">&quot;xmean&quot;</span><span class="p">:</span> <span class="n">weights_err</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;mean_x&quot;</span><span class="p">),</span>
+                    <span class="s2">&quot;xr&quot;</span><span class="p">:</span> <span class="n">weights_err</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;residual_x&quot;</span><span class="p">),</span>
+                    <span class="s2">&quot;t&quot;</span><span class="p">:</span> <span class="n">dummy_target</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">),</span>
+                <span class="p">},</span>
+            <span class="p">)</span>
+
+            <span class="n">harCi</span> <span class="o">=</span> <span class="n">harmonic_err</span><span class="o">.</span><span class="n">expression</span><span class="p">(</span>
+                <span class="s2">&quot;mse * (1 + (1/n) + ((t-xmean)**2/xr))**(1/2)&quot;</span><span class="p">,</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;mse&quot;</span><span class="p">:</span> <span class="n">harmonic_err</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;residual_y&quot;</span><span class="p">),</span>
+                    <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="n">harmonic_err</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;n&quot;</span><span class="p">),</span>
+                    <span class="s2">&quot;xmean&quot;</span><span class="p">:</span> <span class="n">harmonic_err</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;mean_x&quot;</span><span class="p">),</span>
+                    <span class="s2">&quot;xr&quot;</span><span class="p">:</span> <span class="n">harmonic_err</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;residual_x&quot;</span><span class="p">),</span>
+                    <span class="s2">&quot;t&quot;</span><span class="p">:</span> <span class="n">dummy_target</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;time&quot;</span><span class="p">),</span>
+                <span class="p">},</span>
+            <span class="p">)</span>
+
+            <span class="n">confidence</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">ee</span><span class="o">.</span><span class="n">ImageCollection</span><span class="o">.</span><span class="n">fromImages</span><span class="p">(</span>
+                    <span class="n">ee</span><span class="o">.</span><span class="n">List</span><span class="o">.</span><span class="n">sequence</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">99</span><span class="p">)</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">calc_confidence</span><span class="p">)</span>
+                <span class="p">)</span>
+                <span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">ee</span><span class="o">.</span><span class="n">Reducer</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span> <span class="mi">16</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+                <span class="o">.</span><span class="n">uint8</span><span class="p">()</span>
+                <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;confidence&quot;</span><span class="p">)</span>
+            <span class="p">)</span>
+
+            <span class="n">out_water</span> <span class="o">=</span> <span class="n">water</span><span class="o">.</span><span class="n">addBands</span><span class="p">(</span><span class="n">confidence</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">out_water</span> <span class="o">=</span> <span class="n">water</span>
+
+        <span class="k">if</span> <span class="n">output_asset_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># create metadata dict</span>
+            <span class="n">metadata</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Dictionary</span><span class="p">(</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;hf_version&quot;</span><span class="p">:</span> <span class="n">hf</span><span class="o">.</span><span class="n">__version__</span><span class="p">,</span>
+                    <span class="s2">&quot;system:time_start&quot;</span><span class="p">:</span> <span class="n">target_date</span><span class="o">.</span><span class="n">millis</span><span class="p">(),</span>
+                    <span class="s2">&quot;system:time_end&quot;</span><span class="p">:</span> <span class="n">target_date</span><span class="o">.</span><span class="n">advance</span><span class="p">(</span><span class="mi">86399</span><span class="p">,</span> <span class="s2">&quot;seconds&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">millis</span><span class="p">(),</span>
+                    <span class="s2">&quot;execution_time&quot;</span><span class="p">:</span> <span class="n">time_str</span><span class="p">,</span>
+                    <span class="s2">&quot;lag&quot;</span><span class="p">:</span> <span class="n">lag</span><span class="p">,</span>
+                    <span class="s2">&quot;look_back&quot;</span><span class="p">:</span> <span class="n">look_back</span><span class="p">,</span>
+                <span class="p">}</span>
+            <span class="p">)</span>
+            <span class="n">geeutils</span><span class="o">.</span><span class="n">export_image</span><span class="p">(</span>
+                <span class="n">out_water</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">metadata</span><span class="o">.</span><span class="n">combine</span><span class="p">({</span><span class="s2">&quot;product&quot;</span><span class="p">:</span> <span class="s2">&quot;water&quot;</span><span class="p">})),</span>
+                <span class="n">region</span><span class="p">,</span>
+                <span class="n">output_asset_path</span> <span class="o">+</span> <span class="s2">&quot;_water&quot;</span><span class="p">,</span>
+                <span class="n">description</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;hydrafloods_water_ee_export_</span><span class="si">{</span><span class="n">time_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">scale</span><span class="o">=</span><span class="n">output_scale</span><span class="p">,</span>
+                <span class="n">crs</span><span class="o">=</span><span class="s2">&quot;EPSG:4326&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">output_bucket_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">export_region</span> <span class="o">=</span> <span class="n">region</span><span class="o">.</span><span class="n">bounds</span><span class="p">(</span><span class="n">maxError</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="n">getInfo</span><span class="p">()[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">]</span>
+            <span class="n">bucket_path</span><span class="p">,</span> <span class="n">ext</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">output_bucket_path</span><span class="p">)</span>
+            <span class="n">fcomponents</span> <span class="o">=</span> <span class="n">bucket_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+            <span class="n">bucket</span> <span class="o">=</span> <span class="n">fcomponents</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+            <span class="n">fpath</span> <span class="o">=</span> <span class="n">fcomponents</span><span class="p">[</span><span class="mi">3</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+            <span class="c1"># TODO: remove extension from string formulation</span>
+            <span class="n">f_water</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fpath</span> <span class="o">+</span> <span class="p">[</span><span class="n">fcomponents</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;_water&quot;</span> <span class="o">+</span> <span class="n">ext</span><span class="p">])</span>
+            <span class="n">f_fusion</span> <span class="o">=</span> <span class="s2">&quot;/&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fpath</span> <span class="o">+</span> <span class="p">[</span><span class="n">fcomponents</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;_fusion&quot;</span> <span class="o">+</span> <span class="n">ext</span><span class="p">])</span>
+
+            <span class="n">water_task</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">batch</span><span class="o">.</span><span class="n">Export</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">toCloudStorage</span><span class="p">(</span>
+                <span class="n">image</span><span class="o">=</span><span class="n">out_water</span><span class="p">,</span>
+                <span class="n">description</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;hydrafloods_water_gcp_export_</span><span class="si">{</span><span class="n">time_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span>
+                <span class="n">fileNamePrefix</span><span class="o">=</span><span class="n">f_water</span><span class="p">,</span>
+                <span class="n">region</span><span class="o">=</span><span class="n">export_region</span><span class="p">,</span>
+                <span class="n">scale</span><span class="o">=</span><span class="n">output_scale</span><span class="p">,</span>
+                <span class="n">crs</span><span class="o">=</span><span class="s2">&quot;EPSG:4326&quot;</span><span class="p">,</span>
+                <span class="n">maxPixels</span><span class="o">=</span><span class="mf">1e13</span><span class="p">,</span>
+                <span class="n">fileFormat</span><span class="o">=</span><span class="s2">&quot;GeoTIFF&quot;</span><span class="p">,</span>
+                <span class="n">formatOptions</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;cloudOptimized&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+            <span class="p">)</span>
+            <span class="n">water_task</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Either &#39;output_asset_path&#39; or &#39;output_bucket_path&#39; needs to be defined to run fusion export process&quot;</span>
+            <span class="p">)</span>
+
+    <span class="k">return</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.workflows.dswfp.export_fusion_samples">
+<code class="codehilite language-python"><span class="n">export_fusion_samples</span><span class="p">(</span><span class="n">region</span><span class="p">,</span> <span class="n">start_time</span><span class="p">,</span> <span class="n">end_time</span><span class="p">,</span> <span class="n">output_asset_path</span><span class="p">,</span> <span class="n">stratify_samples</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">sample_scale</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">n_samples</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>First step of the daily surface water fusion process.
+This procedure samples values from coincident optical and SAR data
+so that we can use ML for data fusion. This will calculate MNDWI, NWI,
+AEWInsh, and AEWIsh optical water indices and a few indices from SAR imagery
+(VV/VH, NDPI, NVVI, NVHI) to predict a water index.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>region</code></td>
+        <td><code>ee.Geometry</code></td>
+        <td><p>geographic region to look for coincident data and sample from</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>start_time</code></td>
+        <td><code>str | datetime.datetime</code></td>
+        <td><p>start time used to look for coincident data</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>end_time</code></td>
+        <td><code>str | datetime.datetime</code></td>
+        <td><p>end time used to look for coincident data</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>output_asset_path</code></td>
+        <td><code>str</code></td>
+        <td><p>Earth Engine asset id to save sampled values too</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>stratify_samples</code></td>
+        <td><code>bool</code></td>
+        <td><p>boolean keyword to specify for sampling data stratified
+by a combination of the MODIS land cover and JRC surface water occurrence. If False,
+then a random sampling wil be used. default = False</p></td>
+        <td><code>True</code></td>
+      </tr>
+      <tr>
+        <td><code>sample_scale</code></td>
+        <td><code>float</code></td>
+        <td><p>resolution in meters to sample data at</p></td>
+        <td><code>30</code></td>
+      </tr>
+      <tr>
+        <td><code>n_samples</code></td>
+        <td><code>int</code></td>
+        <td><p>number of samples to collect per coincident image pair. If
+stratified_samples == True, this value be be samples per class. default = 25</p></td>
+        <td><code>25</code></td>
+      </tr>
+      <tr>
+        <td><code>seed</code></td>
+        <td><code>int,optional</code></td>
+        <td><p>random number generator seed, used for setting random sampling. default = 0</p></td>
+        <td><code>0</code></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/workflows/dswfp.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">export_fusion_samples</span><span class="p">(</span>
+    <span class="n">region</span><span class="p">,</span>
+    <span class="n">start_time</span><span class="p">,</span>
+    <span class="n">end_time</span><span class="p">,</span>
+    <span class="n">output_asset_path</span><span class="p">,</span>
+    <span class="n">stratify_samples</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">sample_scale</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+    <span class="n">n_samples</span><span class="o">=</span><span class="mi">25</span><span class="p">,</span>
+    <span class="n">seed</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;First step of the daily surface water fusion process.</span>
+<span class="sd">    This procedure samples values from coincident optical and SAR data</span>
+<span class="sd">    so that we can use ML for data fusion. This will calculate MNDWI, NWI,</span>
+<span class="sd">    AEWInsh, and AEWIsh optical water indices and a few indices from SAR imagery</span>
+<span class="sd">    (VV/VH, NDPI, NVVI, NVHI) to predict a water index.</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        region (ee.Geometry): geographic region to look for coincident data and sample from</span>
+<span class="sd">        start_time (str | datetime.datetime): start time used to look for coincident data</span>
+<span class="sd">        end_time (str | datetime.datetime): end time used to look for coincident data</span>
+<span class="sd">        output_asset_path (str): Earth Engine asset id to save sampled values too</span>
+<span class="sd">        stratify_samples (bool, optional): boolean keyword to specify for sampling data stratified</span>
+<span class="sd">            by a combination of the MODIS land cover and JRC surface water occurrence. If False,</span>
+<span class="sd">            then a random sampling wil be used. default = False</span>
+<span class="sd">        sample_scale (float, optional): resolution in meters to sample data at</span>
+<span class="sd">        n_samples (int, optional): number of samples to collect per coincident image pair. If</span>
+<span class="sd">            stratified_samples == True, this value be be samples per class. default = 25</span>
+<span class="sd">        seed (int,optional): random number generator seed, used for setting random sampling. default = 0</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">dem</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="s2">&quot;NASA/NASADEM_HGT/001&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;elevation&quot;</span><span class="p">)</span>
+
+    <span class="n">optical_water_indices</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;mndwi&quot;</span><span class="p">,</span> <span class="s2">&quot;nwi&quot;</span><span class="p">,</span> <span class="s2">&quot;aewish&quot;</span><span class="p">,</span> <span class="s2">&quot;aewinsh&quot;</span><span class="p">]</span>
+
+    <span class="n">ds_kwargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span> <span class="n">start_time</span><span class="o">=</span><span class="n">start_time</span><span class="p">,</span> <span class="n">end_time</span><span class="o">=</span><span class="n">end_time</span><span class="p">,</span> <span class="n">rescale</span><span class="o">=</span><span class="kc">True</span>
+    <span class="p">)</span>
+    <span class="n">dsa_kwargs</span> <span class="o">=</span> <span class="p">{</span><span class="o">**</span><span class="n">ds_kwargs</span><span class="p">,</span> <span class="o">**</span><span class="p">{</span><span class="s2">&quot;apply_band_adjustment&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">}}</span>
+
+    <span class="n">lc8</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">Landsat8</span><span class="p">(</span><span class="o">**</span><span class="n">ds_kwargs</span><span class="p">)</span>
+    <span class="n">le7</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">Landsat7</span><span class="p">(</span><span class="o">**</span><span class="n">dsa_kwargs</span><span class="p">)</span>
+    <span class="n">s2</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">Sentinel2</span><span class="p">(</span><span class="o">**</span><span class="n">dsa_kwargs</span><span class="p">)</span>
+
+    <span class="n">_</span> <span class="o">=</span> <span class="n">ds_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;rescale&quot;</span><span class="p">)</span>
+
+    <span class="n">s1a</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">Sentinel1Asc</span><span class="p">(</span><span class="o">**</span><span class="n">ds_kwargs</span><span class="p">)</span>
+    <span class="n">s1d</span> <span class="o">=</span> <span class="n">datasets</span><span class="o">.</span><span class="n">Sentinel1Desc</span><span class="p">(</span><span class="o">**</span><span class="n">ds_kwargs</span><span class="p">)</span>
+
+    <span class="n">years</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">s1a</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">aggregate_array</span><span class="p">(</span><span class="s2">&quot;system:time_start&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">Date</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;year&quot;</span><span class="p">))</span>
+        <span class="o">.</span><span class="n">distinct</span><span class="p">()</span>
+    <span class="p">)</span>
+
+    <span class="n">sar_proc</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="p">(</span>
+            <span class="n">corrections</span><span class="o">.</span><span class="n">slope_correction</span><span class="p">,</span>
+            <span class="nb">dict</span><span class="p">(</span>
+                <span class="n">elevation</span><span class="o">=</span><span class="n">dem</span><span class="p">,</span>
+                <span class="n">buffer</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span>
+            <span class="p">),</span>
+        <span class="p">),</span>
+        <span class="n">hf</span><span class="o">.</span><span class="n">gamma_map</span><span class="p">,</span>
+        <span class="p">(</span><span class="n">geeutils</span><span class="o">.</span><span class="n">add_indices</span><span class="p">,</span> <span class="nb">dict</span><span class="p">(</span><span class="n">indices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;vv_vh_ratio&quot;</span><span class="p">,</span> <span class="s2">&quot;ndpi&quot;</span><span class="p">,</span> <span class="s2">&quot;nvvi&quot;</span><span class="p">,</span> <span class="s2">&quot;nvhi&quot;</span><span class="p">])),</span>
+    <span class="p">)</span>
+
+    <span class="n">s1a</span><span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">sar_proc</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">s1d</span><span class="o">.</span><span class="n">pipe</span><span class="p">(</span><span class="n">sar_proc</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">s1a_anomalies</span> <span class="o">=</span> <span class="n">_calc_sar_anomalies</span><span class="p">(</span><span class="n">years</span><span class="p">,</span> <span class="n">s1a</span><span class="p">)</span>
+    <span class="n">s1d_anomalies</span> <span class="o">=</span> <span class="n">_calc_sar_anomalies</span><span class="p">(</span><span class="n">years</span><span class="p">,</span> <span class="n">s1d</span><span class="p">)</span>
+
+    <span class="n">s1a</span><span class="o">.</span><span class="n">collection</span> <span class="o">=</span> <span class="n">s1a_anomalies</span>
+    <span class="n">s1d</span><span class="o">.</span><span class="n">collection</span> <span class="o">=</span> <span class="n">s1d_anomalies</span>
+
+    <span class="n">s1</span> <span class="o">=</span> <span class="n">s1a</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">s1d</span><span class="p">)</span>
+
+    <span class="n">optical</span> <span class="o">=</span> <span class="n">lc8</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">s2</span><span class="p">)</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">le7</span><span class="p">)</span>
+
+    <span class="n">optical</span> <span class="o">=</span> <span class="n">optical</span><span class="o">.</span><span class="n">apply_func</span><span class="p">(</span><span class="n">geeutils</span><span class="o">.</span><span class="n">add_indices</span><span class="p">,</span> <span class="n">indices</span><span class="o">=</span><span class="n">optical_water_indices</span><span class="p">)</span>
+
+    <span class="n">ds</span> <span class="o">=</span> <span class="n">optical</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">s1</span><span class="p">)</span>
+
+    <span class="n">sample_region</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">ds</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">geeutils</span><span class="o">.</span><span class="n">get_geoms</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">union</span><span class="p">(</span><span class="n">maxError</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">geometry</span><span class="p">(</span><span class="n">maxError</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">region</span><span class="p">,</span> <span class="n">maxError</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+
+    <span class="n">img_list</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">toList</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">size</span><span class="p">())</span>
+
+    <span class="n">output_features</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">FeatureCollection</span><span class="p">([])</span>
+    <span class="n">aggregate_samples</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">if</span> <span class="n">stratify_samples</span><span class="p">:</span>
+
+        <span class="n">class_band</span> <span class="o">=</span> <span class="s2">&quot;strata&quot;</span>
+        <span class="n">interval</span> <span class="o">=</span> <span class="mi">20</span>
+
+        <span class="n">water_freq</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="s2">&quot;JRC/GSW1_2/GlobalSurfaceWater&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;occurrence&quot;</span><span class="p">)</span>
+
+        <span class="n">class_intervals</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">List</span><span class="o">.</span><span class="n">sequence</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">80</span><span class="p">,</span> <span class="n">interval</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Water intervals: </span><span class="si">{</span><span class="n">class_intervals</span><span class="o">.</span><span class="n">getInfo</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">n_water_classes</span> <span class="o">=</span> <span class="n">class_intervals</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
+        <span class="n">water_classes</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">List</span><span class="o">.</span><span class="n">sequence</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_water_classes</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Water Classes: </span><span class="si">{</span><span class="n">water_classes</span><span class="o">.</span><span class="n">getInfo</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">water_img</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">ee</span><span class="o">.</span><span class="n">ImageCollection</span><span class="o">.</span><span class="n">fromImages</span><span class="p">(</span>
+                <span class="n">class_intervals</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">water_freq</span><span class="o">.</span><span class="n">gte</span><span class="p">(</span><span class="n">ee</span><span class="o">.</span><span class="n">Number</span><span class="p">(</span><span class="n">x</span><span class="p">)))</span>
+            <span class="p">)</span>
+            <span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">ee</span><span class="o">.</span><span class="n">Reducer</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+            <span class="o">.</span><span class="n">uint8</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">class_band</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="c1"># class_band = &quot;landcover&quot;</span>
+        <span class="n">igbp_classes</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">List</span><span class="p">(</span>
+            <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">13</span><span class="p">,</span> <span class="mi">14</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">16</span><span class="p">,</span> <span class="mi">17</span><span class="p">]</span>
+        <span class="p">)</span>
+        <span class="n">ipcc_classes</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">List</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">])</span>
+
+        <span class="n">lc_img</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">ee</span><span class="o">.</span><span class="n">ImageCollection</span><span class="p">(</span><span class="s2">&quot;MODIS/006/MCD12Q1&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">limit</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;system:time_start&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">first</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">remap</span><span class="p">(</span><span class="n">igbp_classes</span><span class="p">,</span> <span class="n">ipcc_classes</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">class_band</span><span class="p">)</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">water_classes</span><span class="o">.</span><span class="n">size</span><span class="p">())</span>
+        <span class="n">lc_classes</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">ipcc_classes</span><span class="o">.</span><span class="n">distinct</span><span class="p">()</span>
+            <span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">Number</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">water_classes</span><span class="o">.</span><span class="n">size</span><span class="p">()))</span>
+            <span class="o">.</span><span class="n">sort</span><span class="p">()</span>
+        <span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;LC Classes: </span><span class="si">{</span><span class="n">lc_classes</span><span class="o">.</span><span class="n">getInfo</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">final_strata_img</span> <span class="o">=</span> <span class="n">water_img</span><span class="o">.</span><span class="n">unmask</span><span class="p">(</span><span class="n">lc_img</span><span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">class_band</span><span class="p">)</span>
+
+        <span class="n">half</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Number</span><span class="p">(</span><span class="n">n_samples</span><span class="p">)</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">n_water_classes</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">n_lc</span> <span class="o">=</span> <span class="n">half</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">lc_classes</span><span class="o">.</span><span class="n">size</span><span class="p">())</span><span class="o">.</span><span class="n">round</span><span class="p">()</span>
+
+        <span class="n">all_classes</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">water_classes</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">cat</span><span class="p">(</span><span class="n">lc_classes</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">Number</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="n">n_water_samples</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">List</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">n_samples</span><span class="p">,</span> <span class="n">n_water_classes</span><span class="p">)</span>
+        <span class="n">n_lc_samples</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">List</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">n_lc</span><span class="p">,</span> <span class="n">lc_classes</span><span class="o">.</span><span class="n">size</span><span class="p">())</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;n Water Samples </span><span class="si">{</span><span class="n">n_water_samples</span><span class="o">.</span><span class="n">getInfo</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;n LC Samples </span><span class="si">{</span><span class="n">n_lc_samples</span><span class="o">.</span><span class="n">getInfo</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">base_samples</span> <span class="o">=</span> <span class="n">water_img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">class_band</span><span class="p">)</span><span class="o">.</span><span class="n">stratifiedSample</span><span class="p">(</span>
+            <span class="n">region</span><span class="o">=</span><span class="n">sample_region</span><span class="p">,</span>
+            <span class="n">numPoints</span><span class="o">=</span><span class="n">n_samples</span><span class="p">,</span>
+            <span class="n">classBand</span><span class="o">=</span><span class="n">class_band</span><span class="p">,</span>
+            <span class="n">scale</span><span class="o">=</span><span class="n">sample_scale</span><span class="p">,</span>
+            <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">,</span>
+            <span class="n">classValues</span><span class="o">=</span><span class="n">water_classes</span><span class="p">,</span>
+            <span class="n">classPoints</span><span class="o">=</span><span class="n">n_water_samples</span><span class="p">,</span>
+            <span class="n">tileScale</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+            <span class="n">geometries</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">base_samples</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">FeatureCollection</span><span class="o">.</span><span class="n">randomPoints</span><span class="p">(</span><span class="n">sample_region</span><span class="p">,</span> <span class="n">n_samples</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">sample_img</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+        <span class="n">geom</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">geometry</span><span class="p">()</span>
+        <span class="n">date</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">date</span><span class="p">()</span>
+        <span class="n">week</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;week&quot;</span><span class="p">)</span>
+        <span class="n">year</span> <span class="o">=</span> <span class="n">date</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;year&quot;</span><span class="p">)</span>
+        <span class="n">new_seed</span> <span class="o">=</span> <span class="n">week</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">year</span><span class="p">)</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+
+        <span class="n">lc_samples</span> <span class="o">=</span> <span class="n">lc_img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">class_band</span><span class="p">)</span><span class="o">.</span><span class="n">stratifiedSample</span><span class="p">(</span>
+            <span class="n">region</span><span class="o">=</span><span class="n">sample_region</span><span class="p">,</span>
+            <span class="n">numPoints</span><span class="o">=</span><span class="n">n_samples</span><span class="p">,</span>
+            <span class="n">classBand</span><span class="o">=</span><span class="n">class_band</span><span class="p">,</span>
+            <span class="n">scale</span><span class="o">=</span><span class="n">sample_scale</span><span class="p">,</span>
+            <span class="n">seed</span><span class="o">=</span><span class="n">new_seed</span><span class="p">,</span>
+            <span class="n">classValues</span><span class="o">=</span><span class="n">lc_classes</span><span class="p">,</span>
+            <span class="n">classPoints</span><span class="o">=</span><span class="n">n_lc_samples</span><span class="p">,</span>
+            <span class="n">tileScale</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
+            <span class="n">geometries</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">samples</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">base_samples</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">lc_samples</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">filterBounds</span><span class="p">(</span><span class="n">geom</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">randomColumn</span><span class="p">(</span><span class="s2">&quot;random&quot;</span><span class="p">,</span> <span class="n">seed</span><span class="p">)</span>
+        <span class="p">)</span>
+
+        <span class="n">features</span> <span class="o">=</span> <span class="n">img</span><span class="o">.</span><span class="n">sampleRegions</span><span class="p">(</span>
+            <span class="n">samples</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">sample_scale</span><span class="p">,</span> <span class="n">tileScale</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">geometries</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+
+        <span class="n">features</span> <span class="o">=</span> <span class="n">features</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">ee</span><span class="o">.</span><span class="n">Feature</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="s2">&quot;timestamp&quot;</span><span class="p">,</span> <span class="n">date</span><span class="o">.</span><span class="n">millis</span><span class="p">()))</span>
+
+        <span class="k">return</span> <span class="n">features</span>
+
+    <span class="n">sample_features</span> <span class="o">=</span> <span class="n">ds</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">sample_img</span><span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+    <span class="n">output_features</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">FeatureCollection</span><span class="p">(</span>
+        <span class="n">sample_features</span><span class="o">.</span><span class="n">aggregate_array</span><span class="p">(</span><span class="n">class_band</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">distinct</span><span class="p">()</span>
+        <span class="o">.</span><span class="n">map</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">sample_features</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">ee</span><span class="o">.</span><span class="n">Filter</span><span class="o">.</span><span class="n">eq</span><span class="p">(</span><span class="n">class_band</span><span class="p">,</span> <span class="n">x</span><span class="p">))</span><span class="o">.</span><span class="n">randomColumn</span><span class="p">()</span>
+        <span class="p">)</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">flatten</span><span class="p">()</span>
+
+    <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="n">time_id</span> <span class="o">=</span> <span class="n">now</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">%H%M</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">task</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">batch</span><span class="o">.</span><span class="n">Export</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">toAsset</span><span class="p">(</span>
+        <span class="n">collection</span><span class="o">=</span><span class="n">output_features</span><span class="p">,</span>
+        <span class="n">assetId</span><span class="o">=</span><span class="n">output_asset_path</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;hydrafloods_fusion_samples_export_</span><span class="si">{</span><span class="n">time_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">task</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+    <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Started export task for </span><span class="si">{</span><span class="n">output_asset_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.workflows.dswfp.export_surface_water_harmonics">
+<code class="codehilite language-python"><span class="n">export_surface_water_harmonics</span><span class="p">(</span><span class="n">region</span><span class="p">,</span> <span class="n">start_time</span><span class="p">,</span> <span class="n">end_time</span><span class="p">,</span> <span class="n">output_asset_path</span><span class="p">,</span> <span class="n">n_cycles</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">feature_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">fusion_samples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">tile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">tile_size</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">output_scale</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Second step of the daily surface water fusion process.
+This procedure uses samples from <code>export_fusion_samples</code> to build a
+random forest model to predict a water index from SAR imagery. This a
+time series of optical-SAR fused data is used to calculate a harmonic
+model for long-term surface water trend and is exported to an Earth Engine
+asset.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>region</code></td>
+        <td><code>ee.Geometry</code></td>
+        <td><p>geographic region to look for coincident data and sample from</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>start_time</code></td>
+        <td><code>str | datetime.datetime</code></td>
+        <td><p>start time used to look for coincident data</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>end_time</code></td>
+        <td><code>str | datetime.datetime</code></td>
+        <td><p>end time used to look for coincident data</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>output_asset_path</code></td>
+        <td><code>str</code></td>
+        <td><p>Earth Engine asset id to save harmonic model weights to as image.
+If tile==True, then output_asset_path much be a precreated ImageCollection asset</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>n_cycles</code></td>
+        <td><code>int</code></td>
+        <td><p>number of interannual cycles to model. default = 2</p></td>
+        <td><code>2</code></td>
+      </tr>
+      <tr>
+        <td><code>feature_names</code></td>
+        <td><code>list[str],</code></td>
+        <td><p>names of feature columns used to calculate <code>label</code> from</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>label</code></td>
+        <td><code>str</code></td>
+        <td><p>name of feature column to predict using <code>feature_names</code></p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>fusion_samples</code></td>
+        <td><code>str</code></td>
+        <td><p>Earth Engine FeatureCollection asset id of samples to get a data
+fusion model from. Should be the asset output from <code>export_fusion_samples</code></p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>tile</code></td>
+        <td><code>bool</code></td>
+        <td><p>boolean keyword to tile exports. If false will try to calculate
+harmonic weights as image. If true, it will tile area and recusively call to export
+smaller areas. If true then expects that <code>output_asset_path</code> is an ImageCollection.
+default = False</p></td>
+        <td><code>False</code></td>
+      </tr>
+      <tr>
+        <td><code>tile_size</code></td>
+        <td><code>float</code></td>
+        <td><p>resolution in decimal degrees to create tiles over region
+for smaller exports. Only used if tile==True. default = 1.0</p></td>
+        <td><code>1.0</code></td>
+      </tr>
+      <tr>
+        <td><code>output_scale</code></td>
+        <td><code>float</code></td>
+        <td><p>output resolution of harmonic weight image. default = 30</p></td>
+        <td><code>30</code></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/workflows/dswfp.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">export_surface_water_harmonics</span><span class="p">(</span>
+    <span class="n">region</span><span class="p">,</span>
+    <span class="n">start_time</span><span class="p">,</span>
+    <span class="n">end_time</span><span class="p">,</span>
+    <span class="n">output_asset_path</span><span class="p">,</span>
+    <span class="n">n_cycles</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">feature_names</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">label</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">fusion_samples</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">tile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">tile_size</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+    <span class="n">output_scale</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Second step of the daily surface water fusion process.</span>
+<span class="sd">    This procedure uses samples from `export_fusion_samples` to build a</span>
+<span class="sd">    random forest model to predict a water index from SAR imagery. This a</span>
+<span class="sd">    time series of optical-SAR fused data is used to calculate a harmonic</span>
+<span class="sd">    model for long-term surface water trend and is exported to an Earth Engine</span>
+<span class="sd">    asset.</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        region (ee.Geometry): geographic region to look for coincident data and sample from</span>
+<span class="sd">        start_time (str | datetime.datetime): start time used to look for coincident data</span>
+<span class="sd">        end_time (str | datetime.datetime): end time used to look for coincident data</span>
+<span class="sd">        output_asset_path (str): Earth Engine asset id to save harmonic model weights to as image.</span>
+<span class="sd">            If tile==True, then output_asset_path much be a precreated ImageCollection asset</span>
+<span class="sd">        n_cycles (int, optional): number of interannual cycles to model. default = 2</span>
+<span class="sd">        feature_names (list[str],):  names of feature columns used to calculate `label` from</span>
+<span class="sd">        label (str): name of feature column to predict using `feature_names`</span>
+<span class="sd">        fusion_samples (str): Earth Engine FeatureCollection asset id of samples to get a data</span>
+<span class="sd">            fusion model from. Should be the asset output from `export_fusion_samples`</span>
+<span class="sd">        tile (bool, optional): boolean keyword to tile exports. If false will try to calculate</span>
+<span class="sd">            harmonic weights as image. If true, it will tile area and recusively call to export</span>
+<span class="sd">            smaller areas. If true then expects that `output_asset_path` is an ImageCollection.</span>
+<span class="sd">            default = False</span>
+<span class="sd">        tile_size (float, optional): resolution in decimal degrees to create tiles over region</span>
+<span class="sd">            for smaller exports. Only used if tile==True. default = 1.0</span>
+<span class="sd">        output_scale (float, optional): output resolution of harmonic weight image. default = 30</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">tile</span><span class="p">:</span>
+        <span class="n">land_area</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">ee</span><span class="o">.</span><span class="n">FeatureCollection</span><span class="p">(</span><span class="s2">&quot;USDOS/LSIB_SIMPLE/2017&quot;</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">filterBounds</span><span class="p">(</span><span class="n">region</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">geometry</span><span class="p">(</span><span class="mi">1000</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">buffer</span><span class="p">(</span><span class="mi">2500</span><span class="p">,</span> <span class="n">maxError</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">grid</span> <span class="o">=</span> <span class="n">geeutils</span><span class="o">.</span><span class="n">tile_region</span><span class="p">(</span>
+            <span class="n">region</span><span class="p">,</span> <span class="n">intersect_geom</span><span class="o">=</span><span class="n">land_area</span><span class="p">,</span> <span class="n">grid_size</span><span class="o">=</span><span class="n">tile_size</span>
+        <span class="p">)</span>
+
+        <span class="n">n</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">size</span><span class="p">()</span><span class="o">.</span><span class="n">getInfo</span><span class="p">()</span>
+        <span class="n">grid_list</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">toList</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+            <span class="n">grid_tile</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Feature</span><span class="p">(</span><span class="n">grid_list</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">i</span><span class="p">))</span><span class="o">.</span><span class="n">geometry</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">output_asset_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">output_tile_path</span> <span class="o">=</span> <span class="n">output_asset_path</span> <span class="o">+</span> <span class="sa">f</span><span class="s2">&quot;harmonics_t</span><span class="si">{</span><span class="n">i</span><span class="si">:</span><span class="s2">05d</span><span class="si">}</span><span class="s2">&quot;</span>
+
+            <span class="n">export_surface_water_harmonics</span><span class="p">(</span>
+                <span class="n">region</span><span class="o">=</span><span class="n">grid_tile</span><span class="p">,</span>
+                <span class="n">start_time</span><span class="o">=</span><span class="n">start_time</span><span class="p">,</span>
+                <span class="n">end_time</span><span class="o">=</span><span class="n">end_time</span><span class="p">,</span>
+                <span class="n">n_cycles</span><span class="o">=</span><span class="n">n_cycles</span><span class="p">,</span>
+                <span class="n">feature_names</span><span class="o">=</span><span class="n">feature_names</span><span class="p">,</span>
+                <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">,</span>
+                <span class="n">fusion_samples</span><span class="o">=</span><span class="n">fusion_samples</span><span class="p">,</span>
+                <span class="n">output_asset_path</span><span class="o">=</span><span class="n">output_tile_path</span><span class="p">,</span>
+                <span class="n">tile</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                <span class="n">tile_size</span><span class="o">=</span><span class="n">tile_size</span><span class="p">,</span>
+                <span class="n">output_scale</span><span class="o">=</span><span class="n">output_scale</span><span class="p">,</span>
+            <span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">fusion_samples</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fusion_model</span><span class="p">,</span> <span class="n">scaling_dict</span> <span class="o">=</span> <span class="n">ml</span><span class="o">.</span><span class="n">random_forest_ee</span><span class="p">(</span>
+                <span class="mi">30</span><span class="p">,</span>
+                <span class="n">fusion_samples</span><span class="p">,</span>
+                <span class="n">feature_names</span><span class="p">,</span>
+                <span class="n">label</span><span class="p">,</span>
+                <span class="n">scaling</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;regression&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Either &#39;fusion_samples&#39; or &#39;fusion_model_path&#39; needs to be defined to run fusion process&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">ds</span> <span class="o">=</span> <span class="n">_fuse_dataset</span><span class="p">(</span>
+            <span class="n">region</span><span class="p">,</span>
+            <span class="n">start_time</span><span class="p">,</span>
+            <span class="n">end_time</span><span class="p">,</span>
+            <span class="n">fusion_model</span><span class="p">,</span>
+            <span class="n">scaling_dict</span><span class="p">,</span>
+            <span class="n">feature_names</span><span class="p">,</span>
+            <span class="n">target_band</span><span class="o">=</span><span class="n">label</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+        <span class="n">time_id</span> <span class="o">=</span> <span class="n">now</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">%H%M</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">time_str</span> <span class="o">=</span> <span class="n">now</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">scale_factor</span> <span class="o">=</span> <span class="mf">0.0001</span>
+
+        <span class="c1"># create metadata dict</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Dictionary</span><span class="p">(</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;hf_version&quot;</span><span class="p">:</span> <span class="n">hf</span><span class="o">.</span><span class="n">__version__</span><span class="p">,</span>
+                <span class="s2">&quot;scale_factor&quot;</span><span class="p">:</span> <span class="n">scale_factor</span><span class="p">,</span>
+                <span class="s2">&quot;fit_time_start&quot;</span><span class="p">:</span> <span class="n">start_time</span><span class="p">,</span>
+                <span class="s2">&quot;fit_time_end&quot;</span><span class="p">:</span> <span class="n">end_time</span><span class="p">,</span>
+                <span class="s2">&quot;execution_time&quot;</span><span class="p">:</span> <span class="n">time_str</span><span class="p">,</span>
+            <span class="p">}</span>
+        <span class="p">)</span>
+
+        <span class="n">harmonic_coefs</span> <span class="o">=</span> <span class="n">timeseries</span><span class="o">.</span><span class="n">fit_harmonic_trend</span><span class="p">(</span>
+            <span class="n">ds</span><span class="p">,</span> <span class="n">dependent</span><span class="o">=</span><span class="n">label</span><span class="p">,</span> <span class="n">n_cycles</span><span class="o">=</span><span class="n">n_cycles</span><span class="p">,</span> <span class="n">output_err</span><span class="o">=</span><span class="kc">True</span>
+        <span class="p">)</span>
+        <span class="n">harmonic_coefs</span> <span class="o">=</span> <span class="n">harmonic_coefs</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">scale_factor</span><span class="p">)</span><span class="o">.</span><span class="n">int32</span><span class="p">()</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">output_asset_path</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">geeutils</span><span class="o">.</span><span class="n">export_image</span><span class="p">(</span>
+                <span class="n">harmonic_coefs</span><span class="p">,</span>
+                <span class="n">region</span><span class="p">,</span>
+                <span class="n">output_asset_path</span><span class="p">,</span>
+                <span class="n">description</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;hydrafloods_harmonic_coefficient_export_</span><span class="si">{</span><span class="n">time_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                <span class="n">scale</span><span class="o">=</span><span class="n">output_scale</span><span class="p">,</span>
+                <span class="n">crs</span><span class="o">=</span><span class="s2">&quot;EPSG:4326&quot;</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;&#39;output_asset_path&#39; needs to be defined to run fusion export process&quot;</span>
+            <span class="p">)</span>
+
+    <span class="k">return</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.workflows.dswfp.merge_gcp_tiled_results">
+<code class="codehilite language-python"><span class="n">merge_gcp_tiled_results</span><span class="p">(</span><span class="n">bucket_path</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">region</span><span class="p">,</span> <span class="n">retries</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">clean_up</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cloud_project</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">file_dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output_scale</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Helper function to merge tiled surface water estimates from <code>export_daily_surface_water</code>
+into on cloud optimized geotiff on Google Cloud Platform</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>bucket_path</code></td>
+        <td><code>str</code></td>
+        <td><p>GCP cloud bucket path to read tiled cloud optimized geotiffs. Will
+also export merged file to this path.</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>pattern</code></td>
+        <td><code>str</code></td>
+        <td><p>regex string to search for specific files. Useful for selecting files from
+a specific bucket subdirectory or date in filename</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>region</code></td>
+        <td><code>ee.Geometry</code></td>
+        <td><p>geographic region to export merged data over. region must align with
+region from the tiled export</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>retries</code></td>
+        <td><code>int</code></td>
+        <td><p>number of retries to search for tiled data. Useful is runtime is unknown
+and the merge function is run at a set time each day. If less than or equal to zero, no retries
+will be used. default =  -1</p></td>
+        <td><code>-1</code></td>
+      </tr>
+      <tr>
+        <td><code>clean_up</code></td>
+        <td><code>bool</code></td>
+        <td><p>boolean keyword to delete tile geotiffs after merge is complete. Only use
+if you are sure the merging is/will be successful. default = False</p></td>
+        <td><code>False</code></td>
+      </tr>
+      <tr>
+        <td><code>cloud_project</code></td>
+        <td><code>str</code></td>
+        <td><p>name of GCP cloud project name that the cloud storage bucket is part
+of. If nothing is provided, it will try to use default system GCP credentials. default = None</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>file_dims</code></td>
+        <td><code>int | list[int]</code></td>
+        <td><p>the dimensions in pixels of each image file, if the image
+is too large to fit in a single file. May specify a single number to indicate a square shape,
+or a list of two dimensions to indicate (width,height). Note that the image will still be
+clipped to the overall image dimensions. Must be a multiple of shardSize (256). If none, then
+Earth Engine will automatically estimate dimensions. default = None</p></td>
+        <td><code>None</code></td>
+      </tr>
+      <tr>
+        <td><code>output_scale</code></td>
+        <td><code>float</code></td>
+        <td><p>output resolution of harmonic weight image. default = 30</p></td>
+        <td><code>30</code></td>
+      </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/workflows/dswfp.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="k">def</span> <span class="nf">merge_gcp_tiled_results</span><span class="p">(</span>
+    <span class="n">bucket_path</span><span class="p">,</span>
+    <span class="n">pattern</span><span class="p">,</span>
+    <span class="n">region</span><span class="p">,</span>
+    <span class="n">retries</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">clean_up</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">cloud_project</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">file_dims</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">output_scale</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Helper function to merge tiled surface water estimates from `export_daily_surface_water`</span>
+<span class="sd">    into on cloud optimized geotiff on Google Cloud Platform</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        bucket_path (str): GCP cloud bucket path to read tiled cloud optimized geotiffs. Will</span>
+<span class="sd">            also export merged file to this path.</span>
+<span class="sd">        pattern (str): regex string to search for specific files. Useful for selecting files from</span>
+<span class="sd">            a specific bucket subdirectory or date in filename</span>
+<span class="sd">        region (ee.Geometry): geographic region to export merged data over. region must align with</span>
+<span class="sd">            region from the tiled export</span>
+<span class="sd">        retries (int, optional): number of retries to search for tiled data. Useful is runtime is unknown</span>
+<span class="sd">            and the merge function is run at a set time each day. If less than or equal to zero, no retries</span>
+<span class="sd">            will be used. default =  -1</span>
+<span class="sd">        clean_up (bool, optional): boolean keyword to delete tile geotiffs after merge is complete. Only use</span>
+<span class="sd">            if you are sure the merging is/will be successful. default = False</span>
+<span class="sd">        cloud_project (str, optional): name of GCP cloud project name that the cloud storage bucket is part</span>
+<span class="sd">            of. If nothing is provided, it will try to use default system GCP credentials. default = None</span>
+<span class="sd">        file_dims (int | list[int], optional): the dimensions in pixels of each image file, if the image</span>
+<span class="sd">            is too large to fit in a single file. May specify a single number to indicate a square shape,</span>
+<span class="sd">            or a list of two dimensions to indicate (width,height). Note that the image will still be</span>
+<span class="sd">            clipped to the overall image dimensions. Must be a multiple of shardSize (256). If none, then</span>
+<span class="sd">            Earth Engine will automatically estimate dimensions. default = None</span>
+<span class="sd">        output_scale (float, optional): output resolution of harmonic weight image. default = 30</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">land_area</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">ee</span><span class="o">.</span><span class="n">FeatureCollection</span><span class="p">(</span><span class="s2">&quot;USDOS/LSIB_SIMPLE/2017&quot;</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">filterBounds</span><span class="p">(</span><span class="n">region</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">geometry</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span>
+        <span class="o">.</span><span class="n">buffer</span><span class="p">(</span><span class="mi">2500</span><span class="p">,</span> <span class="n">maxError</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">grid</span> <span class="o">=</span> <span class="n">geeutils</span><span class="o">.</span><span class="n">tile_region</span><span class="p">(</span><span class="n">region</span><span class="p">,</span> <span class="n">intersect_geom</span><span class="o">=</span><span class="n">land_area</span><span class="p">,</span> <span class="n">grid_size</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+
+    <span class="n">expected_n</span> <span class="o">=</span> <span class="n">grid</span><span class="o">.</span><span class="n">size</span><span class="p">()</span><span class="o">.</span><span class="n">getInfo</span><span class="p">()</span>
+
+    <span class="n">fcomponents</span> <span class="o">=</span> <span class="n">bucket_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">)</span>
+    <span class="n">bucket</span> <span class="o">=</span> <span class="n">fcomponents</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">fpath</span> <span class="o">=</span> <span class="n">pattern</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span>
+
+    <span class="n">files</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">list_gcs_objs</span><span class="p">(</span><span class="n">bucket</span><span class="p">,</span> <span class="n">pattern</span><span class="o">=</span><span class="n">pattern</span><span class="p">,</span> <span class="n">project</span><span class="o">=</span><span class="n">cloud_project</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span> <span class="o">==</span> <span class="n">expected_n</span><span class="p">:</span>
+        <span class="n">images</span> <span class="o">=</span> <span class="p">[</span><span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="o">.</span><span class="n">loadGeoTIFF</span><span class="p">(</span><span class="n">file</span><span class="p">)</span> <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">files</span><span class="p">]</span>
+
+        <span class="n">merged</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">ImageCollection</span><span class="o">.</span><span class="n">fromImages</span><span class="p">(</span><span class="n">images</span><span class="p">)</span><span class="o">.</span><span class="n">mosaic</span><span class="p">()</span>
+
+        <span class="n">export_region</span> <span class="o">=</span> <span class="n">region</span><span class="o">.</span><span class="n">bounds</span><span class="p">(</span><span class="n">maxError</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="n">getInfo</span><span class="p">()[</span><span class="s2">&quot;coordinates&quot;</span><span class="p">]</span>
+        <span class="c1"># bucket_path, ext = os.path.splitext(output_bucket_path)</span>
+
+        <span class="n">now</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+        <span class="n">time_id</span> <span class="o">=</span> <span class="n">now</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y%m</span><span class="si">%d</span><span class="s2">%H%M</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">)</span>
+
+        <span class="n">task</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">batch</span><span class="o">.</span><span class="n">Export</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">toCloudStorage</span><span class="p">(</span>
+            <span class="n">image</span><span class="o">=</span><span class="n">merged</span><span class="p">,</span>
+            <span class="n">description</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;hydrafloods_merge_gcp_export_</span><span class="si">{</span><span class="n">time_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="n">bucket</span><span class="o">=</span><span class="n">bucket</span><span class="p">,</span>
+            <span class="n">fileNamePrefix</span><span class="o">=</span><span class="n">fpath</span><span class="p">,</span>
+            <span class="n">region</span><span class="o">=</span><span class="n">export_region</span><span class="p">,</span>
+            <span class="n">scale</span><span class="o">=</span><span class="n">output_scale</span><span class="p">,</span>
+            <span class="n">crs</span><span class="o">=</span><span class="s2">&quot;EPSG:4326&quot;</span><span class="p">,</span>
+            <span class="n">fileDimensions</span><span class="o">=</span><span class="n">file_dims</span><span class="p">,</span>
+            <span class="n">maxPixels</span><span class="o">=</span><span class="mf">1e13</span><span class="p">,</span>
+            <span class="n">fileFormat</span><span class="o">=</span><span class="s2">&quot;GeoTIFF&quot;</span><span class="p">,</span>
+            <span class="n">formatOptions</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;cloudOptimized&quot;</span><span class="p">:</span> <span class="kc">True</span><span class="p">},</span>
+        <span class="p">)</span>
+        <span class="n">task</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">clean_up</span><span class="p">:</span>
+            <span class="n">gcsfs</span><span class="o">.</span><span class="n">GCSFileSystem</span><span class="o">.</span><span class="n">rm</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
+
+    <span class="k">elif</span> <span class="n">retries</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">60</span> <span class="o">*</span> <span class="mi">10</span><span class="p">)</span>
+
+        <span class="n">merge_gcp_tiled_results</span><span class="p">(</span><span class="n">bucket_path</span><span class="p">,</span> <span class="n">pattern</span><span class="p">,</span> <span class="n">region</span><span class="p">,</span> <span class="n">retries</span><span class="o">=</span><span class="p">(</span><span class="n">retries</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;could not find all expected tiles to merge...found </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span><span class="si">}</span><span class="s2"> tiles but expected </span><span class="si">{</span><span class="n">expected_n</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">return</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../utils/" class="md-footer__link md-footer__link--prev" aria-label="Previous: utils module" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              utils module
+            </div>
+          </div>
+        </a>
+      
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.5e67fbfe.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.c44cc438.min.js"></script>
+      
+    
+  </body>
+</html>

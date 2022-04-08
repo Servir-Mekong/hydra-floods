@@ -1,0 +1,1053 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      <link rel="icon" href="../img/favicon.ico">
+      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.8">
+    
+    
+      
+        <title>Algorithms - HYDRAFloods Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.644de097.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.e6a45f82.min.css">
+        
+      
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#sar-speckle-filtering-algorithms" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="HYDRAFloods Documentation" class="md-header__button md-logo" aria-label="HYDRAFloods Documentation" data-md-component="logo">
+      
+  <img src="../img/hydrafloods_logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            HYDRAFloods Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Algorithms
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="HYDRAFloods Documentation" class="md-nav__button md-logo" aria-label="HYDRAFloods Documentation" data-md-component="logo">
+      
+  <img src="../img/hydrafloods_logo.png" alt="logo">
+
+    </a>
+    HYDRAFloods Documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        Installation
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        Getting Started
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-datasets/" class="md-nav__link">
+        Using the Dataset class
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          Algorithms
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Algorithms
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#sar-speckle-filtering-algorithms" class="md-nav__link">
+    SAR Speckle Filtering Algorithms
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#correction-algorithms" class="md-nav__link">
+    Correction Algorithms
+  </a>
+  
+    <nav class="md-nav" aria-label="Correction Algorithms">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#applying-illumination-correction-on-optical-imagery" class="md-nav__link">
+    Applying illumination correction on optical imagery
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#applying-slope-correction-on-sar-imagery" class="md-nav__link">
+    Applying slope correction on SAR imagery
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#generic-water-mapping-algorithms" class="md-nav__link">
+    Generic Water Mapping Algorithms
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../workflow-example/" class="md-nav__link">
+        Workflow Example
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli/" class="md-nav__link">
+        Command Line Interface
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8" type="checkbox" id="__nav_8" >
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_8">
+          API Reference
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="API Reference" data-md-level="1">
+        <label class="md-nav__title" for="__nav_8">
+          <span class="md-nav__icon md-icon"></span>
+          API Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../corrections/" class="md-nav__link">
+        corrections module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datasets/" class="md-nav__link">
+        datasets module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../depths/" class="md-nav__link">
+        depths module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decorators/" class="md-nav__link">
+        decorators module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fetch/" class="md-nav__link">
+        fetch module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../floods/" class="md-nav__link">
+        floods module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filtering/" class="md-nav__link">
+        filtering module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fuzzy/" class="md-nav__link">
+        fuzzy module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../geeutils/" class="md-nav__link">
+        geeutils module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../indices/" class="md-nav__link">
+        indices module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ml/" class="md-nav__link">
+        ml module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../thresholding/" class="md-nav__link">
+        thresholding module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../timeseries/" class="md-nav__link">
+        timeseries module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../utils/" class="md-nav__link">
+        utils module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dswfp/" class="md-nav__link">
+        workflows.dswfp module
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#sar-speckle-filtering-algorithms" class="md-nav__link">
+    SAR Speckle Filtering Algorithms
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#correction-algorithms" class="md-nav__link">
+    Correction Algorithms
+  </a>
+  
+    <nav class="md-nav" aria-label="Correction Algorithms">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#applying-illumination-correction-on-optical-imagery" class="md-nav__link">
+    Applying illumination correction on optical imagery
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#applying-slope-correction-on-sar-imagery" class="md-nav__link">
+    Applying slope correction on SAR imagery
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#generic-water-mapping-algorithms" class="md-nav__link">
+    Generic Water Mapping Algorithms
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+
+
+  <h1>Algorithms</h1>
+
+<p>Here are a more in depth examples of specific algorithms for surface water mapping workflows that are implemented within <code>hydrafloods</code> that users can call. It is expected that the code is run in an interactive python session such as IPython or in a Jupyter Notebook as later code blocks will use variables from previous ones.</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">import</span> <span class="nn">ee</span>
+<span class="n">ee</span><span class="o">.</span><span class="n">Initialize</span><span class="p">()</span>
+<span class="kn">import</span> <span class="nn">hydrafloods</span> <span class="k">as</span> <span class="nn">hf</span>
+</code></pre></div>
+
+<h2 id="sar-speckle-filtering-algorithms">SAR Speckle Filtering Algorithms</h2>
+<p>SAR imagery is affected by artifacts called Speckle. Speckle looks like  granular noise in synthetic aperture radar (SAR) data and is due to the interference of radar waves reflected from many elementary scatterers on the ground. Speckle in SAR imagery typically reduces the accuracy of image segmentation and classification so applying speckle filters is a common preprocessing step (<a href="https://doi.org/10.1080/02757259409532206">Lee et al., 2009</a>). Multiple algorithms have been developed by the scientific community to alleviate the effects of Speckle in subsequent SAR image processing.</p>
+<p><code>hydrafloods</code> has implemented a few of these Speckle filter algorithms in the package to help effectively use SAR imagery for image processing, in this case for surface water mapping. Here is a list of Speckle filter algorithms available:</p>
+<ul>
+<li>Lee Sigma: <a href="/hydra-floods/filtering/#hydrafloods.filtering.lee_sigma"><code>hydrafloods.lee_sigma</code></a> (<a href="https://doi.org/10.1109/TGRS.2008.2002881">Lee et al., 2008</a>)</li>
+<li>Gamma Map: <a href="/hydra-floods/filtering/#hydrafloods.filtering.gamma_map"><code>hydrafloods.gamma_map</code></a> (<a href="https://doi.org/10.1080/01431169608949067">Beauchemin et al., 1995</a>)</li>
+<li>Refined Lee: <a href="/hydra-floods/filtering/#hydrafloods.filtering.refined_lee"><code>hydrafloods.refined_lee</code></a> (<a href="https://doi.org/10.1016/S0146-664X(81)80018-4">Lee, 1981</a>)</li>
+</ul>
+<p>Here is a brief example of how one might apply these algorithms to SAR data using <code>hydrafloods</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># define a geographic region</span>
+<span class="n">region</span> <span class="o">=</span> <span class="n">hf</span><span class="o">.</span><span class="n">country_bbox</span><span class="p">(</span><span class="s2">&quot;Cambodia&quot;</span><span class="p">)</span>
+
+<span class="c1"># define start and end times</span>
+<span class="n">start_time</span> <span class="o">=</span> <span class="s2">&quot;2019-09-15&quot;</span>
+<span class="n">end_time</span> <span class="o">=</span> <span class="s2">&quot;2019-09-20&quot;</span>
+
+<span class="c1"># get the Sentinel 1 collection as a Dataset</span>
+<span class="n">s1</span> <span class="o">=</span> <span class="n">hf</span><span class="o">.</span><span class="n">Sentinel1</span><span class="p">(</span><span class="n">region</span><span class="p">,</span><span class="n">start_time</span><span class="p">,</span><span class="n">end_time</span><span class="p">)</span>
+</code></pre></div>
+
+<p>After we have our SAR collection, we can apply the functions on the image using the <code>apply_func()</code> method. Since these algorithms take an image as input and output and image we can easily apply on all imagery. Watch out though...some of these algorithms (specifically <code>refined_lee()</code>) are extremely memory intensive and you will likely get a "User memory limit exceeded" error when applying over many (25+) images. In this case, it will work since we are only applying over a few images.</p>
+<div class="codehilite"><pre><span></span><code><span class="n">lee_sigma_filtered</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">s1</span><span class="o">.</span><span class="n">apply_func</span><span class="p">(</span><span class="n">hf</span><span class="o">.</span><span class="n">lee_sigma</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="n">gamma_map_filtered</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">s1</span><span class="o">.</span><span class="n">apply_func</span><span class="p">(</span><span class="n">hf</span><span class="o">.</span><span class="n">gamma_map</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+<span class="p">)</span>
+<span class="n">refined_lee_filtered</span> <span class="o">=</span> <span class="p">(</span>
+    <span class="n">s1</span><span class="o">.</span><span class="n">apply_func</span><span class="p">(</span><span class="n">hf</span><span class="o">.</span><span class="n">refined_lee</span><span class="p">)</span>
+    <span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+<span class="p">)</span>
+
+<span class="n">original</span> <span class="o">=</span> <span class="n">s1</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">first</span><span class="p">()</span>
+
+<span class="n">zoom_region</span> <span class="o">=</span> <span class="p">[</span><span class="mf">104.60</span><span class="p">,</span> <span class="mf">15.10</span><span class="p">,</span> <span class="mf">104.95</span><span class="p">,</span> <span class="mf">15.35</span><span class="p">]</span>
+<span class="n">viz_params</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;min&quot;</span><span class="p">:</span><span class="o">-</span><span class="mi">25</span><span class="p">,</span>
+    <span class="s2">&quot;max&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;bands&quot;</span><span class="p">:</span><span class="s2">&quot;VV&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;region&quot;</span><span class="p">:</span><span class="n">zoom_region</span><span class="p">,</span>
+    <span class="s2">&quot;dimensions&quot;</span><span class="p">:</span><span class="mi">2000</span><span class="p">,</span>
+    <span class="s2">&quot;crs&quot;</span><span class="p">:</span><span class="s2">&quot;epsg:4326&quot;</span>
+<span class="p">}</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">original</span><span class="o">.</span><span class="n">getThumbURL</span><span class="p">(</span><span class="n">viz_params</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">lee_sigma_filtered</span><span class="o">.</span><span class="n">getThumbURL</span><span class="p">(</span><span class="n">viz_params</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">gamma_map_filtered</span><span class="o">.</span><span class="n">getThumbURL</span><span class="p">(</span><span class="n">viz_params</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">refined_lee_filtered</span><span class="o">.</span><span class="n">getThumbURL</span><span class="p">(</span><span class="n">viz_params</span><span class="p">))</span>
+</code></pre></div>
+
+<!-- html code for figure caption -->
+<p><span class="img_caption" style="display: block; text-align: center; font-size: 14px; color: darkred;">
+    <em>Try opening the examples in a new tab to zoom in and really see the differences</em>
+</span></p>
+<table>
+<thead>
+<tr>
+<th align="center">Original</th>
+<th align="center">Lee Sigma filter</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center"><img alt="" src="../img/algos_sar_original.png" /></td>
+<td align="center"><img alt="" src="../img/algos_sar_leesigma.png" /></td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th align="center">Gamma Map filter</th>
+<th align="center">Refined Lee filter</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center"><img alt="" src="../img/algos_sar_gammamap.png" /></td>
+<td align="center"><img alt="" src="../img/algos_sar_refinedlee.png" /></td>
+</tr>
+</tbody>
+</table>
+<p>For more information on the filtering algorithms and the specific arguments, please see the <a href="/hydra-floods/filtering/">filtering module</a> API reference</p>
+<h2 id="correction-algorithms">Correction Algorithms</h2>
+<p>Another common workflow when working with satelitte imagery is to correct for atmospheric and terrain effects. Most of the data collection on Earth Engine have atmospherically corrected data so <code>hydrafloods</code> has focused on correction algorithms for terrain (both SAR and optical) correction and a bidirectional reflectance distribution function (BRDF) correction for optical imagery.</p>
+<p>To begin, let's import the corrections module. For demonstrational purposes, we will focus on terrain flattening in Nepal, one of the most mountainous regions in the world!</p>
+<div class="codehilite"><pre><span></span><code><span class="kn">from</span> <span class="nn">hydrafloods</span> <span class="kn">import</span> <span class="n">corrections</span>
+
+<span class="n">region</span> <span class="o">=</span> <span class="n">hf</span><span class="o">.</span><span class="n">country_bbox</span><span class="p">(</span><span class="s2">&quot;Nepal&quot;</span><span class="p">)</span>
+<span class="n">start_time</span> <span class="o">=</span> <span class="s2">&quot;2020-10-29&quot;</span>
+<span class="n">end_time</span> <span class="o">=</span> <span class="s2">&quot;2020-11-08&quot;</span>
+</code></pre></div>
+
+<h3 id="applying-illumination-correction-on-optical-imagery">Applying illumination correction on optical imagery</h3>
+<div class="codehilite"><pre><span></span><code><span class="c1"># get landsat 8 dataset</span>
+<span class="n">ls</span> <span class="o">=</span> <span class="n">hf</span><span class="o">.</span><span class="n">Landsat8</span><span class="p">(</span><span class="n">region</span><span class="p">,</span><span class="n">start_time</span><span class="p">,</span><span class="n">end_time</span><span class="p">)</span>
+
+<span class="c1"># define the elevation dataset we want to calculate corrections from</span>
+<span class="n">elv</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span><span class="s2">&quot;JAXA/ALOS/AW3D30/V2_2&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;AVE_DSM&quot;</span><span class="p">)</span>
+
+<span class="c1"># apply the illumination correction on every image in dataset</span>
+<span class="n">ls_flat</span> <span class="o">=</span> <span class="n">ls</span><span class="o">.</span><span class="n">apply_func</span><span class="p">(</span><span class="n">corrections</span><span class="o">.</span><span class="n">illumination_correction</span><span class="p">,</span><span class="n">elevation</span><span class="o">=</span><span class="n">elv</span><span class="p">)</span>
+
+<span class="c1"># region to visualize</span>
+<span class="n">view_box</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">([</span><span class="mf">86.1177</span><span class="p">,</span><span class="mf">27.1325</span><span class="p">,</span><span class="mf">86.8716</span><span class="p">,</span> <span class="mf">27.5984</span><span class="p">])</span>
+
+<span class="n">vis_params</span> <span class="o">=</span>  <span class="p">{</span>
+    <span class="s2">&quot;bands&quot;</span><span class="p">:</span><span class="s2">&quot;swir2,nir,green&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;min&quot;</span><span class="p">:</span><span class="mi">50</span><span class="p">,</span>
+    <span class="s2">&quot;max&quot;</span><span class="p">:</span><span class="mi">5500</span><span class="p">,</span>
+    <span class="s2">&quot;gamma&quot;</span><span class="p">:</span><span class="mf">1.5</span><span class="p">,</span>
+    <span class="s2">&quot;region&quot;</span><span class="p">:</span><span class="n">view_box</span><span class="p">,</span>
+    <span class="s2">&quot;dimensions&quot;</span><span class="p">:</span><span class="mi">1500</span>
+<span class="p">}</span>
+
+<span class="c1"># reduce the datasets to an image for visualization</span>
+<span class="n">original_img</span> <span class="o">=</span> <span class="n">ls</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">median</span><span class="p">()</span>
+<span class="n">corrected_img</span> <span class="o">=</span> <span class="n">ls_flat</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">median</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">original_img</span><span class="o">.</span><span class="n">getThumbURL</span><span class="p">(</span><span class="n">vis_params</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">corrected_img</span><span class="o">.</span><span class="n">getThumbURL</span><span class="p">(</span><span class="n">vis_params</span><span class="p">))</span>
+</code></pre></div>
+
+<table>
+<thead>
+<tr>
+<th align="center">Original Landsat 8 Image</th>
+<th align="center">Corrected Landsat 8 Image</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center"><img alt="" src="../img/algos_optical_terrain_original.png" /></td>
+<td align="center"><img alt="" src="../img/algos_optical_terrain_flat.png" /></td>
+</tr>
+</tbody>
+</table>
+<p>We can see that the algorithm corrected the poorly illuminated areas. This function is valid for both the Landsat8 and Sentinel2 imagery. More information on the illumination correction algorithm and the input arguments can be found at the <a href="/hydra-floods/corrections/#hydrafloods.corrections.illumination_correction">corrections module</a> page</p>
+<h3 id="applying-slope-correction-on-sar-imagery">Applying slope correction on SAR imagery</h3>
+<p>SAR imagery is fairly sensitive to terrain effects due to the signal being geometric in nature. Here we apply a slope correction algorithm developed by <a href="https://doi.org/10.3390/rs12111867">Vollrath et al., 2020</a> to reduce the effects of terrain on the data. This method however does not fully compensate for the radiometric distortions as compared to more advanced methods but still provides some correction.</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># get a Sentinel 1 dataset</span>
+<span class="n">s1</span> <span class="o">=</span> <span class="n">hf</span><span class="o">.</span><span class="n">Sentinel1</span><span class="p">(</span><span class="n">region</span><span class="p">,</span><span class="n">start_time</span><span class="p">,</span><span class="n">end_time</span><span class="p">)</span>
+
+<span class="c1"># apply slope correction on every image in collection</span>
+<span class="n">s1_flat</span> <span class="o">=</span> <span class="n">s1</span><span class="o">.</span><span class="n">apply_func</span><span class="p">(</span><span class="n">corrections</span><span class="o">.</span><span class="n">slope_correction</span><span class="p">,</span><span class="n">elevation</span><span class="o">=</span><span class="n">elv</span><span class="p">,</span><span class="n">buffer</span><span class="o">=</span><span class="mi">30</span><span class="p">)</span>
+
+<span class="c1"># inspect the resulting bands VV and VH will have &#39;_flat&#39; appended</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">s1_flat</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">first</span><span class="p">()</span><span class="o">.</span><span class="n">bandNames</span><span class="p">()</span><span class="o">.</span><span class="n">getInfo</span><span class="p">())</span>
+<span class="c1"># should equal [&#39;VV_flat&#39;, &#39;VH_flat&#39;, &#39;angle&#39;, &#39;local_inc_angle&#39;]</span>
+
+<span class="n">vis_params</span> <span class="o">=</span>  <span class="p">{</span>
+    <span class="s2">&quot;bands&quot;</span><span class="p">:</span><span class="s2">&quot;VV&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;min&quot;</span><span class="p">:</span><span class="o">-</span><span class="mi">25</span><span class="p">,</span>
+    <span class="s2">&quot;max&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;region&quot;</span><span class="p">:</span><span class="n">view_box</span><span class="p">,</span>
+    <span class="s2">&quot;dimensions&quot;</span><span class="p">:</span><span class="mi">1500</span>
+<span class="p">}</span>
+
+<span class="c1"># get an image from original collection and flattened for visualization</span>
+<span class="c1"># note here we are getting a mosaic (i.e. first valid pixel) to prevent</span>
+<span class="c1"># visualization artifacts from ascending vs descending paths in dataset</span>
+<span class="n">original_img</span> <span class="o">=</span> <span class="n">s1</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">mosaic</span><span class="p">()</span>
+<span class="n">corrected_img</span> <span class="o">=</span> <span class="n">s1_flat</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">mosaic</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">original_img</span><span class="o">.</span><span class="n">getThumbURL</span><span class="p">(</span><span class="n">vis_params</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">corrected_img</span><span class="o">.</span><span class="n">getThumbURL</span><span class="p">(</span><span class="n">vis_params</span><span class="p">))</span>
+</code></pre></div>
+
+<table>
+<thead>
+<tr>
+<th align="center">Original Sentinel 1 Image</th>
+<th align="center">Corrected Sentinel 1 Image</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center"><img alt="" src="../img/algos_sar_terrain_original.png" /></td>
+<td align="center"><img alt="" src="../img/algos_sar_terrain_flat.png" /></td>
+</tr>
+</tbody>
+</table>
+<p>We can see that the effects of terrain are mostly removed. Note: the slope correction algorithm calculates area of terrain shadow and layover (i.e. areas that cannot be corrected) and mask those area, hince some transparent areas.  More documentation regarding the slope correction algorithm and the input arguments can be found at the <a href="/hydra-floods/corrections/#hydrafloods.corrections.slope_correction">corrections module</a> page</p>
+<h2 id="generic-water-mapping-algorithms">Generic Water Mapping Algorithms</h2>
+<p>The goal of <code>hydrafloods</code> is to provide efficient, easily accessible surface water maps. To that end, there are a few generic surface water mapping algorithms available that can be used with virtually any dataset (given some customization of parameters). Here is a list of the water mapping algorithms available:</p>
+<ul>
+<li>Edge Otsu: <a href="/thresholding/#hydrafloods.thresholding.edge_otsu"><code>hydrafloods.edge_otsu</code></a> (<a href="https://doi.org/10.3390/rs8050386">Donchyts et al., 2016</a>; <a href="https://doi.org/10.3390/rs12152469">Markert et al., 2020</a>)</li>
+<li>Bmax Otsu: <a href="/thresholding/#hydrafloods.thresholding.bmax_otsu"><code>hydrafloods.bmax_otsu</code></a> (<a href="https://doi.org/10.3390/w11040786">Cao et al.,2019</a>; <a href="https://doi.org/10.3390/rs12152469">Markert et al., 2020</a>)</li>
+<li>KMeans Extent: <a href="/thresholding/#hydrafloods.thresholding.kmeans_extent"><code>hydrafloods.kmeans_extent</code></a> (<a href="https://doi.org/10.1016/j.rse.2020.111732">Chang et al., 2020</a>)</li>
+</ul>
+<p>To begin, we will access optical and SAR data for a coincident time period following the example from <a href="/hydra-floods/using-datasets/">Using Datasets</a>:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># area where overlap is known</span>
+<span class="n">region</span> <span class="o">=</span> <span class="n">ee</span><span class="o">.</span><span class="n">Geometry</span><span class="o">.</span><span class="n">Rectangle</span><span class="p">([</span><span class="mf">103.6334</span><span class="p">,</span> <span class="mf">12.4368</span><span class="p">,</span> <span class="mf">104.8419</span><span class="p">,</span> <span class="mf">13.2615</span><span class="p">])</span>
+<span class="c1"># month where we know coincident data</span>
+<span class="n">start_time</span> <span class="o">=</span> <span class="s2">&quot;2019-02-01&quot;</span>
+<span class="n">end_time</span> <span class="o">=</span> <span class="s2">&quot;2019-03-01&quot;</span>
+
+<span class="c1"># get Landsat 8 dataset</span>
+<span class="n">lc8</span> <span class="o">=</span> <span class="n">hf</span><span class="o">.</span><span class="n">Landsat8</span><span class="p">(</span><span class="n">region</span><span class="p">,</span><span class="n">start_time</span><span class="p">,</span><span class="n">end_time</span><span class="p">)</span>
+<span class="c1"># add the mndwi water index to the lc8 dataset</span>
+<span class="n">lc8</span> <span class="o">=</span> <span class="n">lc8</span><span class="o">.</span><span class="n">apply_func</span><span class="p">(</span><span class="n">hf</span><span class="o">.</span><span class="n">add_indices</span><span class="p">,</span><span class="n">indices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;mndwi&quot;</span><span class="p">])</span>
+
+<span class="c1"># get Sentinel 1 dataset</span>
+<span class="n">s1</span> <span class="o">=</span> <span class="n">hf</span><span class="o">.</span><span class="n">Sentinel1</span><span class="p">(</span><span class="n">region</span><span class="p">,</span><span class="n">start_time</span><span class="p">,</span><span class="n">end_time</span><span class="p">)</span>
+<span class="c1"># apply gamma map speckle filter</span>
+<span class="n">s1</span> <span class="o">=</span> <span class="n">s1</span><span class="o">.</span><span class="n">apply_func</span><span class="p">(</span><span class="n">hf</span><span class="o">.</span><span class="n">gamma_map</span><span class="p">)</span>
+
+<span class="c1"># join the two datasets</span>
+<span class="n">joined</span> <span class="o">=</span> <span class="n">lc8</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">s1</span><span class="p">)</span>
+
+<span class="c1"># create a composite image for the region</span>
+<span class="n">composite</span> <span class="o">=</span> <span class="n">joined</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">median</span><span class="p">()</span>
+
+<span class="c1"># define some visualization parameters to use</span>
+<span class="n">water_viz</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;min&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;max&quot;</span><span class="p">:</span><span class="mi">1</span><span class="p">,</span>
+    <span class="s2">&quot;palette&quot;</span><span class="p">:</span><span class="s2">&quot;silver,navy&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;region&quot;</span><span class="p">:</span><span class="n">region</span><span class="p">,</span>
+    <span class="s2">&quot;dimensions&quot;</span><span class="p">:</span><span class="mi">2000</span>
+<span class="p">}</span>
+<span class="n">optical_viz</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;min&quot;</span><span class="p">:</span><span class="mi">50</span><span class="p">,</span>
+    <span class="s2">&quot;max&quot;</span><span class="p">:</span><span class="mi">5500</span><span class="p">,</span>
+    <span class="s2">&quot;bands&quot;</span><span class="p">:</span><span class="s2">&quot;swir2,nir,green&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;gamma&quot;</span><span class="p">:</span><span class="mf">1.5</span><span class="p">,</span>
+    <span class="s2">&quot;region&quot;</span><span class="p">:</span><span class="n">region</span><span class="p">,</span>
+    <span class="s2">&quot;dimensions&quot;</span><span class="p">:</span><span class="mi">2000</span>
+<span class="p">}</span>
+<span class="n">sar_viz</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;min&quot;</span><span class="p">:</span><span class="o">-</span><span class="mi">25</span><span class="p">,</span>
+    <span class="s2">&quot;max&quot;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span>
+    <span class="s2">&quot;bands&quot;</span><span class="p">:</span><span class="s2">&quot;VV&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;region&quot;</span><span class="p">:</span><span class="n">region</span><span class="p">,</span>
+    <span class="s2">&quot;dimensions&quot;</span><span class="p">:</span><span class="mi">2000</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>Now that we have our data here we will highlight how to use some generic surface water mapping algorithms, specifically the <a href="/hydra-floods/thresholding/#hydrafloods.thresholding.edge_otsu"><code>edge_otsu()</code></a> algorithm:</p>
+<div class="codehilite"><pre><span></span><code><span class="c1"># apply the edge otsu algorithm on the MNDWI optical index</span>
+<span class="n">optical_water</span> <span class="o">=</span> <span class="n">hf</span><span class="o">.</span><span class="n">edge_otsu</span><span class="p">(</span>
+    <span class="n">composite</span><span class="p">,</span>
+    <span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span>
+    <span class="n">band</span><span class="o">=</span><span class="s2">&quot;mndwi&quot;</span><span class="p">,</span>
+    <span class="n">initial_threshold</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">thresh_no_data</span><span class="o">=-</span><span class="mf">0.2</span><span class="p">,</span>
+    <span class="n">edge_buffer</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
+    <span class="n">invert</span><span class="o">=</span><span class="kc">True</span>
+<span class="p">)</span>
+<span class="c1"># apply edge otsu algorithm on the VV SAR band</span>
+<span class="n">sar_water</span> <span class="o">=</span> <span class="n">hf</span><span class="o">.</span><span class="n">edge_otsu</span><span class="p">(</span>
+    <span class="n">composite</span><span class="p">,</span>
+    <span class="n">region</span><span class="o">=</span><span class="n">region</span><span class="p">,</span>
+    <span class="n">band</span><span class="o">=</span><span class="s2">&quot;VV&quot;</span><span class="p">,</span>
+    <span class="n">initial_threshold</span><span class="o">=-</span><span class="mi">16</span><span class="p">,</span>
+    <span class="n">thresh_no_data</span><span class="o">=-</span><span class="mi">20</span><span class="p">,</span>
+    <span class="n">edge_buffer</span><span class="o">=</span><span class="mi">300</span>
+<span class="p">)</span>
+
+<span class="c1"># get thumb urls of results</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">composite</span><span class="o">.</span><span class="n">getThumbURL</span><span class="p">(</span><span class="n">optical_viz</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">composite</span><span class="o">.</span><span class="n">getThumbURL</span><span class="p">(</span><span class="n">sar_viz</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">optical_water</span><span class="o">.</span><span class="n">getThumbURL</span><span class="p">(</span><span class="n">water_viz</span><span class="p">))</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">sar_water</span><span class="o">.</span><span class="n">getThumbURL</span><span class="p">(</span><span class="n">water_viz</span><span class="p">))</span>
+</code></pre></div>
+
+<table>
+<thead>
+<tr>
+<th align="center">Landsat 8 Image</th>
+<th align="center">SAR Image</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center"><img alt="" src="../img/algos_water_optical.png" /></td>
+<td align="center"><img alt="" src="../img/algos_water_sar.png" /></td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th align="center">Landsat 8 Water Map</th>
+<th align="center">SAR Water Map</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="center"><img alt="" src="../img/algos_water_optical_edge.png" /></td>
+<td align="center"><img alt="" src="../img/algos_water_sar_edge.png" /></td>
+</tr>
+</tbody>
+</table>
+<p>This is just one example of surface water mapping and there are additional water mapping algorithms as mentioned above. More documentation regarding the water mapping functions and the input arguments can be found at the <a href="/hydra-floods/thresholding/">thresholding module</a></p>
+<p>If there are other algorithms you would like to see in the <code>hydrafloods</code> package, please file an <a href="https://github.com/Servir-Mekong/hydra-floods/issues">issue</a> with specifics (and hopefully a link to the paper) on our GitHub repo.</p>
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../using-datasets/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Using the Dataset class" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              Using the Dataset class
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../workflow-example/" class="md-footer__link md-footer__link--next" aria-label="Next: Workflow Example" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              Workflow Example
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.5e67fbfe.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.c44cc438.min.js"></script>
+      
+    
+  </body>
+</html>

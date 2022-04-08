@@ -1,0 +1,2219 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      <link rel="icon" href="../img/favicon.ico">
+      <meta name="generator" content="mkdocs-1.3.0, mkdocs-material-8.2.8">
+    
+    
+      
+        <title>indices module - HYDRAFloods Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.644de097.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.e6a45f82.min.css">
+        
+      
+    
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="" data-md-color-primary="none" data-md-color-accent="none">
+  
+    
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#hydrafloods.indices" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="HYDRAFloods Documentation" class="md-header__button md-logo" aria-label="HYDRAFloods Documentation" data-md-component="logo">
+      
+  <img src="../img/hydrafloods_logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            HYDRAFloods Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              indices module
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5z"/></svg>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" aria-label="Clear" tabindex="-1">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="HYDRAFloods Documentation" class="md-nav__button md-logo" aria-label="HYDRAFloods Documentation" data-md-component="logo">
+      
+  <img src="../img/hydrafloods_logo.png" alt="logo">
+
+    </a>
+    HYDRAFloods Documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        Overview
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../installation/" class="md-nav__link">
+        Installation
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        Getting Started
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../using-datasets/" class="md-nav__link">
+        Using the Dataset class
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../algorithms/" class="md-nav__link">
+        Algorithms
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../workflow-example/" class="md-nav__link">
+        Workflow Example
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../cli/" class="md-nav__link">
+        Command Line Interface
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+    
+  
+  
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+      
+        <input class="md-nav__toggle md-toggle" data-md-toggle="__nav_8" type="checkbox" id="__nav_8" checked>
+      
+      
+      
+      
+        <label class="md-nav__link" for="__nav_8">
+          API Reference
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <nav class="md-nav" aria-label="API Reference" data-md-level="1">
+        <label class="md-nav__title" for="__nav_8">
+          <span class="md-nav__icon md-icon"></span>
+          API Reference
+        </label>
+        <ul class="md-nav__list" data-md-scrollfix>
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../corrections/" class="md-nav__link">
+        corrections module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../datasets/" class="md-nav__link">
+        datasets module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../depths/" class="md-nav__link">
+        depths module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../decorators/" class="md-nav__link">
+        decorators module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fetch/" class="md-nav__link">
+        fetch module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../floods/" class="md-nav__link">
+        floods module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../filtering/" class="md-nav__link">
+        filtering module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../fuzzy/" class="md-nav__link">
+        fuzzy module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../geeutils/" class="md-nav__link">
+        geeutils module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+    
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          indices module
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        indices module
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#hydrafloods.indices" class="md-nav__link">
+    indices
+  </a>
+  
+    <nav class="md-nav" aria-label="indices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.aewinsh" class="md-nav__link">
+    aewinsh()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.aewish" class="md-nav__link">
+    aewish()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.evi" class="md-nav__link">
+    evi()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.gwi" class="md-nav__link">
+    gwi()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.lswi" class="md-nav__link">
+    lswi()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.mbwi" class="md-nav__link">
+    mbwi()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.mndwi" class="md-nav__link">
+    mndwi()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.mwi" class="md-nav__link">
+    mwi()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.ndpi" class="md-nav__link">
+    ndpi()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.ndvi" class="md-nav__link">
+    ndvi()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.nvhi" class="md-nav__link">
+    nvhi()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.nvvi" class="md-nav__link">
+    nvvi()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.nwi" class="md-nav__link">
+    nwi()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.rfi" class="md-nav__link">
+    rfi()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.vv_vh_abs_sum" class="md-nav__link">
+    vv_vh_abs_sum()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.vv_vh_ratio" class="md-nav__link">
+    vv_vh_ratio()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.wri" class="md-nav__link">
+    wri()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ml/" class="md-nav__link">
+        ml module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../thresholding/" class="md-nav__link">
+        thresholding module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../timeseries/" class="md-nav__link">
+        timeseries module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../utils/" class="md-nav__link">
+        utils module
+      </a>
+    </li>
+  
+
+            
+          
+            
+              
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dswfp/" class="md-nav__link">
+        workflows.dswfp module
+      </a>
+    </li>
+  
+
+            
+          
+        </ul>
+      </nav>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#hydrafloods.indices" class="md-nav__link">
+    indices
+  </a>
+  
+    <nav class="md-nav" aria-label="indices">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.aewinsh" class="md-nav__link">
+    aewinsh()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.aewish" class="md-nav__link">
+    aewish()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.evi" class="md-nav__link">
+    evi()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.gwi" class="md-nav__link">
+    gwi()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.lswi" class="md-nav__link">
+    lswi()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.mbwi" class="md-nav__link">
+    mbwi()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.mndwi" class="md-nav__link">
+    mndwi()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.mwi" class="md-nav__link">
+    mwi()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.ndpi" class="md-nav__link">
+    ndpi()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.ndvi" class="md-nav__link">
+    ndvi()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.nvhi" class="md-nav__link">
+    nvhi()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.nvvi" class="md-nav__link">
+    nvvi()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.nwi" class="md-nav__link">
+    nwi()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.rfi" class="md-nav__link">
+    rfi()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.vv_vh_abs_sum" class="md-nav__link">
+    vv_vh_abs_sum()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.vv_vh_ratio" class="md-nav__link">
+    vv_vh_ratio()
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hydrafloods.indices.wri" class="md-nav__link">
+    wri()
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content" data-md-component="content">
+            <article class="md-content__inner md-typeset">
+              
+                
+
+
+  <h1>indices module</h1>
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 class="doc doc-heading" id="hydrafloods.indices">
+        <code>hydrafloods.indices</code>
+
+
+
+</h2>
+
+    <div class="doc doc-contents first">
+
+
+
+
+  <div class="doc doc-children">
+
+
+
+
+
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.indices.aewinsh">
+<code class="codehilite language-python"><span class="n">aewinsh</span><span class="p">(</span><span class="n">img</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Function to calculate automated water extraction index (AEWI) no shadow
+Expects image has "green", "nir", "swir1" and "swir2" bands.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>img</code></td>
+        <td><code>ee.Image</code></td>
+        <td><p>image to calculate AEWInsh</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ee.Image</code></td>
+      <td><p>AEWInsh image</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/indices.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="nd">@decorators</span><span class="o">.</span><span class="n">keep_attrs</span>
+<span class="k">def</span> <span class="nf">aewinsh</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function to calculate automated water extraction index (AEWI) no shadow</span>
+<span class="sd">    Expects image has &quot;green&quot;, &quot;nir&quot;, &quot;swir1&quot; and &quot;swir2&quot; bands.</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        img (ee.Image): image to calculate AEWInsh</span>
+
+<span class="sd">    returns:</span>
+<span class="sd">        ee.Image:  AEWInsh image</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">expression</span><span class="p">(</span>
+        <span class="s2">&quot;4.0 * (g-s) - ((0.25*n) + (2.75*w))&quot;</span><span class="p">,</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;g&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;green&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;s&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;swir1&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;nir&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;w&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;swir2&quot;</span><span class="p">),</span>
+        <span class="p">},</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;aewinsh&quot;</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.indices.aewish">
+<code class="codehilite language-python"><span class="n">aewish</span><span class="p">(</span><span class="n">img</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Function to calculate automated water extraction index (AEWI) shadow
+Expects image has "blue", "green", "nir", "swir1" and "swir2" bands.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>img</code></td>
+        <td><code>ee.Image</code></td>
+        <td><p>image to calculate AEWIsh</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ee.Image</code></td>
+      <td><p>AEWIsh image</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/indices.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="nd">@decorators</span><span class="o">.</span><span class="n">keep_attrs</span>
+<span class="k">def</span> <span class="nf">aewish</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function to calculate automated water extraction index (AEWI) shadow</span>
+<span class="sd">    Expects image has &quot;blue&quot;, &quot;green&quot;, &quot;nir&quot;, &quot;swir1&quot; and &quot;swir2&quot; bands.</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        img (ee.Image): image to calculate AEWIsh</span>
+
+<span class="sd">    returns:</span>
+<span class="sd">        ee.Image:  AEWIsh image</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">expression</span><span class="p">(</span>
+        <span class="s2">&quot;b+2.5*g-1.5*(n+s)-0.25*w&quot;</span><span class="p">,</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;blue&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;g&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;green&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;nir&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;s&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;swir1&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;w&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;swir2&quot;</span><span class="p">),</span>
+        <span class="p">},</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;aewish&quot;</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.indices.evi">
+<code class="codehilite language-python"><span class="n">evi</span><span class="p">(</span><span class="n">img</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Function to calculate Enhanced Vegetation Index (EVI).
+Expects image has "blue", "red", and "nir" bands.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>img</code></td>
+        <td><code>ee.Image</code></td>
+        <td><p>image to calculate EVI</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ee.Image</code></td>
+      <td><p>EVI image</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/indices.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="nd">@decorators</span><span class="o">.</span><span class="n">keep_attrs</span>
+<span class="k">def</span> <span class="nf">evi</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function to calculate Enhanced Vegetation Index (EVI).</span>
+<span class="sd">    Expects image has &quot;blue&quot;, &quot;red&quot;, and &quot;nir&quot; bands.</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        img (ee.Image): image to calculate EVI</span>
+
+<span class="sd">    returns:</span>
+<span class="sd">        ee.Image: EVI image</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">expression</span><span class="p">(</span>
+        <span class="s2">&quot;2.5*(nir-red)/(nir+6.0*red-7.5*blue+1)&quot;</span><span class="p">,</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;blue&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;blue&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;red&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;red&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;nir&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;nir&quot;</span><span class="p">),</span>
+        <span class="p">},</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;evi&quot;</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.indices.gwi">
+<code class="codehilite language-python"><span class="n">gwi</span><span class="p">(</span><span class="n">img</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Function to calculate general water index (GWI)
+Expects image has "green", "red", "nir", and "swir1" bands.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>img</code></td>
+        <td><code>ee.Image</code></td>
+        <td><p>image to calculate GWI</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ee.Image</code></td>
+      <td><p>GWI image</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/indices.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="nd">@decorators</span><span class="o">.</span><span class="n">keep_attrs</span>
+<span class="k">def</span> <span class="nf">gwi</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function to calculate general water index (GWI)</span>
+<span class="sd">    Expects image has &quot;green&quot;, &quot;red&quot;, &quot;nir&quot;, and &quot;swir1&quot; bands.</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        img (ee.Image): image to calculate GWI</span>
+
+<span class="sd">    returns:</span>
+<span class="sd">        ee.Image: GWI image</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">expression</span><span class="p">(</span>
+        <span class="s2">&quot;(g+r)-(n+s)&quot;</span><span class="p">,</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;g&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;green&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;r&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;red&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;nir&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;s&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;swir1&quot;</span><span class="p">),</span>
+        <span class="p">},</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;gwi&quot;</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.indices.lswi">
+<code class="codehilite language-python"><span class="n">lswi</span><span class="p">(</span><span class="n">img</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Function to calculate land surface water index (LSWI).
+Expects image has "nir" and "swir1" bands.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>img</code></td>
+        <td><code>ee.Image</code></td>
+        <td><p>image to calculate LSWI</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ee.Image</code></td>
+      <td><p>LSWI image</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/indices.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="nd">@decorators</span><span class="o">.</span><span class="n">keep_attrs</span>
+<span class="k">def</span> <span class="nf">lswi</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function to calculate land surface water index (LSWI).</span>
+<span class="sd">    Expects image has &quot;nir&quot; and &quot;swir1&quot; bands.</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        img (ee.Image): image to calculate LSWI</span>
+
+<span class="sd">    returns:</span>
+<span class="sd">        ee.Image: LSWI image</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">expression</span><span class="p">(</span>
+        <span class="s2">&quot;(nir-swir)/(nir+swir)&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;nir&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;nir&quot;</span><span class="p">),</span> <span class="s2">&quot;swir&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;swir1&quot;</span><span class="p">)}</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;lswi&quot;</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.indices.mbwi">
+<code class="codehilite language-python"><span class="n">mbwi</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Function to calculate multi band water index (MBWI).
+Expects image has "green", "red", "nir", "swir1", and "swir2" bands.
+https://doi.org/10.1016/j.jag.2018.01.018</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>img</code></td>
+        <td><code>ee.Image</code></td>
+        <td><p>image to calculate MBWI</p></td>
+        <td><em>required</em></td>
+      </tr>
+      <tr>
+        <td><code>factor</code></td>
+        <td><code>int,optional</code></td>
+        <td><p>factor to scale green band for index. default=3</p></td>
+        <td><code>3</code></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ee.Image</code></td>
+      <td><p>MBWI image</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/indices.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="nd">@decorators</span><span class="o">.</span><span class="n">keep_attrs</span>
+<span class="k">def</span> <span class="nf">mbwi</span><span class="p">(</span><span class="n">img</span><span class="p">,</span> <span class="n">factor</span><span class="o">=</span><span class="mi">3</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function to calculate multi band water index (MBWI).</span>
+<span class="sd">    Expects image has &quot;green&quot;, &quot;red&quot;, &quot;nir&quot;, &quot;swir1&quot;, and &quot;swir2&quot; bands.</span>
+<span class="sd">    https://doi.org/10.1016/j.jag.2018.01.018</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        img (ee.Image): image to calculate MBWI</span>
+<span class="sd">        factor (int,optional): factor to scale green band for index. default=3</span>
+
+<span class="sd">    returns:</span>
+<span class="sd">        ee.Image: MBWI image</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">expression</span><span class="p">(</span>
+        <span class="s2">&quot;((factor*green)-red-nir-swir1-swir2)&quot;</span><span class="p">,</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;factor&quot;</span><span class="p">:</span> <span class="n">factor</span><span class="p">,</span>
+            <span class="s2">&quot;green&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;green&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;red&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;red&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;nir&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;nir&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;swir1&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;swir1&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;swir2&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;swir2&quot;</span><span class="p">),</span>
+        <span class="p">},</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;mbwi&quot;</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.indices.mndwi">
+<code class="codehilite language-python"><span class="n">mndwi</span><span class="p">(</span><span class="n">img</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Function to calculate modified Difference Water Index (MNDWI).
+Expects image has "green" and "swir1" bands.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>img</code></td>
+        <td><code>ee.Image</code></td>
+        <td><p>image to calculate MNDWI</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ee.Image</code></td>
+      <td><p>MNDWI image</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/indices.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="nd">@decorators</span><span class="o">.</span><span class="n">keep_attrs</span>
+<span class="k">def</span> <span class="nf">mndwi</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function to calculate modified Difference Water Index (MNDWI).</span>
+<span class="sd">    Expects image has &quot;green&quot; and &quot;swir1&quot; bands.</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        img (ee.Image): image to calculate MNDWI</span>
+
+<span class="sd">    returns:</span>
+<span class="sd">        ee.Image: MNDWI image</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">normalizedDifference</span><span class="p">([</span><span class="s2">&quot;green&quot;</span><span class="p">,</span> <span class="s2">&quot;swir1&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;mndwi&quot;</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.indices.mwi">
+<code class="codehilite language-python"><span class="n">mwi</span><span class="p">(</span><span class="n">img</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Function to calculate the Modified Water Index (MWI)
+Expect image has "green", "red", "nir", and "swir1" bands
+https://doi.org/10.1007/978-3-662-45737-5_51 , https://ieeexplore.ieee.org/document/9011209</p>
+
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/indices.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="nd">@decorators</span><span class="o">.</span><span class="n">keep_attrs</span>
+<span class="k">def</span> <span class="nf">mwi</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function to calculate the Modified Water Index (MWI)</span>
+<span class="sd">    Expect image has &quot;green&quot;, &quot;red&quot;, &quot;nir&quot;, and &quot;swir1&quot; bands</span>
+<span class="sd">    https://doi.org/10.1007/978-3-662-45737-5_51 , https://ieeexplore.ieee.org/document/9011209</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># calculate ndvi</span>
+    <span class="n">ndvi_img</span> <span class="o">=</span> <span class="n">ndvi</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+    <span class="c1"># calculate mndwi</span>
+    <span class="n">mndwi_img</span> <span class="o">=</span> <span class="n">mndwi</span><span class="p">(</span><span class="n">img</span><span class="p">)</span>
+
+    <span class="c1"># mwi = 1 - (ndvi - mndwi)</span>
+    <span class="k">return</span> <span class="n">ee</span><span class="o">.</span><span class="n">Image</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">ndvi_img</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">mndwi_img</span><span class="p">))</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;mwi&quot;</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.indices.ndpi">
+<code class="codehilite language-python"><span class="n">ndpi</span><span class="p">(</span><span class="n">img</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Function to calculate nomalized difference polarization index (NDPI).
+Expects image has "VV" and "VH" bands.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>img</code></td>
+        <td><code>ee.Image</code></td>
+        <td><p>image to calculate NDPI</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ee.Image</code></td>
+      <td><p>NPDI image</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/indices.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="nd">@decorators</span><span class="o">.</span><span class="n">keep_attrs</span>
+<span class="k">def</span> <span class="nf">ndpi</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function to calculate nomalized difference polarization index (NDPI).</span>
+<span class="sd">    Expects image has &quot;VV&quot; and &quot;VH&quot; bands.</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        img (ee.Image): image to calculate NDPI</span>
+
+<span class="sd">    returns:</span>
+<span class="sd">        ee.Image: NPDI image</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">expression</span><span class="p">(</span>
+        <span class="s2">&quot;(VV-VH)/(VV+VH)&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;VV&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;VV&quot;</span><span class="p">),</span> <span class="s2">&quot;VH&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;VH&quot;</span><span class="p">)}</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;ndpi&quot;</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.indices.ndvi">
+<code class="codehilite language-python"><span class="n">ndvi</span><span class="p">(</span><span class="n">img</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Function to calculate Normalized Difference Vegetation Index (NDVI).
+Expects image has "nir" and "red" bands.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>img</code></td>
+        <td><code>ee.Image</code></td>
+        <td><p>image to calculate NDVI</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ee.Image</code></td>
+      <td><p>NDVI image</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/indices.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="nd">@decorators</span><span class="o">.</span><span class="n">keep_attrs</span>
+<span class="k">def</span> <span class="nf">ndvi</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function to calculate Normalized Difference Vegetation Index (NDVI).</span>
+<span class="sd">    Expects image has &quot;nir&quot; and &quot;red&quot; bands.</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        img (ee.Image): image to calculate NDVI</span>
+
+<span class="sd">    returns:</span>
+<span class="sd">        ee.Image: NDVI image</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">normalizedDifference</span><span class="p">([</span><span class="s2">&quot;nir&quot;</span><span class="p">,</span> <span class="s2">&quot;red&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;ndvi&quot;</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.indices.nvhi">
+<code class="codehilite language-python"><span class="n">nvhi</span><span class="p">(</span><span class="n">img</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Function to calculate nomalized VH index (NVHI).
+Expects image has "VV" and "VH" bands.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>img</code></td>
+        <td><code>ee.Image</code></td>
+        <td><p>image to calculate NVHI</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ee.Image</code></td>
+      <td><p>NVHI image</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/indices.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="nd">@decorators</span><span class="o">.</span><span class="n">keep_attrs</span>
+<span class="k">def</span> <span class="nf">nvhi</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function to calculate nomalized VH index (NVHI).</span>
+<span class="sd">    Expects image has &quot;VV&quot; and &quot;VH&quot; bands.</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        img (ee.Image): image to calculate NVHI</span>
+
+<span class="sd">    returns:</span>
+<span class="sd">        ee.Image: NVHI image</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">expression</span><span class="p">(</span>
+        <span class="s2">&quot;(VH)/(VV+VH)&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;VV&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;VV&quot;</span><span class="p">),</span> <span class="s2">&quot;VH&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;VH&quot;</span><span class="p">)}</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;nvhi&quot;</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.indices.nvvi">
+<code class="codehilite language-python"><span class="n">nvvi</span><span class="p">(</span><span class="n">img</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Function to calculate nomalized VV index (NVVI).
+Expects image has "VV" and "VH" bands.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>img</code></td>
+        <td><code>ee.Image</code></td>
+        <td><p>image to calculate NVVI</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ee.Image</code></td>
+      <td><p>NVVI image</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/indices.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="nd">@decorators</span><span class="o">.</span><span class="n">keep_attrs</span>
+<span class="k">def</span> <span class="nf">nvvi</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function to calculate nomalized VV index (NVVI).</span>
+<span class="sd">    Expects image has &quot;VV&quot; and &quot;VH&quot; bands.</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        img (ee.Image): image to calculate NVVI</span>
+
+<span class="sd">    returns:</span>
+<span class="sd">        ee.Image: NVVI image</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">expression</span><span class="p">(</span>
+        <span class="s2">&quot;(VV)/(VV+VH)&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;VV&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;VV&quot;</span><span class="p">),</span> <span class="s2">&quot;VH&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;VH&quot;</span><span class="p">)}</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;nvvi&quot;</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.indices.nwi">
+<code class="codehilite language-python"><span class="n">nwi</span><span class="p">(</span><span class="n">img</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Function to calculate new water index (NWI).
+Expects image has "blue", "nir", "swir1" and "swir2" bands.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>img</code></td>
+        <td><code>ee.Image</code></td>
+        <td><p>image to calculate NWI</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ee.Image</code></td>
+      <td><p>NWI image</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/indices.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="nd">@decorators</span><span class="o">.</span><span class="n">keep_attrs</span>
+<span class="k">def</span> <span class="nf">nwi</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function to calculate new water index (NWI).</span>
+<span class="sd">    Expects image has &quot;blue&quot;, &quot;nir&quot;, &quot;swir1&quot; and &quot;swir2&quot; bands.</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        img (ee.Image): image to calculate NWI</span>
+
+<span class="sd">    returns:</span>
+<span class="sd">        ee.Image: NWI image</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">expression</span><span class="p">(</span>
+        <span class="s2">&quot;((b-(n+s+w))/(b+(n+s+w)))&quot;</span><span class="p">,</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;blue&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;n&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;nir&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;s&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;swir1&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;w&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;swir2&quot;</span><span class="p">),</span>
+        <span class="p">},</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;nwi&quot;</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.indices.rfi">
+<code class="codehilite language-python"><span class="n">rfi</span><span class="p">(</span><span class="n">img</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Function to calculate SAR RFI index.
+Expects image has "VV" and "VH" bands.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>img</code></td>
+        <td><code>ee.Image</code></td>
+        <td><p>image to calculate RFI</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ee.Image</code></td>
+      <td><p>RFI image</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/indices.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="nd">@decorators</span><span class="o">.</span><span class="n">keep_attrs</span>
+<span class="k">def</span> <span class="nf">rfi</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function to calculate SAR RFI index.</span>
+<span class="sd">    Expects image has &quot;VV&quot; and &quot;VH&quot; bands.</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        img (ee.Image): image to calculate RFI</span>
+
+<span class="sd">    returns:</span>
+<span class="sd">        ee.Image: RFI image</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">expression</span><span class="p">(</span>
+        <span class="s2">&quot;(4*VH)/(VV+VH)&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;VV&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;VV&quot;</span><span class="p">),</span> <span class="s2">&quot;VH&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;VH&quot;</span><span class="p">)}</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;rfi&quot;</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.indices.vv_vh_abs_sum">
+<code class="codehilite language-python"><span class="n">vv_vh_abs_sum</span><span class="p">(</span><span class="n">img</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Function to calculate the absolute value of the sum of VV and VH bands.
+Expects image has "VV" and "VH" bands.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>img</code></td>
+        <td><code>ee.Image</code></td>
+        <td><p>image to apply calculation</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ee.Image</code></td>
+      <td><p>image name 'vv_vh_abs_sum'</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/indices.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="nd">@decorators</span><span class="o">.</span><span class="n">keep_attrs</span>
+<span class="k">def</span> <span class="nf">vv_vh_abs_sum</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function to calculate the absolute value of the sum of VV and VH bands.</span>
+<span class="sd">    Expects image has &quot;VV&quot; and &quot;VH&quot; bands.</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        img (ee.Image): image to apply calculation</span>
+
+<span class="sd">    returns:</span>
+<span class="sd">        ee.Image: image name &#39;vv_vh_abs_sum&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;VV&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;VH&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">abs</span><span class="p">()</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;vv_vh_abs_sum&quot;</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.indices.vv_vh_ratio">
+<code class="codehilite language-python"><span class="n">vv_vh_ratio</span><span class="p">(</span><span class="n">img</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Function to calculate ratio between VV and VH bands.
+Expects image has "VV" and "VH" bands.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>img</code></td>
+        <td><code>ee.Image</code></td>
+        <td><p>image to calculate ration</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ee.Image</code></td>
+      <td><p>ratio image name 'ratio'</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/indices.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="nd">@decorators</span><span class="o">.</span><span class="n">keep_attrs</span>
+<span class="k">def</span> <span class="nf">vv_vh_ratio</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function to calculate ratio between VV and VH bands.</span>
+<span class="sd">    Expects image has &quot;VV&quot; and &quot;VH&quot; bands.</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        img (ee.Image): image to calculate ration</span>
+
+<span class="sd">    returns:</span>
+<span class="sd">        ee.Image: ratio image name &#39;ratio&#39;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">expression</span><span class="p">(</span>
+        <span class="s2">&quot;(VV/VH)&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;VV&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;VV&quot;</span><span class="p">),</span> <span class="s2">&quot;VH&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;VH&quot;</span><span class="p">)}</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;ratio&quot;</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+  <div class="doc doc-object doc-function">
+
+
+
+<h3 class="doc doc-heading" id="hydrafloods.indices.wri">
+<code class="codehilite language-python"><span class="n">wri</span><span class="p">(</span><span class="n">img</span><span class="p">)</span></code>
+
+
+</h3>
+
+    <div class="doc doc-contents ">
+
+      <p>Function to calculate water ratio index (WRI).
+Expects image has "green", "red", "nir" and "swir1" bands.</p>
+
+<p><strong>Parameters:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Type</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+        <td><code>img</code></td>
+        <td><code>ee.Image</code></td>
+        <td><p>image to calculate WRI</p></td>
+        <td><em>required</em></td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>Returns:</strong></p>
+<table>
+  <thead>
+    <tr>
+      <th>Type</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>ee.Image</code></td>
+      <td><p>WRI image</p></td>
+    </tr>
+  </tbody>
+</table>
+        <details class="quote">
+          <summary>Source code in <code>hydrafloods/indices.py</code></summary>
+          <div class="codehilite"><pre><span></span><code><span class="nd">@decorators</span><span class="o">.</span><span class="n">keep_attrs</span>
+<span class="k">def</span> <span class="nf">wri</span><span class="p">(</span><span class="n">img</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Function to calculate water ratio index (WRI).</span>
+<span class="sd">    Expects image has &quot;green&quot;, &quot;red&quot;, &quot;nir&quot; and &quot;swir1&quot; bands.</span>
+
+<span class="sd">    args:</span>
+<span class="sd">        img (ee.Image): image to calculate WRI</span>
+
+<span class="sd">    returns:</span>
+<span class="sd">        ee.Image: WRI image</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">img</span><span class="o">.</span><span class="n">expression</span><span class="p">(</span>
+        <span class="s2">&quot;(green+red)/(nir+swir)&quot;</span><span class="p">,</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;green&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;green&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;red&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;red&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;nir&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;nir&quot;</span><span class="p">),</span>
+            <span class="s2">&quot;swir&quot;</span><span class="p">:</span> <span class="n">img</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="s2">&quot;swir1&quot;</span><span class="p">),</span>
+        <span class="p">},</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="s2">&quot;wri&quot;</span><span class="p">)</span>
+</code></pre></div>
+        </details>
+    </div>
+
+  </div>
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+  </div>
+
+              
+            </article>
+          </div>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+    <nav class="md-footer__inner md-grid" aria-label="Footer">
+      
+        
+        <a href="../geeutils/" class="md-footer__link md-footer__link--prev" aria-label="Previous: geeutils module" rel="prev">
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
+          </div>
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              geeutils module
+            </div>
+          </div>
+        </a>
+      
+      
+        
+        <a href="../ml/" class="md-footer__link md-footer__link--next" aria-label="Next: ml module" rel="next">
+          <div class="md-footer__title">
+            <div class="md-ellipsis">
+              <span class="md-footer__direction">
+                Next
+              </span>
+              ml module
+            </div>
+          </div>
+          <div class="md-footer__button md-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4 11v2h12l-5.5 5.5 1.42 1.42L19.84 12l-7.92-7.92L10.5 5.5 16 11H4z"/></svg>
+          </div>
+        </a>
+      
+    </nav>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.5e67fbfe.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.config.lang": "en", "search.config.pipeline": "trimmer, stopWordFilter", "search.config.separator": "[\\s\\-]+", "search.placeholder": "Search", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version.title": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.c44cc438.min.js"></script>
+      
+    
+  </body>
+</html>

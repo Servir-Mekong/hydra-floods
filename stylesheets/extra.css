@@ -1,0 +1,9 @@
+.md-header {
+    background-color: #34495e;
+}
+
+@media screen and (max-width: 76.24999em) {
+    .md-nav--primary .md-nav__title[for=__drawer] {
+        background-color: #34495e;
+    }
+}
