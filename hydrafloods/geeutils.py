@@ -310,7 +310,7 @@ def tile_region(
 
         def contructXGrid(j):
             j = ee.Number(j)
-            box = ee.Feature(
+            box = (
                 ee.Geometry.Rectangle(
                     [j, i, j.add(grid_res), i.add(grid_res)],
                     "epsg:4326",
@@ -318,22 +318,15 @@ def tile_region(
                 )
             )
             if contain_geom is not None:
-                out = ee.Algorithms.If(
-                    contain_geom.contains(box.geometry(), maxError=500), box, None
-                )
+                keep = contain_geom.contains(box, maxError=500)
+
             elif intersect_geom is not None:
-                out = ee.Algorithms.If(
-                    box.intersects(intersect_geom, maxError=500), box, None
-                )
+                keep = box.intersects(intersect_geom, maxError=500)
+
             elif centroid_within is not None:
-                out = ee.Algorithms.If(
-                    box.geometry().centroid().intersects(centroid_within, maxError=500),
-                    box,
-                    None,
-                )
-            else:
-                out = box
-            return ee.Feature(out)
+                keep = box.centroid().intersects(centroid_within, maxError=500)
+
+            return ee.Feature(box,{"ul_lat":i.add(grid_res), "ul_lon":j, "keep":keep} )
 
         i = ee.Number(i)
         out = ee.List.sequence(west, east.subtract(grid_res), grid_res).map(
@@ -372,7 +365,7 @@ def tile_region(
         ee.List.sequence(south, north.subtract(grid_res), grid_res)
         .map(constuctGrid)
         .flatten()
-    )
+    ).filter(ee.Filter.eq("keep",True))
 
     return grid
 
@@ -392,6 +385,27 @@ def country_bbox(country_name, max_error=1000):
     all_countries = ee.FeatureCollection("USDOS/LSIB_SIMPLE/2017")
     return (
         all_countries.filter(ee.Filter.eq("country_na", country_name))
+        .geometry(max_error)
+        .bounds(max_error)
+    )
+
+def admin_bbox(admin_name, level=0, max_error=1000):
+    """Function to get a bounding box geometry of an administrative area
+    args:
+        admin_name (str): US-recognized country name
+        max_error (float,optional): The maximum amount of error tolerated when
+            performing any necessary reprojection. default = 100
+
+    returns:
+        ee.Geometry: geometry of country bounding box
+    """
+
+    if level not in range(0,3):
+        raise ValueError(f"Administrative level is 0-2, provided level {level} is outside of range")
+
+    admin_bounds = ee.FeatureCollection("FAO/GAUL/2015/level2")
+    return (
+        admin_bounds.filter(ee.Filter.eq(f"ADM{level}_NAME", admin_name))
         .geometry(max_error)
         .bounds(max_error)
     )
