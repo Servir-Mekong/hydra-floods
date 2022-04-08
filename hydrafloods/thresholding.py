@@ -560,3 +560,38 @@ def fuzzy_otsu(
     waterImg = waterImg.where(waterImg.eq(0), gauss)
 
     return ee.Image(waterImg)
+
+
+@decorators.keep_attrs
+def modis_flood(img):
+    """Implementation of the NASA  MODIS Flood algorithm. Expects that imagery
+    has
+
+    https://cdn.earthdata.nasa.gov/conduit/upload/17162/MCDWD_UserGuide_RevB.pdf
+
+    args:
+        img (ee.Image): image to apply algorithm to, should be either MODIS or VIIRS sensor data
+
+    returns:
+        ee.Image: resulting water map
+
+    """
+    # coefficients for the algorithm
+    a = 0.0013500
+    b = 0.10811
+    c = 0.7
+    d = 0.2027
+    e = 0.06757
+
+    water = img.expression("((nir+a)/(red+b) < c) and (red < d) and (swir2 < e)",{
+        "red": img.select("red"),
+        "nir": img.select("nir"),
+        "swir2": img.select("swir2"),
+        "a": a,
+        "b": b,
+        "c": c,
+        "d": d,
+        "e": e
+    }).uint8().rename("water")
+
+    return water
