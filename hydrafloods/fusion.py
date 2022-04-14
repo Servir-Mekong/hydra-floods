@@ -1,6 +1,6 @@
 from __future__ import print_function, division
 import ee
-from hydrafloods import decorators
+from hydrafloods import decorators, ml, thresholding
 
 
 def starfm(
@@ -143,3 +143,118 @@ def bathtub(wfrac, hand, permanent=None):
     )
 
     return final
+
+
+@decorators.keep_attrs
+def pca_fusion(
+    img,
+    img_stats=None,
+    match_stats=None,
+    eigen_vecs=None,
+    scaling_dict=None,
+    img_band=None,
+    match_band=None,
+    inverse_relationship=True,
+    reverse_pca_bands=False,
+):
+    pca_bands = [img_band, match_band]
+
+    if reverse_pca_bands:
+        pca_bands = pca_bands[::-1]
+
+    img_z = (
+        img.select(img_band)
+        .subtract(img_stats.select(img_band + "_mean"))
+        .divide(img_stats.select(img_band + "_stdDev"))
+    )
+
+    if inverse_relationship:
+        img_z = img_z.multiply(-1)
+
+    match_synth = (
+        match_stats.select(match_band + "_mean")
+        .add(img_z.multiply((match_stats.select(match_band + "_stdDev"))))
+        .rename(match_band)
+    )
+
+    if reverse_pca_bands:
+        input_img = match_synth.addBands(img)
+    else:
+        input_img = img.addBands(match_synth)
+
+    if scaling_dict is not None:
+        input_img = ml.standard_image_scaling(input_img, scaling_dict, pca_bands)
+
+    pcs = ml.apply_image_pca(input_img, eigen_vecs, pca_bands)
+
+    df_index = pcs.select([0]).clamp(-3.75, 3.75).rename("df_index")
+
+    return df_index
+
+@decorators.keep_attrs
+def dnns(img, region=None):
+    """Dynamic Nearest Neighbor Search algorithm for estimating 
+    
+    """
+    pimg = img.select(["red","nir","swir1"])
+
+    kernel_size = 40  #pixels?
+    scale = pimg.projection().nominalScale()
+
+    kernel = ee.Kernel.square(kernel_size, "pixels", False)
+    kernel_norm = ee.Kernel.square(kernel_size, 'pixels', True)
+
+    water = img.select("mndwi").gt(0.15)#hf.bmax_otsu(img, band="mndwi", initial_threshold=0.1, region=region).Not()
+    land = img.select("mndwi").lt(-0.15)
+
+    mix = water.Not().And(land.Not())
+    ave_water = water.multiply(pimg).reduceRegion(ee.Reducer.mean(),region,scale,maxPixels=1e4,bestEffort=True).toImage()
+
+    N_nmin_water = 1
+    N_water = water.convolve(kernel)
+
+    water_rf = (
+        water.multiply(pimg)
+        .convolve(kernel)
+        .multiply(N_water.gte(N_nmin_water))
+        .divide(N_water)
+    )
+    water_rf = water_rf.add(ave_water.multiply(water_rf.Not()))
+
+    ave_land = pimg.multiply(land).reduceRegion(ee.Reducer.mean(),region,scale,maxPixels=1e4,bestEffort=True).toImage()
+
+    R1 = pimg.select("red").divide(pimg.select("swir1"))
+    R2 = pimg.select("nir").divide(pimg.select("swir1"))
+    R3 = R1.subtract(water_rf.select("red").divide(pimg.select("swir1")))
+    R4 = R2.subtract(water_rf.select("red").divide(pimg.select("swir1")))
+
+    NR1 = R1.neighborhoodToBands(kernel)
+    NR2 = R2.neighborhoodToBands(kernel)
+    NI1 = img.select("red").neighborhoodToBands(kernel)
+    NI2 = img.select("nir").neighborhoodToBands(kernel)
+    NI3 = img.select("swir1").neighborhoodToBands(kernel)
+
+    M1 = (NR1.gt(R3)).And(NR1.lt(R1))
+    M2 = (NR2.gt(R4)).And(NR2.lt(R2))
+    nLP = M1.And(M2)
+
+    NnLP = nLP.reduce(ee.Reducer.sum())
+    ave_nI1 = NI1.multiply(nLP).reduce(ee.Reducer.sum()).divide(NnLP)
+    ave_nI2 = NI2.multiply(nLP).reduce(ee.Reducer.sum()).divide(NnLP)
+    ave_nI3 = NI3.multiply(nLP).reduce(ee.Reducer.sum()).divide(NnLP)
+
+    N_nmin_land = 1
+    ave_pureland = ee.Image.cat([ave_nI1,ave_nI2,ave_nI3])
+    ave_pureland = ave_pureland.multiply(NnLP.gte(N_nmin_land)).add(
+        ave_land.multiply(NnLP.lt(N_nmin_land))
+    )
+
+    ave_landI3 = ave_land.select([2])
+    f_water_all = (
+        (ave_pureland.subtract(pimg))
+        .divide(ave_pureland.subtract(water_rf))
+        .clamp(0, 1)
+    )
+    f_water = f_water_all.add(water).subtract(land).clamp(0, 1)
+
+    return f_water.reduce(ee.Reducer.mean()).rename("water_fraction").toFloat()

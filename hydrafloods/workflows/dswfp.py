@@ -206,9 +206,9 @@ def export_fusion_samples(
 
     """
 
-    dem = ee.Image("NASA/NASADEM_HGT/001").select("elevation")
+    dem = ee.Image("NASA/NASADEM_HGT/001").select("elevation").unmask(0)
 
-    optical_water_indices = ["mndwi", "nwi", "aewish", "aewinsh"]
+    optical_water_indices = ["mndwi", "nwi", "aewish", "aewinsh", "mbwi"]
 
     ds_kwargs = dict(
         region=region, start_time=start_time, end_time=end_time, rescale=True
@@ -216,8 +216,8 @@ def export_fusion_samples(
     dsa_kwargs = {**ds_kwargs, **{"apply_band_adjustment": True}}
 
     lc8 = datasets.Landsat8(**ds_kwargs)
-    le7 = datasets.Landsat7(**dsa_kwargs)
-    s2 = datasets.Sentinel2(**dsa_kwargs)
+    le7 = datasets.Landsat7(**ds_kwargs)
+    s2 = datasets.Sentinel2(**ds_kwargs)
 
     _ = ds_kwargs.pop("rescale")
 
@@ -235,7 +235,7 @@ def export_fusion_samples(
             corrections.slope_correction,
             dict(
                 elevation=dem,
-                buffer=50,
+                buffer=100,
             ),
         ),
         hf.gamma_map,
@@ -245,15 +245,15 @@ def export_fusion_samples(
     s1a.pipe(sar_proc, inplace=True)
     s1d.pipe(sar_proc, inplace=True)
 
-    s1a_anomalies = _calc_sar_anomalies(years, s1a)
-    s1d_anomalies = _calc_sar_anomalies(years, s1d)
-
-    s1a.collection = s1a_anomalies
-    s1d.collection = s1d_anomalies
+    # s1a_anomalies = _calc_sar_anomalies(years, s1a)
+    # s1d_anomalies = _calc_sar_anomalies(years, s1d)
+    #
+    # s1a.collection = s1a_anomalies
+    # s1d.collection = s1d_anomalies
 
     s1 = s1a.merge(s1d)
 
-    optical = lc8.merge(s2).merge(le7)
+    optical = lc8.merge(le7)  # .merge(s2)
 
     optical = optical.apply_func(geeutils.add_indices, indices=optical_water_indices)
 

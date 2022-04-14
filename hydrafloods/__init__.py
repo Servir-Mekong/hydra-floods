@@ -9,6 +9,8 @@ from hydrafloods.depths import *
 from hydrafloods.floods import *
 from hydrafloods import fetch, utils
 
+from hydrafloods import fusion
+
 # from hydrafloods import *
 
 __version__ = "2021.11.10"
