@@ -998,7 +998,7 @@ class Sentinel2(Dataset):
         )
 
         if use_qa:
-            coll = coll.filter(ee.Filter.eq('cloud_mask_success', True))
+            coll = coll.filter(ee.Filter.eq('cloud_mask_success', 1))
 
         if apply_band_adjustment:
             # band bass adjustment coefficients taken HLS project https://hls.gsfc.nasa.gov/algorithms/bandpass-adjustment/
