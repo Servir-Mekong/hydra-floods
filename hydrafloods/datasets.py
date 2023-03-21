@@ -974,7 +974,7 @@ class Sentinel2(Dataset):
     def __init__(
         self,
         *args,
-        asset_id="COPERNICUS/S2_SR",
+        asset_id="COPERNICUS/S2_SR_HARMONIZED",
         use_qa=True,
         apply_band_adjustment=False,
         **kwargs,
@@ -1012,6 +1012,49 @@ class Sentinel2(Dataset):
         self.collection = coll
 
         return
+
+
+    def deduplicate(self, inplace=False):
+        """Deduplicate Sentinel2 images by removing images with the same data take identifier"""
+        def _dedupe(id):
+            """Helper function to remove duplicate images"""
+            id_collection = (
+                self.collection
+                .filter(
+                    ee.Filter.stringStartsWith("DATATAKE_IDENTIFIER", ee.String(id))
+                )
+                .sort('PROCESSING_BASELINE')
+            )
+            image = (
+                id_collection
+                .mosaic()
+            )
+  
+            imgbounds = id_collection.map(lambda x: x.geometry(1e3))
+  
+            start_time = id_collection.aggregate_array('system:time_start').reduce(ee.Reducer.min())
+            end_time = id_collection.aggregate_array('system:time_start').reduce(ee.Reducer.max())
+  
+            return image.clipToCollection(imgbounds).set(
+                {
+                    'system:time_start': start_time, 
+                    'system:time_end':end_time
+                }
+            )
+        
+        datatakes = (
+            self.collection
+            .aggregate_histogram("DATATAKE_IDENTIFIER")
+            .keys()
+            .map(lambda x: ee.String(x).slice(0,-7))
+        )
+
+        images = ee.ImageCollection.fromImages(
+            datatakes.map(_dedupe)
+        )
+
+        return self._inplace_wrapper(images, inplace)
+
 
     @decorators.keep_attrs
     def qa(self, img):

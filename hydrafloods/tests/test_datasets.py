@@ -24,6 +24,11 @@ class TestDatasets:
         s2 = hf.Sentinel2(TEST_REGION, TEST_START_TIME_E2, TEST_END_TIME_E2)
         assert s2.n_images == 100
 
+    def test_sentinel2_dedupe(self):
+        s2 = hf.Sentinel2(TEST_REGION, TEST_START_TIME_E2, TEST_END_TIME_E2)
+        s2_dedupe = s2.deduplicate()
+        assert s2_dedupe.n_images == 5
+
     def test_landsat9(self):
         lc9 = hf.Landsat9(TEST_REGION, TEST_START_TIME_E2, TEST_END_TIME_E2)
         assert lc9.n_images == 11
