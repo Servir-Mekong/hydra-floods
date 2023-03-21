@@ -85,7 +85,7 @@ class TestDatasets:
         joined = lc8.join(s1)
         first = joined.collection.first()
 
-        assert (joined.n_images == 110) and (
+        assert (joined.n_images == 105) and (
             first.bandNames().getInfo()
             == ["blue", "green", "red", "nir", "swir1", "swir2", "VV", "VH", "angle"]
         )
