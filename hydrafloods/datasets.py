@@ -1038,7 +1038,8 @@ class Sentinel2(Dataset):
             return image.clipToCollection(imgbounds).set(
                 {
                     'system:time_start': start_time, 
-                    'system:time_end':end_time
+                    'system:time_end':end_time,
+                    'system:index':id
                 }
             )
         
