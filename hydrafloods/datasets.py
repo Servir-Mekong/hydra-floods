@@ -997,6 +997,9 @@ class Sentinel2(Dataset):
             self.BANDREMAP.get("sen2"), self.BANDREMAP.get("new")
         )
 
+        if use_qa:
+            coll = coll.filter(ee.Filter.eq('cloud_mask_success', True))
+
         if apply_band_adjustment:
             # band bass adjustment coefficients taken HLS project https://hls.gsfc.nasa.gov/algorithms/bandpass-adjustment/
             # slope coefficients
@@ -1069,9 +1072,13 @@ class Sentinel2(Dataset):
         # Get s2cloudless image, subset the probability band.
         cld_prb = ee.Image(
             ee.ImageCollection("COPERNICUS/S2_CLOUD_PROBABILITY")
+            .filterDate(self.start_time, self.end_time)
+            .filterBounds(self.region)
             .filter(ee.Filter.eq("system:index", img.get("system:index")))
             .first()
         ).select("probability")
+
+        worked = cld_prb.bandNames().length().gt(0)
 
         # Condition s2cloudless by the probability threshold value.
         is_cloud = cld_prb.gt(CLD_PRB_THRESH)
@@ -1111,4 +1118,4 @@ class Sentinel2(Dataset):
         )
 
         # Subset reflectance bands and update their masks, return the result.
-        return geeutils.rescale(img).select("B.*").updateMask(is_cld_shdw.Not())
+        return geeutils.rescale(img).select("B.*").updateMask(is_cld_shdw.Not()).set({'cloud_mask_success':worked})
