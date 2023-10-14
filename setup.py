@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name="hydrafloods",
-    version="2021.11.10",
+    version="2023.10.14",
     description="HYDrologic Remote sensing Analysis for Floods",
     long_description=long_description,
     long_description_content_type="text/markdown",
