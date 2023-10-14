@@ -974,7 +974,7 @@ class Sentinel2(Dataset):
     def __init__(
         self,
         *args,
-        asset_id="COPERNICUS/S2_SR",
+        asset_id="COPERNICUS/S2_SR_HARMONIZED",
         use_qa=True,
         apply_band_adjustment=False,
         **kwargs,
@@ -997,6 +997,9 @@ class Sentinel2(Dataset):
             self.BANDREMAP.get("sen2"), self.BANDREMAP.get("new")
         )
 
+        if use_qa:
+            coll = coll.filter(ee.Filter.eq('cloud_mask_success', 1))
+
         if apply_band_adjustment:
             # band bass adjustment coefficients taken HLS project https://hls.gsfc.nasa.gov/algorithms/bandpass-adjustment/
             # slope coefficients
@@ -1013,6 +1016,50 @@ class Sentinel2(Dataset):
 
         return
 
+
+    def deduplicate(self, inplace=False):
+        """Deduplicate Sentinel2 images by removing images with the same data take identifier"""
+        def _dedupe(id):
+            """Helper function to remove duplicate images"""
+            id_collection = (
+                self.collection
+                .filter(
+                    ee.Filter.stringStartsWith("DATATAKE_IDENTIFIER", ee.String(id))
+                )
+                .sort('PROCESSING_BASELINE')
+            )
+            image = (
+                id_collection
+                .mosaic()
+            )
+  
+            imgbounds = id_collection.map(lambda x: x.geometry(1e3))
+  
+            start_time = id_collection.aggregate_array('system:time_start').reduce(ee.Reducer.min())
+            end_time = id_collection.aggregate_array('system:time_start').reduce(ee.Reducer.max())
+  
+            return image.clipToCollection(imgbounds).set(
+                {
+                    'system:time_start': start_time, 
+                    'system:time_end':end_time,
+                    'system:index':id
+                }
+            )
+        
+        datatakes = (
+            self.collection
+            .aggregate_histogram("DATATAKE_IDENTIFIER")
+            .keys()
+            .map(lambda x: ee.String(x).slice(0,-7))
+        )
+
+        images = ee.ImageCollection.fromImages(
+            datatakes.map(_dedupe)
+        )
+
+        return self._inplace_wrapper(images, inplace)
+
+
     @decorators.keep_attrs
     def qa(self, img):
         """Custom QA masking method for Sentinel2 surface reflectance dataset"""
@@ -1025,9 +1072,13 @@ class Sentinel2(Dataset):
         # Get s2cloudless image, subset the probability band.
         cld_prb = ee.Image(
             ee.ImageCollection("COPERNICUS/S2_CLOUD_PROBABILITY")
+            .filterDate(self.start_time, self.end_time)
+            .filterBounds(self.region)
             .filter(ee.Filter.eq("system:index", img.get("system:index")))
             .first()
         ).select("probability")
+
+        worked = cld_prb.bandNames().length().gt(0)
 
         # Condition s2cloudless by the probability threshold value.
         is_cloud = cld_prb.gt(CLD_PRB_THRESH)
@@ -1067,4 +1118,4 @@ class Sentinel2(Dataset):
         )
 
         # Subset reflectance bands and update their masks, return the result.
-        return geeutils.rescale(img).select("B.*").updateMask(is_cld_shdw.Not())
+        return geeutils.rescale(img).select("B.*").updateMask(is_cld_shdw.Not()).set({'cloud_mask_success':worked})
