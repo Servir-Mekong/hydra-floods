@@ -1032,20 +1032,20 @@ class Sentinel2(Dataset):
                 id_collection
                 .mosaic()
             )
-  
+
             imgbounds = id_collection.map(lambda x: x.geometry(1e3))
-  
+
             start_time = id_collection.aggregate_array('system:time_start').reduce(ee.Reducer.min())
             end_time = id_collection.aggregate_array('system:time_start').reduce(ee.Reducer.max())
-  
+
             return image.clipToCollection(imgbounds).set(
                 {
-                    'system:time_start': start_time, 
+                    'system:time_start': start_time,
                     'system:time_end':end_time,
                     'system:index':id
                 }
             )
-        
+
         datatakes = (
             self.collection
             .aggregate_histogram("DATATAKE_IDENTIFIER")
@@ -1075,10 +1075,16 @@ class Sentinel2(Dataset):
             .filterDate(self.start_time, self.end_time)
             .filterBounds(self.region)
             .filter(ee.Filter.eq("system:index", img.get("system:index")))
-            .first()
         ).select("probability")
 
         worked = cld_prb.bandNames().length().gt(0)
+
+        if not worked.getInfo():
+            # Not all image has associated cloud probability image
+            # e.g. https://code.earthengine.google.com/638145f913d6628e45b4554a2bab7462
+            return img.set({'cloud_mask_success': worked})
+        else:
+            cld_prb = cld_prb.first()
 
         # Condition s2cloudless by the probability threshold value.
         is_cloud = cld_prb.gt(CLD_PRB_THRESH)
@@ -1118,4 +1124,4 @@ class Sentinel2(Dataset):
         )
 
         # Subset reflectance bands and update their masks, return the result.
-        return geeutils.rescale(img).select("B.*").updateMask(is_cld_shdw.Not()).set({'cloud_mask_success':worked})
+        return geeutils.rescale(img).select("B.*").updateMask(is_cld_shdw.Not()).set({'cloud_mask_success': worked})
