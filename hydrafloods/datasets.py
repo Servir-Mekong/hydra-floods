@@ -726,14 +726,14 @@ class Viirs(Dataset):
 
 class Modis(Dataset):
     def __init__(
-        self, *args, asset_id="MODIS/006/MOD09GA", use_qa=True, **kwargs
+        self, *args, asset_id="MODIS/061/MOD09GA", use_qa=True, **kwargs
     ):
         """Initialize MODIS Dataset class
         Can be used with MOD09GA and MYD09GA
 
         args:
             *args: positional arguments to pass to `Dataset` (i.e. `region`, `start_time`, `end_time`)
-            asset_id (str): asset id of the MODIS earth engine collection. default="MODIS/006/MOD09GA"
+            asset_id (str): asset id of the MODIS earth engine collection. default="MODIS/061/MOD09GA"
             use_qa (bool, optional): boolean to determine to use a private `self.qa()` function. default=True
             rescale (bool, optional): boolean switch to convert units from scaled int (0-10000) to float (0-1). If false values will be scaled int. default = False
             **kwargs (optional): addtional arbitrary keywords to pass to `Dataset`
