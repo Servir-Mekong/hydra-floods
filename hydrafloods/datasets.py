@@ -1032,20 +1032,20 @@ class Sentinel2(Dataset):
                 id_collection
                 .mosaic()
             )
-  
+
             imgbounds = id_collection.map(lambda x: x.geometry(1e3))
-  
+
             start_time = id_collection.aggregate_array('system:time_start').reduce(ee.Reducer.min())
             end_time = id_collection.aggregate_array('system:time_start').reduce(ee.Reducer.max())
-  
+
             return image.clipToCollection(imgbounds).set(
                 {
-                    'system:time_start': start_time, 
+                    'system:time_start': start_time,
                     'system:time_end':end_time,
                     'system:index':id
                 }
             )
-        
+
         datatakes = (
             self.collection
             .aggregate_histogram("DATATAKE_IDENTIFIER")
