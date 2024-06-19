@@ -1,10 +1,5 @@
 # module to host index functions for image transformations
 import ee
-from ee.ee_exception import EEException
-import math
-import string
-import random
-import datetime
 from hydrafloods import decorators
 
 
@@ -45,7 +40,7 @@ def evi(img):
 
 @decorators.keep_attrs
 def mndwi(img):
-    """Function to calculate modified Difference Water Index (MNDWI).
+    """Function to calculate Modified Difference Water Index (MNDWI).
     Expects image has "green" and "swir1" bands.
 
     args:
@@ -59,7 +54,7 @@ def mndwi(img):
 
 @decorators.keep_attrs
 def nwi(img):
-    """Function to calculate new water index (NWI).
+    """Function to calculate New Water Index (NWI).
     Expects image has "blue", "nir", "swir1" and "swir2" bands.
 
     args:
@@ -81,7 +76,7 @@ def nwi(img):
 
 @decorators.keep_attrs
 def gwi(img):
-    """Function to calculate general water index (GWI)
+    """Function to calculate General Water Index (GWI)
     Expects image has "green", "red", "nir", and "swir1" bands.
 
     args:
@@ -103,7 +98,7 @@ def gwi(img):
 
 @decorators.keep_attrs
 def aewinsh(img):
-    """Function to calculate automated water extraction index (AEWI) no shadow
+    """Function to calculate Automated Water Extraction Index no shadow (AEWInsh)
     Expects image has "green", "nir", "swir1" and "swir2" bands.
 
     args:
@@ -125,7 +120,7 @@ def aewinsh(img):
 
 @decorators.keep_attrs
 def aewish(img):
-    """Function to calculate automated water extraction index (AEWI) shadow
+    """Function to calculate Automated Water Extraction Index shadow (AEWIsh)
     Expects image has "blue", "green", "nir", "swir1" and "swir2" bands.
 
     args:
@@ -148,7 +143,7 @@ def aewish(img):
 
 @decorators.keep_attrs
 def lswi(img):
-    """Function to calculate land surface water index (LSWI).
+    """Function to calculate Land Surface Water Index (LSWI).
     Expects image has "nir" and "swir1" bands.
 
     args:
@@ -164,7 +159,7 @@ def lswi(img):
 
 @decorators.keep_attrs
 def wri(img):
-    """Function to calculate water ratio index (WRI).
+    """Function to calculate Water Ratio Index (WRI).
     Expects image has "green", "red", "nir" and "swir1" bands.
 
     args:
@@ -186,7 +181,7 @@ def wri(img):
 
 @decorators.keep_attrs
 def mbwi(img, factor=3):
-    """Function to calculate multi band water index (MBWI).
+    """Function to calculate Multi Band Water Index (MBWI).
     Expects image has "green", "red", "nir", "swir1", and "swir2" bands.
     https://doi.org/10.1016/j.jag.2018.01.018
 
@@ -226,19 +221,20 @@ def mwi(img):
 
 
 @decorators.keep_attrs
-def rfi(img):
-    """Function to calculate SAR RFI index.
+def rvi(img):
+    """Function to calculate SAR Radar Vegetation Index (RVI) index.
+    See more here: https://pro.arcgis.com/en/pro-app/latest/help/analysis/raster-functions/sar-indices-function.htm
     Expects image has "VV" and "VH" bands.
 
     args:
-        img (ee.Image): image to calculate RFI
+        img (ee.Image): image to calculate RVI
 
     returns:
-        ee.Image: RFI image
+        ee.Image: RVI image
     """
     return img.expression(
         "(4*VH)/(VV+VH)", {"VV": img.select("VV"), "VH": img.select("VH")}
-    ).rename("rfi")
+    ).rename("rvi")
 
 
 @decorators.keep_attrs
@@ -273,7 +269,7 @@ def vv_vh_abs_sum(img):
 
 @decorators.keep_attrs
 def ndpi(img):
-    """Function to calculate nomalized difference polarization index (NDPI).
+    """Function to calculate Normalized Difference Polarization Index (NDPI).
     Expects image has "VV" and "VH" bands.
 
     args:
@@ -289,7 +285,7 @@ def ndpi(img):
 
 @decorators.keep_attrs
 def nvvi(img):
-    """Function to calculate nomalized VV index (NVVI).
+    """Function to calculate Normalized VV Index (NVVI).
     Expects image has "VV" and "VH" bands.
 
     args:
@@ -305,7 +301,7 @@ def nvvi(img):
 
 @decorators.keep_attrs
 def nvhi(img):
-    """Function to calculate nomalized VH index (NVHI).
+    """Function to calculate Normalized VH Index (NVHI).
     Expects image has "VV" and "VH" bands.
 
     args:
