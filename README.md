@@ -4,6 +4,8 @@
 ![unittests](https://github.com/Servir-Mekong/hydra-floods/workflows/unittests/badge.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PyPI version](https://badge.fury.io/py/hydrafloods.svg)](https://badge.fury.io/py/hydrafloods)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15841684.svg)](https://doi.org/10.5281/zenodo.15841684)
+
 
 
 ## Introduction
@@ -97,6 +99,10 @@ Learn more about the package throughout the documentation such as [installation]
 
 Contributions are welcome, and they are greatly appreciated! Every little bit helps, and credit will always be given. Please see the [Contributing Guidelines](https://github.com/servir-mekong/hydra-floods/blob/master/CONTRIBUTING.md) for details on where to contribute and how to get started.
 
+## Citation
+
+Markert, K., Bhandari, B., Haag, A., Mayer, T., Poortinga, A., van Verseveld, W., & Soe Thwal, N. (2023). Hydrologic Remote Sensing Analysis for Floods (HYDRAFloods) (v2023.10.14). Zenodo. https://doi.org/10.5281/zenodo.15841684
+
 ## License
 
-`hydrafloods` is available under the open source [GNU General Public License v3.0](https://github.com/Servir-Mekong/hydra-floods/blob/master/LICENSE).
+`hydrafloods` is available under the open source [MIT License](https://github.com/Servir-Mekong/hydra-floods/blob/master/LICENSE).
