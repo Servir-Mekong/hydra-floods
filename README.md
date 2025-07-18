@@ -2,7 +2,7 @@
 
 [![docs](https://github.com/Servir-Mekong/hydra-floods/workflows/docs/badge.svg)](https://servir-mekong.github.io/hydra-floods)
 ![unittests](https://github.com/Servir-Mekong/hydra-floods/workflows/unittests/badge.svg)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![PyPI version](https://badge.fury.io/py/hydrafloods.svg)](https://badge.fury.io/py/hydrafloods)
 
 
